@@ -28,7 +28,7 @@ export default function DigitalReceiptScreen() {
       <KisanCard style={styles.receiptPaper}>
         <View style={styles.receiptHeader}>
           <Text style={styles.emblemText}>🌾</Text>
-          <Text style={styles.govtTitle}>GOVERNMENT OF MADHYA PRADESH</Text>
+          <Text style={styles.govtTitle}>Department of Consumer Affairs (DoCA)</Text>
           <Text style={styles.deptTitle}>Department of Food, Civil Supplies & Consumer Protection</Text>
           <Text style={styles.receiptMainTitle}>PROCUREMENT WEIGHMENT & SETTLEMENT SLIP</Text>
         </View>

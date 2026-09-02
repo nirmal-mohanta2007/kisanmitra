@@ -172,7 +172,7 @@ export default function FarmerRegistrationScreen() {
       {/* Top Header with Corner Profile Picture */}
       <View style={styles.headerCard}>
         <View style={styles.headerTextCol}>
-          <Text style={styles.govtBadge}>GOVERNMENT OF MADHYA PRADESH</Text>
+          <Text style={styles.govtBadge}>Department of Consumer Affairs (DoCA)</Text>
           <Text style={styles.headerTitle}>Farmer Digital Registration</Text>
           <Text style={styles.headerSub}>
             PM-Kisan & State MSP Procurement Portal (e-Uparjan)

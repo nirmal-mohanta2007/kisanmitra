@@ -26,7 +26,7 @@ export default function AdminDashboard() {
         <View>
           <Text style={styles.adminSub}>STATE PROCUREMENT COMMAND</Text>
           <Text style={styles.adminTitle}>Central Monitoring Dashboard</Text>
-          <Text style={styles.adminMeta}>Jurisdiction: Madhya Pradesh State • 2026 Season</Text>
+          <Text style={styles.adminMeta}>Jurisdiction: Department of Consumer Affairs (DoCA) • 2026 Season</Text>
         </View>
         <TouchableOpacity
           style={styles.switchRoleBtn}
