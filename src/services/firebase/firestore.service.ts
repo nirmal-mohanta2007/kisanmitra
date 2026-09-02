@@ -469,7 +469,7 @@ export const FirestoreService = {
         message: `Successfully seeded Cloud Firestore with ${MOCK_CENTRES.length} centres, ${MOCK_FARMERS.length} farmers, and ${initialTransactions.length} transactions! 🎉`,
       };
     } catch (error: any) {
-      console.error('[Firestore] Seeding failed:', error);
+      console.warn('[Firestore] Seeding notice:', error);
       const code = error?.code || '';
       const msg = error?.message || String(error);
 
