@@ -5,9 +5,9 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  ScrollView,
   Image,
   Alert,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,16 +29,18 @@ const SAMPLE_AVATARS = [
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
   'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
   'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
 ];
 
 export default function FarmerRegistrationScreen() {
   const router = useRouter();
   const { dispatch } = useAppContext();
 
-  // 1. Profile Picture (in top corner)
-  const [avatarIndex, setAvatarIndex] = useState(0);
+  // Profile Picture State
+  const [profileImage, setProfileImage] = useState<string>(SAMPLE_AVATARS[0]);
+  const [fileName, setFileName] = useState<string>('farmer_passport_photo.jpg');
 
-  // 2. Aadhaar & Mobile
+  // 1. Aadhaar & Mobile
   const [aadhaar, setAadhaar] = useState('');
   const [isAadhaarVerified, setIsAadhaarVerified] = useState(false);
   const [mobile, setMobile] = useState('');
@@ -46,7 +48,7 @@ export default function FarmerRegistrationScreen() {
   const [otp, setOtp] = useState('');
   const [isMobileVerified, setIsMobileVerified] = useState(false);
 
-  // 3. Bio Data & Address
+  // 2. Bio Data & Address
   const [fullName, setFullName] = useState('');
   const [fatherName, setFatherName] = useState('');
   const [gender, setGender] = useState<'Male' | 'Female' | 'Other'>('Male');
@@ -104,8 +106,33 @@ export default function FarmerRegistrationScreen() {
     }
   };
 
-  const handleCycleAvatar = () => {
-    setAvatarIndex((prev) => (prev + 1) % SAMPLE_AVATARS.length);
+  // Choose File Trigger (Web & Native)
+  const handleChooseFile = () => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e: any) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          setFileName(file.name);
+          const reader = new FileReader();
+          reader.onload = (uploadEvent: any) => {
+            if (uploadEvent.target?.result) {
+              setProfileImage(uploadEvent.target.result as string);
+              Alert.alert('Photo Selected', `Loaded: ${file.name}`);
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      input.click();
+    } else {
+      // Rotate through preset samples on native or when file dialog is closed
+      const nextIdx = (SAMPLE_AVATARS.indexOf(profileImage) + 1) % SAMPLE_AVATARS.length;
+      setProfileImage(SAMPLE_AVATARS[nextIdx]);
+      setFileName(`farmer_photo_${nextIdx + 1}.jpg`);
+    }
   };
 
   const handleUploadLandDoc = () => {
@@ -139,7 +166,7 @@ export default function FarmerRegistrationScreen() {
       bankAccount: accountNo ? `•••• ${accountNo.slice(-4)}` : '•••• 5678',
       ifsc: ifsc,
       bankName: bankName,
-      photoUrl: SAMPLE_AVATARS[avatarIndex],
+      photoUrl: profileImage,
       isVerified: true,
     };
 
@@ -179,14 +206,14 @@ export default function FarmerRegistrationScreen() {
           </Text>
         </View>
 
-        {/* Profile Picture in Corner */}
+        {/* Profile Picture in Corner (Tappable) */}
         <TouchableOpacity
-          style={styles.avatarWrapper}
-          onPress={handleCycleAvatar}
+          style={styles.avatarCornerWrapper}
+          onPress={handleChooseFile}
           activeOpacity={0.8}
         >
           <Image
-            source={{ uri: SAMPLE_AVATARS[avatarIndex] }}
+            source={{ uri: profileImage }}
             style={styles.avatarImage}
           />
           <View style={styles.cameraIconBadge}>
@@ -332,9 +359,56 @@ export default function FarmerRegistrationScreen() {
         </View>
       </KisanCard>
 
-      {/* Section 3: Bank Account & IFSC (DBT) */}
+      {/* Section 3: Profile Picture with Choose File Option (Placed after Bio Data) */}
       <SectionHeader
-        title="3. Bank Account Details (DBT Direct Payout)"
+        title="3. Profile Picture / Farmer Photo"
+        subtitle="Upload a clear passport size photograph for Mandi pass & identity verification"
+      />
+      <KisanCard style={styles.card}>
+        <View style={styles.photoUploadRow}>
+          {/* Photo Preview */}
+          <View style={styles.photoPreviewBox}>
+            <Image source={{ uri: profileImage }} style={styles.previewImage} />
+            <View style={styles.photoBadge}>
+              <Text style={styles.photoBadgeText}>Preview</Text>
+            </View>
+          </View>
+
+          {/* Choose File Controls */}
+          <View style={styles.fileChooserControls}>
+            <Text style={styles.uploadHeading}>Passport Photo Document</Text>
+            <Text style={styles.uploadGuideline}>
+              Formats: JPG, PNG • Max size: 5 MB
+            </Text>
+
+            <View style={styles.fileInputRow}>
+              <TouchableOpacity
+                style={styles.chooseFileBtn}
+                onPress={handleChooseFile}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="folder-open-outline" size={16} color="#FFFFFF" />
+                <Text style={styles.chooseFileBtnText}>Choose File</Text>
+              </TouchableOpacity>
+              <Text style={styles.fileNameText} numberOfLines={1}>
+                {fileName}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.altCameraBtn}
+              onPress={handleChooseFile}
+            >
+              <Ionicons name="camera-outline" size={14} color={colors.primary} />
+              <Text style={styles.altCameraBtnText}>Take Live Selfie / Change</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KisanCard>
+
+      {/* Section 4: Bank Account & IFSC (DBT) */}
+      <SectionHeader
+        title="4. Bank Account Details (DBT Direct Payout)"
         subtitle="Procurement money will be deposited directly here"
       />
       <KisanCard style={styles.card}>
@@ -378,10 +452,10 @@ export default function FarmerRegistrationScreen() {
         />
       </KisanCard>
 
-      {/* Section 4: Land Record Details */}
+      {/* Section 5: Land Record Details */}
       <SectionHeader
-        title="4. Land Record & Cultivation Area"
-        subtitle="Verified against MP Bhu-Abhilekh (Revenue Registry)"
+        title="5. Land Record & Cultivation Area"
+        subtitle="Verified against Bhu-Abhilekh (Revenue Registry)"
       />
       <KisanCard style={styles.card}>
         <View style={styles.twoCol}>
@@ -488,7 +562,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
   },
-  avatarWrapper: {
+  avatarCornerWrapper: {
     position: 'relative',
     width: 64,
     height: 64,
@@ -593,6 +667,92 @@ const styles = StyleSheet.create({
   twoCol: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  photoUploadRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  photoPreviewBox: {
+    position: 'relative',
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    marginRight: spacing.md,
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 36,
+  },
+  photoBadge: {
+    position: 'absolute',
+    bottom: -4,
+    left: 10,
+    backgroundColor: colors.primary,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  photoBadgeText: {
+    fontSize: 9,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  fileChooserControls: {
+    flex: 1,
+  },
+  uploadHeading: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+  },
+  uploadGuideline: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginBottom: 8,
+  },
+  fileInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 3,
+    marginBottom: 6,
+  },
+  chooseFileBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#455A64',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.sm - 2,
+    gap: 4,
+  },
+  chooseFileBtnText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  fileNameText: {
+    flex: 1,
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginLeft: 8,
+  },
+  altCameraBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  altCameraBtnText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.primary,
   },
   uploadBox: {
     borderWidth: 1.5,
