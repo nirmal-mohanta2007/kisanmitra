@@ -31,7 +31,7 @@ export function transitionStatus(
     status: newStatus,
     timestamp: new Date().toISOString(),
     updatedBy,
-    notes,
+    notes: notes || null as any,
   };
 
   return {

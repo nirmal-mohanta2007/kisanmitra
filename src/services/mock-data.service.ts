@@ -305,3 +305,5 @@ export function generateMockTransactions(): ProcurementTransaction[] {
 
   return transactions;
 }
+
+export const MOCK_TRANSACTIONS: ProcurementTransaction[] = generateMockTransactions();

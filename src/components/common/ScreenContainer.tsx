@@ -1,13 +1,16 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
-import { colors, spacing } from '../../theme';
+import { View, ScrollView, StyleSheet, SafeAreaView, StyleProp, ViewStyle } from 'react-native';
+import { colors } from '../../theme/colors';
+import { spacing } from '../../theme/spacing';
 import { KisanText } from './KisanText';
 
-interface ScreenContainerProps {
+export interface ScreenContainerProps {
   title?: string;
   scrollable?: boolean;
   children: React.ReactNode;
   backgroundColor?: string;
+  style?: StyleProp<ViewStyle>;
+  contentContainerStyle?: StyleProp<ViewStyle>;
 }
 
 export const ScreenContainer: React.FC<ScreenContainerProps> = ({
@@ -15,9 +18,11 @@ export const ScreenContainer: React.FC<ScreenContainerProps> = ({
   scrollable = true,
   children,
   backgroundColor = colors.background,
+  style,
+  contentContainerStyle,
 }) => {
   const content = (
-    <View style={[styles.content, { backgroundColor }]}>
+    <View style={[styles.content, { backgroundColor }, style]}>
       {title && (
         <View style={styles.header}>
           <KisanText variant="header">{title}</KisanText>
@@ -30,7 +35,7 @@ export const ScreenContainer: React.FC<ScreenContainerProps> = ({
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
       {scrollable ? (
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, contentContainerStyle]}>
           {content}
         </ScrollView>
       ) : (
@@ -49,9 +54,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: spacing.l,
+    padding: spacing.lg,
   },
   header: {
-    marginBottom: spacing.l,
+    marginBottom: spacing.md,
   },
 });

@@ -3,6 +3,7 @@ export type IssueStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
 
 export interface Issue {
   id: string;
+  title?: string;
   transactionId?: string;
   farmerId?: string;
   reporterId?: string;

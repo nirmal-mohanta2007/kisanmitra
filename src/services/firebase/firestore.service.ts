@@ -14,7 +14,7 @@ import {
   writeBatch,
   Unsubscribe,
 } from 'firebase/firestore';
-import { db, isFirebaseConfigured } from './firebase.config';
+import { db, auth, isFirebaseConfigured } from './firebase.config';
 import {
   Centre,
   Farmer,
@@ -29,7 +29,34 @@ const COLLECTIONS = {
   FARMERS: 'farmers',
   TRANSACTIONS: 'transactions',
   USERS: 'users',
-};
+} as const;
+
+/**
+ * Recursively removes/replaces undefined fields so Cloud Firestore never throws invalid data errors.
+ */
+function sanitizeForFirestore<T>(obj: T): any {
+  if (obj === undefined) {
+    return null;
+  }
+  if (obj === null) {
+    return null;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map((item) => sanitizeForFirestore(item));
+  }
+  if (typeof obj === 'object' && !(obj instanceof Date)) {
+    const cleaned: Record<string, any> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        cleaned[key] = sanitizeForFirestore(value);
+      } else {
+        cleaned[key] = null;
+      }
+    }
+    return cleaned;
+  }
+  return obj;
+}
 
 export const FirestoreService = {
   // ==========================================
@@ -40,55 +67,65 @@ export const FirestoreService = {
    * Fetch all procurement centres
    */
   async getCentres(): Promise<Centre[]> {
-    if (!isFirebaseConfigured() || !db) {
-      return MOCK_CENTRES;
-    }
+    if (!isFirebaseConfigured() || !db) return MOCK_CENTRES;
+
     try {
       const snap = await getDocs(collection(db, COLLECTIONS.CENTRES));
-      if (snap.empty) return MOCK_CENTRES;
+      if (snap.empty) {
+        return MOCK_CENTRES;
+      }
       return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Centre));
     } catch (e) {
-      console.warn('[Firestore] Error fetching centres, fallback to mock:', e);
+      console.warn('[Firestore] Error fetching centres, using mock data:', e);
       return MOCK_CENTRES;
     }
   },
 
   /**
-   * Subscribe to real-time updates for procurement centres
+   * Listen to real-time updates for centres
    */
   subscribeCentres(callback: (centres: Centre[]) => void): Unsubscribe {
     if (!isFirebaseConfigured() || !db) {
       callback(MOCK_CENTRES);
       return () => {};
     }
-    const q = collection(db, COLLECTIONS.CENTRES);
+
+    const q = query(collection(db, COLLECTIONS.CENTRES));
     return onSnapshot(
       q,
       (snap) => {
         if (snap.empty) {
           callback(MOCK_CENTRES);
-        } else {
-          const items = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Centre));
-          callback(items);
+          return;
         }
+        const centres = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Centre));
+        callback(centres);
       },
       (error) => {
-        console.warn('[Firestore] Error in centres subscription:', error);
+        console.warn('[Firestore] Error subscribing to centres, falling back to mock data:', error);
         callback(MOCK_CENTRES);
       }
     );
   },
 
   /**
-   * Update centre delay, capacity, or operating hours
+   * Get single centre by ID
    */
-  async updateCentre(centreId: string, updates: Partial<Centre>): Promise<void> {
-    if (!isFirebaseConfigured() || !db) return;
-    const ref = doc(db, COLLECTIONS.CENTRES, centreId);
-    await updateDoc(ref, {
-      ...updates,
-      updatedAt: serverTimestamp(),
-    });
+  async getCentreById(id: string): Promise<Centre | null> {
+    if (!isFirebaseConfigured() || !db) {
+      return MOCK_CENTRES.find((c) => c.id === id) || null;
+    }
+
+    try {
+      const snap = await getDoc(doc(db, COLLECTIONS.CENTRES, id));
+      if (snap.exists()) {
+        return { id: snap.id, ...snap.data() } as Centre;
+      }
+      return MOCK_CENTRES.find((c) => c.id === id) || null;
+    } catch (e) {
+      console.warn(`[Firestore] Error fetching centre ${id}:`, e);
+      return MOCK_CENTRES.find((c) => c.id === id) || null;
+    }
   },
 
   // ==========================================
@@ -99,9 +136,8 @@ export const FirestoreService = {
    * Fetch all registered farmers
    */
   async getFarmers(): Promise<Farmer[]> {
-    if (!isFirebaseConfigured() || !db) {
-      return MOCK_FARMERS;
-    }
+    if (!isFirebaseConfigured() || !db) return MOCK_FARMERS;
+
     try {
       const snap = await getDocs(collection(db, COLLECTIONS.FARMERS));
       if (snap.empty) return MOCK_FARMERS;
@@ -113,114 +149,133 @@ export const FirestoreService = {
   },
 
   /**
-   * Save or update farmer profile
+   * Get farmer by ID
+   */
+  async getFarmerById(id: string): Promise<Farmer | null> {
+    if (!isFirebaseConfigured() || !db) {
+      return MOCK_FARMERS.find((f) => f.id === id) || null;
+    }
+
+    try {
+      const snap = await getDoc(doc(db, COLLECTIONS.FARMERS, id));
+      if (snap.exists()) {
+        return { id: snap.id, ...snap.data() } as Farmer;
+      }
+      return MOCK_FARMERS.find((f) => f.id === id) || null;
+    } catch (e) {
+      console.warn(`[Firestore] Error fetching farmer ${id}:`, e);
+      return MOCK_FARMERS.find((f) => f.id === id) || null;
+    }
+  },
+
+  /**
+   * Create or update a farmer profile
    */
   async saveFarmer(farmer: Farmer): Promise<void> {
     if (!isFirebaseConfigured() || !db) return;
-    const ref = doc(db, COLLECTIONS.FARMERS, farmer.id);
-    await setDoc(ref, {
-      ...farmer,
-      updatedAt: serverTimestamp(),
-    }, { merge: true });
+
+    try {
+      await setDoc(doc(db, COLLECTIONS.FARMERS, farmer.id), sanitizeForFirestore(farmer), { merge: true });
+    } catch (e) {
+      console.warn(`[Firestore] Error saving farmer ${farmer.id}:`, e);
+    }
   },
 
   // ==========================================
-  // TRANSACTIONS & LIVE QUEUE
+  // TRANSACTIONS / BOOKINGS / QUEUE
   // ==========================================
 
   /**
-   * Fetch all procurement transactions
+   * Fetch all transactions
    */
   async getTransactions(): Promise<ProcurementTransaction[]> {
-    if (!isFirebaseConfigured() || !db) {
-      return generateMockTransactions();
-    }
+    const mockTxs = generateMockTransactions();
+    if (!isFirebaseConfigured() || !db) return mockTxs;
+
     try {
       const snap = await getDocs(collection(db, COLLECTIONS.TRANSACTIONS));
-      if (snap.empty) return generateMockTransactions();
+      if (snap.empty) return mockTxs;
       return snap.docs.map((d) => ({ id: d.id, ...d.data() } as ProcurementTransaction));
     } catch (e) {
       console.warn('[Firestore] Error fetching transactions:', e);
-      return generateMockTransactions();
+      return mockTxs;
     }
   },
 
   /**
-   * Subscribe to all transactions in real time
+   * Real-time subscription to transactions
    */
-  subscribeTransactions(callback: (txs: ProcurementTransaction[]) => void): Unsubscribe {
+  subscribeTransactions(
+    callback: (transactions: ProcurementTransaction[]) => void,
+    filters?: { centreId?: string; farmerId?: string; status?: TransactionStatus }
+  ): Unsubscribe {
+    const mockTxs = generateMockTransactions();
     if (!isFirebaseConfigured() || !db) {
-      callback(generateMockTransactions());
+      let filtered = mockTxs;
+      if (filters?.centreId) filtered = filtered.filter((t) => t.centreId === filters.centreId);
+      if (filters?.farmerId) filtered = filtered.filter((t) => t.farmerId === filters.farmerId);
+      if (filters?.status) filtered = filtered.filter((t) => t.status === filters.status);
+      callback(filtered);
       return () => {};
     }
-    const q = collection(db, COLLECTIONS.TRANSACTIONS);
-    return onSnapshot(
-      q,
-      (snap) => {
-        if (snap.empty) {
-          callback(generateMockTransactions());
-        } else {
+
+    try {
+      let q = query(collection(db, COLLECTIONS.TRANSACTIONS));
+
+      if (filters?.centreId) {
+        q = query(q, where('centreId', '==', filters.centreId));
+      }
+      if (filters?.farmerId) {
+        q = query(q, where('farmerId', '==', filters.farmerId));
+      }
+      if (filters?.status) {
+        q = query(q, where('status', '==', filters.status));
+      }
+
+      return onSnapshot(
+        q,
+        (snap) => {
+          if (snap.empty) {
+            callback(mockTxs);
+            return;
+          }
           const items = snap.docs.map((d) => ({ id: d.id, ...d.data() } as ProcurementTransaction));
           callback(items);
+        },
+        (error) => {
+          console.warn('[Firestore] Error subscribing to transactions:', error);
+          callback(mockTxs);
         }
-      },
-      (error) => {
-        console.warn('[Firestore] Error subscribing to transactions:', error);
-      }
-    );
-  },
-
-  /**
-   * Subscribe to transactions for a specific farmer
-   */
-  subscribeFarmerTransactions(
-    farmerId: string,
-    callback: (txs: ProcurementTransaction[]) => void
-  ): Unsubscribe {
-    if (!isFirebaseConfigured() || !db) {
-      const all = generateMockTransactions();
-      callback(all.filter((t) => t.farmerId === farmerId));
+      );
+    } catch (e) {
+      console.warn('[Firestore] Query creation error:', e);
+      callback(mockTxs);
       return () => {};
     }
-    const q = query(
-      collection(db, COLLECTIONS.TRANSACTIONS),
-      where('farmerId', '==', farmerId)
-    );
-    return onSnapshot(
-      q,
-      (snap) => {
-        const items = snap.docs.map((d) => ({ id: d.id, ...d.data() } as ProcurementTransaction));
-        callback(items);
-      },
-      (error) => {
-        console.warn(`[Firestore] Error subscribing to farmer transactions for ${farmerId}:`, error);
-      }
-    );
   },
 
   /**
-   * Subscribe to real-time live queue for a specific centre
+   * Listen to active queue for a specific Mandi centre
    */
   subscribeCentreQueue(
     centreId: string,
     callback: (queue: ProcurementTransaction[]) => void
   ): Unsubscribe {
     if (!isFirebaseConfigured() || !db) {
-      const all = generateMockTransactions();
-      const queueStatuses = [
-        TransactionStatus.BOOKED,
-        TransactionStatus.CHECKED_IN,
-        TransactionStatus.WAITING,
-        TransactionStatus.WEIGHING,
-        TransactionStatus.QUALITY_CHECK,
-      ];
-      callback(
-        all
-          .filter((t) => t.centreId === centreId && queueStatuses.includes(t.status))
-          .sort((a, b) => a.tokenNumber - b.tokenNumber)
-      );
+      const mockTxs = generateMockTransactions();
+      const queue = mockTxs
+        .filter((t) => t.centreId === centreId)
+        .sort((a, b) => (a.tokenNumber || 0) - (b.tokenNumber || 0));
+      callback(queue);
       return () => {};
     }
+
+    const queueStatuses = [
+      TransactionStatus.CHECKED_IN,
+      TransactionStatus.WEIGHING,
+      TransactionStatus.QUALITY_CHECK,
+      TransactionStatus.PROCUREMENT_COMPLETED,
+    ];
 
     const q = query(
       collection(db, COLLECTIONS.TRANSACTIONS),
@@ -230,13 +285,6 @@ export const FirestoreService = {
     return onSnapshot(
       q,
       (snap) => {
-        const queueStatuses = [
-          TransactionStatus.BOOKED,
-          TransactionStatus.CHECKED_IN,
-          TransactionStatus.WAITING,
-          TransactionStatus.WEIGHING,
-          TransactionStatus.QUALITY_CHECK,
-        ];
         const items = snap.docs
           .map((d) => ({ id: d.id, ...d.data() } as ProcurementTransaction))
           .filter((t) => queueStatuses.includes(t.status))
@@ -292,7 +340,7 @@ export const FirestoreService = {
 
     if (isFirebaseConfigured() && db) {
       try {
-        await setDoc(doc(db, COLLECTIONS.TRANSACTIONS, id), newTx);
+        await setDoc(doc(db, COLLECTIONS.TRANSACTIONS, id), sanitizeForFirestore(newTx));
       } catch (e) {
         console.warn('[Firestore] Failed to persist transaction to Firestore:', e);
       }
@@ -306,19 +354,20 @@ export const FirestoreService = {
    */
   async updateTransaction(id: string, updates: Partial<ProcurementTransaction>): Promise<void> {
     if (!isFirebaseConfigured() || !db) return;
+
     try {
       const ref = doc(db, COLLECTIONS.TRANSACTIONS, id);
-      await updateDoc(ref, {
+      await updateDoc(ref, sanitizeForFirestore({
         ...updates,
         updatedAt: new Date().toISOString(),
-      });
+      }));
     } catch (e) {
       console.warn(`[Firestore] Error updating transaction ${id}:`, e);
     }
   },
 
   /**
-   * Advance transaction status with a history audit record
+   * Transition transaction status with audit trail
    */
   async updateTransactionStatus(
     id: string,
@@ -344,11 +393,11 @@ export const FirestoreService = {
 
       const updatedHistory = [...(tx.statusHistory || []), historyEntry];
 
-      await updateDoc(ref, {
+      await updateDoc(ref, sanitizeForFirestore({
         status: newStatus,
         statusHistory: updatedHistory,
         updatedAt: new Date().toISOString(),
-      });
+      }));
     } catch (e) {
       console.warn(`[Firestore] Error transitioning status for ${id}:`, e);
     }
@@ -360,24 +409,37 @@ export const FirestoreService = {
 
   /**
    * Seeds initial Centres, Farmers, and sample Transactions into Cloud Firestore.
-   * Safe: will not overwrite unless force is true.
    */
   async seedFirestoreData(force = false): Promise<{ success: boolean; message: string }> {
     if (!isFirebaseConfigured() || !db) {
       return {
         success: false,
-        message: 'Firebase is not configured. Please add your credentials in .env first.',
+        message: 'Firebase configuration is missing in .env.',
       };
     }
 
     try {
-      // Check if already seeded
-      const existingCentres = await getDocs(collection(db, COLLECTIONS.CENTRES));
-      if (!existingCentres.empty && !force) {
-        return {
-          success: true,
-          message: `Database already populated with ${existingCentres.size} centres. Skipping seeding.`,
-        };
+      // Auto-authenticate anonymously if not logged in yet
+      if (auth && !auth.currentUser) {
+        try {
+          const { signInAnonymously } = await import('firebase/auth');
+          await signInAnonymously(auth);
+        } catch (authErr) {
+          console.warn('[Firestore] Anonymous auth before seed:', authErr);
+        }
+      }
+
+      // Check if already seeded (catch read permissions gracefully)
+      try {
+        const existingCentres = await getDocs(collection(db, COLLECTIONS.CENTRES));
+        if (!existingCentres.empty && !force) {
+          return {
+            success: true,
+            message: `Cloud Firestore is already populated with ${existingCentres.size} centres!`,
+          };
+        }
+      } catch (readErr) {
+        console.warn('[Firestore] Read check error:', readErr);
       }
 
       const batch = writeBatch(db);
@@ -385,32 +447,47 @@ export const FirestoreService = {
       // 1. Seed Centres
       for (const centre of MOCK_CENTRES) {
         const ref = doc(db, COLLECTIONS.CENTRES, centre.id);
-        batch.set(ref, centre);
+        batch.set(ref, sanitizeForFirestore(centre));
       }
 
       // 2. Seed Farmers
       for (const farmer of MOCK_FARMERS) {
         const ref = doc(db, COLLECTIONS.FARMERS, farmer.id);
-        batch.set(ref, farmer);
+        batch.set(ref, sanitizeForFirestore(farmer));
       }
 
       // 3. Seed Mock Transactions
       const initialTransactions = generateMockTransactions();
       for (const tx of initialTransactions) {
         const ref = doc(db, COLLECTIONS.TRANSACTIONS, tx.id);
-        batch.set(ref, tx);
+        batch.set(ref, sanitizeForFirestore(tx));
       }
 
       await batch.commit();
       return {
         success: true,
-        message: `Successfully seeded Firestore with ${MOCK_CENTRES.length} centres, ${MOCK_FARMERS.length} farmers, and ${initialTransactions.length} transactions!`,
+        message: `Successfully seeded Cloud Firestore with ${MOCK_CENTRES.length} centres, ${MOCK_FARMERS.length} farmers, and ${initialTransactions.length} transactions! 🎉`,
       };
     } catch (error: any) {
       console.error('[Firestore] Seeding failed:', error);
+      const code = error?.code || '';
+      const msg = error?.message || String(error);
+
+      if (code.includes('permission-denied') || msg.includes('permission') || msg.includes('Missing or insufficient')) {
+        return {
+          success: false,
+          message: 'Firestore Security Rules blocked write. In Firebase Console > Firestore Database > Rules, change to "allow read, write: if true;" and click Publish.',
+        };
+      }
+      if (code.includes('not-found') || msg.includes('database') || msg.includes('does not exist')) {
+        return {
+          success: false,
+          message: 'Firestore Database is not yet created in your Firebase Console. Go to Build > Firestore Database > Create Database.',
+        };
+      }
       return {
         success: false,
-        message: `Seeding failed: ${error?.message || error}`,
+        message: `Firestore Notice: ${msg}`,
       };
     }
   },

@@ -126,9 +126,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const configured = isFirebaseConfigured();
     dispatch({ type: 'SET_FIREBASE_CONNECTED', payload: configured });
 
+    // Always ensure initial state is pre-populated
+    dispatch({ type: 'LOAD_MOCK_DATA' });
+
     if (!configured) {
-      // Fallback to local mock data
-      dispatch({ type: 'LOAD_MOCK_DATA' });
       return;
     }
 
@@ -136,17 +137,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     dispatch({ type: 'SET_SYNCING', payload: true });
 
     const unsubscribeCentres = FirestoreService.subscribeCentres((centres) => {
-      dispatch({ type: 'SET_CENTRES', payload: centres });
+      if (centres && centres.length > 0) {
+        dispatch({ type: 'SET_CENTRES', payload: centres });
+      }
     });
 
     const unsubscribeTransactions = FirestoreService.subscribeTransactions((transactions) => {
-      dispatch({ type: 'SET_TRANSACTIONS', payload: transactions });
+      if (transactions && transactions.length > 0) {
+        dispatch({ type: 'SET_TRANSACTIONS', payload: transactions });
+      }
       dispatch({ type: 'SET_SYNCING', payload: false });
     });
 
     // Also fetch initial farmers
     FirestoreService.getFarmers().then((farmers) => {
-      dispatch({ type: 'SET_FARMERS', payload: farmers });
+      if (farmers && farmers.length > 0) {
+        dispatch({ type: 'SET_FARMERS', payload: farmers });
+      }
     });
 
     return () => {
@@ -221,7 +228,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const seedFirebaseDatabase = async (force = false) => {
-    return await FirestoreService.seedFirestoreData(force);
+    dispatch({ type: 'SET_SYNCING', payload: true });
+    try {
+      const res = await FirestoreService.seedFirestoreData(force);
+      dispatch({ type: 'LOAD_MOCK_DATA' });
+      return res;
+    } catch (e: any) {
+      dispatch({ type: 'LOAD_MOCK_DATA' });
+      return { success: false, message: e?.message || String(e) };
+    } finally {
+      dispatch({ type: 'SET_SYNCING', payload: false });
+    }
   };
 
   return (
