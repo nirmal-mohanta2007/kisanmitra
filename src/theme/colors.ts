@@ -1,0 +1,35 @@
+export const colors = {
+  primary: '#2E7D32',
+  primaryLight: '#4CAF50',
+  primaryDark: '#1B5E20',
+  secondary: '#1565C0',
+  secondaryLight: '#1E88E5',
+  accent: '#FF8F00',
+  warning: '#E65100',
+  error: '#C62828',
+  success: '#2E7D32',
+  info: '#1565C0',
+  background: '#F5F7FA',
+  surface: '#FFFFFF',
+  surfaceVariant: '#E8F5E9',
+  textPrimary: '#212121',
+  textSecondary: '#757575',
+  textLight: '#FFFFFF',
+  text: {
+    primary: '#212121',
+    secondary: '#757575',
+    inverse: '#FFFFFF',
+  },
+  status: {
+    success: '#388E3C',
+    warning: '#F57C00',
+    error: '#D32F2F',
+    info: '#0288D1',
+  },
+  border: '#E0E0E0',
+  divider: '#EEEEEE',
+  disabled: '#BDBDBD',
+  cardShadow: 'rgba(0, 0, 0, 0.1)',
+};
+
+export const Colors = colors;

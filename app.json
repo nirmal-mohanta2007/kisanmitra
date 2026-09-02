@@ -1,0 +1,34 @@
+
+{
+  "expo": {
+    "name": "Kisan Mitra",
+    "slug": "kisan-mitra-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "kisanmitra",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package":"com.kisanmitra.kisanmitra",
+      "adaptiveIcon": {
+        "backgroundColor": "#2E7D32",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-splash-screen",
+      "expo-font"
+    ]
+  }
+}

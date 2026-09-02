@@ -1,0 +1,92 @@
+export type TranslationKey = 
+  | 'app_name'
+  | 'select_centre'
+  | 'select_crop'
+  | 'enter_quantity'
+  | 'book_visit'
+  | 'your_token'
+  | 'queue_position'
+  | 'farmers_ahead'
+  | 'estimated_wait'
+  | 'recommended_arrival'
+  | 'check_in'
+  | 'weight_recorded'
+  | 'quality_check'
+  | 'procurement_complete'
+  | 'receipt'
+  | 'payment_status'
+  | 'my_bookings'
+  | 'no_bookings'
+  | 'book_new'
+  | 'view_details'
+  | 'minutes'
+  | 'quintals'
+  | 'token_number'
+  | 'action_required'
+  | 'next_step'
+  | 'demo_mode';
+
+type Translations = Record<TranslationKey, string>;
+
+export const en: Translations = {
+  app_name: 'Kisan Mitra',
+  select_centre: 'Select Procurement Centre',
+  select_crop: 'Select Crop',
+  enter_quantity: 'Enter Expected Quantity',
+  book_visit: 'Book Visit',
+  your_token: 'Your Token',
+  queue_position: 'Queue Position',
+  farmers_ahead: 'Farmers Ahead',
+  estimated_wait: 'Estimated Wait',
+  recommended_arrival: 'Recommended Arrival',
+  check_in: 'Check In',
+  weight_recorded: 'Weight Recorded',
+  quality_check: 'Quality Check',
+  procurement_complete: 'Procurement Complete',
+  receipt: 'Receipt',
+  payment_status: 'Payment Status',
+  my_bookings: 'My Bookings',
+  no_bookings: 'No bookings yet',
+  book_new: 'Book New Visit',
+  view_details: 'View Details',
+  minutes: 'minutes',
+  quintals: 'quintals',
+  token_number: 'Token Number',
+  action_required: 'Action Required',
+  next_step: 'Next Step',
+  demo_mode: 'Demo Mode',
+};
+
+export const hi: Translations = {
+  app_name: 'किसान मित्र',
+  select_centre: 'खरीद केंद्र चुनें',
+  select_crop: 'फसल चुनें',
+  enter_quantity: 'अनुमानित मात्रा दर्ज करें',
+  book_visit: 'विज़िट बुक करें',
+  your_token: 'आपका टोकन',
+  queue_position: 'कतार में स्थिति',
+  farmers_ahead: 'आगे किसान',
+  estimated_wait: 'अनुमानित प्रतीक्षा',
+  recommended_arrival: 'पहुँचने का सुझाव',
+  check_in: 'चेक इन',
+  weight_recorded: 'वज़न दर्ज',
+  quality_check: 'गुणवत्ता जाँच',
+  procurement_complete: 'खरीद पूर्ण',
+  receipt: 'रसीद',
+  payment_status: 'भुगतान स्थिति',
+  my_bookings: 'मेरी बुकिंग',
+  no_bookings: 'अभी कोई बुकिंग नहीं',
+  book_new: 'नई विज़िट बुक करें',
+  view_details: 'विवरण देखें',
+  minutes: 'मिनट',
+  quintals: 'क्विंटल',
+  token_number: 'टोकन नंबर',
+  action_required: 'कार्रवाई आवश्यक',
+  next_step: 'अगला कदम',
+  demo_mode: 'डेमो मोड',
+};
+
+/** Simple translation helper */
+export function t(key: TranslationKey, lang: 'en' | 'hi' = 'en'): string {
+  return lang === 'hi' ? hi[key] : en[key];
+}
