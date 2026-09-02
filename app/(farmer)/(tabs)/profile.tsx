@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../../src/theme/colors';
@@ -10,12 +10,14 @@ import {
   KisanCard,
   SectionHeader,
   StatusBadge,
+  KisanButton,
 } from '../../../src/components/common';
 import { MOCK_FARMERS } from '../../../src/services/mock-data.service';
 
 export default function FarmerProfileScreen() {
   const router = useRouter();
   const farmer = MOCK_FARMERS[0];
+  const avatarUrl = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80';
 
   const handleLogout = () => {
     router.replace('/(auth)/welcome');
@@ -23,57 +25,104 @@ export default function FarmerProfileScreen() {
 
   return (
     <ScreenContainer scrollable style={styles.container}>
-      {/* Profile Header */}
+      {/* Profile Header with Profile Picture in Corner */}
       <View style={styles.profileHeader}>
-        <View style={styles.avatarBox}>
-          <Text style={styles.avatarText}>🌾</Text>
+        <View style={styles.headerInfo}>
+          <Text style={styles.farmerIdBadge}>FARMER ID: {farmer.id}</Text>
+          <Text style={styles.farmerName}>{farmer.name}</Text>
+          <Text style={styles.phoneText}>📞 +91 {farmer.phone}</Text>
+          <Text style={styles.locationText}>
+            📍 {farmer.village}, {farmer.district}, {farmer.state} (PIN: 466001)
+          </Text>
+          <View style={styles.kycTag}>
+            <StatusBadge status="UIDAI AADHAAR VERIFIED" variant="success" />
+          </View>
         </View>
-        <Text style={styles.farmerName}>{farmer.name}</Text>
-        <Text style={styles.phoneText}>+91 {farmer.phone}</Text>
-        <Text style={styles.locationText}>
-          {farmer.village}, {farmer.district}, {farmer.state}
-        </Text>
-        <View style={styles.kycTag}>
-          <StatusBadge status="KYC VERIFIED" variant="success" />
+
+        {/* Profile Picture in Corner */}
+        <View style={styles.avatarCornerWrapper}>
+          <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+          <TouchableOpacity
+            style={styles.avatarEditBadge}
+            onPress={() => router.push('/(auth)/register')}
+          >
+            <Ionicons name="pencil" size={12} color="#FFFFFF" />
+          </TouchableOpacity>
         </View>
       </View>
 
-      {/* Bank Details for DBT (Direct Benefit Transfer) */}
+      {/* 1. Identity & Aadhaar Verification */}
       <SectionHeader
-        title="Direct Benefit Transfer (DBT) Bank"
-        subtitle="Where your MSP procurement payments are credited"
+        title="1. Aadhaar & Contact Details"
+        subtitle="Linked for DBT settlement & token pass"
+      />
+      <KisanCard style={styles.card}>
+        <View style={styles.row}>
+          <Text style={styles.label}>Aadhaar Card Number:</Text>
+          <Text style={styles.value}>XXXX-XXXX-9012 (DigiLocker Linked)</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Registered Mobile:</Text>
+          <Text style={styles.value}>+91 {farmer.phone} (OTP Active)</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>e-KYC Status:</Text>
+          <StatusBadge status="ACTIVE & VERIFIED" variant="success" />
+        </View>
+      </KisanCard>
+
+      {/* 2. Bank Account Details (DBT) */}
+      <SectionHeader
+        title="2. Bank Account Details (DBT Payout)"
+        subtitle="Verified with Public Financial Management System (PFMS)"
       />
       <KisanCard style={styles.card}>
         <View style={styles.bankRow}>
-          <Ionicons name="business" size={24} color={colors.primary} />
+          <Ionicons name="business" size={26} color={colors.primary} />
           <View style={styles.bankInfo}>
             <Text style={styles.bankName}>State Bank of India</Text>
             <Text style={styles.bankAccount}>A/C: •••• •••• 5678</Text>
             <Text style={styles.ifscText}>IFSC: SBIN0001234 • Sehore Branch</Text>
           </View>
-          <StatusBadge status="ACTIVE" variant="success" />
+          <StatusBadge status="Aadhaar Seeded" variant="success" />
         </View>
       </KisanCard>
 
-      {/* Land & Crop Registrations */}
-      <SectionHeader title="Land & Farmer Registry" />
+      {/* 3. Land Record (Bhu-Abhilekh) */}
+      <SectionHeader
+        title="3. Land Record & Cultivation Area"
+        subtitle="Synchronized with MP Revenue Department"
+      />
       <KisanCard style={styles.card}>
-        <View style={styles.registryRow}>
-          <Text style={styles.regLabel}>Kisan ID:</Text>
-          <Text style={styles.regValue}>{farmer.id}</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Khasra / Survey No.:</Text>
+          <Text style={styles.value}>142/1, 142/2 (Sehore)</Text>
         </View>
-        <View style={styles.registryRow}>
-          <Text style={styles.regLabel}>Registered Land:</Text>
-          <Text style={styles.regValue}>4.5 Hectares</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Total Cultivable Area:</Text>
+          <Text style={styles.value}>4.5 Hectares (11.1 Acres)</Text>
         </View>
-        <View style={styles.registryRow}>
-          <Text style={styles.regLabel}>Primary Crop:</Text>
-          <Text style={styles.regValue}>Wheat, Soybean</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Primary Crops:</Text>
+          <Text style={styles.value}>Wheat (गेहूं), Soybean, Paddy</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Land Document:</Text>
+          <Text style={[styles.value, { color: colors.primary }]}>📄 Khasra_Verified.pdf</Text>
         </View>
       </KisanCard>
+
+      {/* Edit Registration Info Action */}
+      <View style={styles.editActionBox}>
+        <KisanButton
+          title="Update / Edit Registration Details"
+          onPress={() => router.push('/(auth)/register')}
+          variant="secondary"
+        />
+      </View>
 
       {/* Preferences & Settings */}
-      <SectionHeader title="App Preferences" />
+      <SectionHeader title="App Preferences & Support" />
       <KisanCard style={styles.card}>
         <TouchableOpacity
           style={styles.settingItem}
@@ -92,7 +141,7 @@ export default function FarmerProfileScreen() {
         >
           <View style={styles.settingLeft}>
             <Ionicons name="help-circle-outline" size={20} color={colors.textPrimary} />
-            <Text style={styles.settingText}>Help & Support</Text>
+            <Text style={styles.settingText}>Kisan Helpline & Grievances</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
         </TouchableOpacity>
@@ -112,46 +161,90 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   profileHeader: {
-    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     backgroundColor: '#FFFFFF',
-    padding: spacing.lg,
+    padding: spacing.md,
     borderRadius: radius.md,
     marginBottom: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  avatarBox: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: '#E8F5E9',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
+  headerInfo: {
+    flex: 1,
+    marginRight: spacing.sm,
   },
-  avatarText: {
-    fontSize: 32,
+  farmerIdBadge: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: colors.primary,
+    letterSpacing: 0.5,
   },
   farmerName: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: colors.textPrimary,
-  },
-  phoneText: {
-    fontSize: 14,
-    color: colors.textSecondary,
     marginTop: 2,
   },
-  locationText: {
+  phoneText: {
     fontSize: 13,
     color: colors.textSecondary,
     marginTop: 2,
   },
+  locationText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
   kycTag: {
-    marginTop: spacing.sm,
+    marginTop: 6,
+  },
+  avatarCornerWrapper: {
+    position: 'relative',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: colors.primary,
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 30,
+  },
+  avatarEditBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: colors.primary,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
   },
   card: {
     marginBottom: spacing.md,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+  },
+  label: {
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  value: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textPrimary,
   },
   bankRow: {
     flexDirection: 'row',
@@ -176,21 +269,8 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
   },
-  registryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  regLabel: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  regValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textPrimary,
+  editActionBox: {
+    marginBottom: spacing.md,
   },
   settingItem: {
     flexDirection: 'row',
@@ -221,7 +301,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     backgroundColor: '#FFEBEE',
     borderRadius: radius.md,
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
     marginBottom: spacing.xl,
   },
   logoutBtnText: {
