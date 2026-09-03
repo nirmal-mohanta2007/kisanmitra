@@ -311,7 +311,7 @@ export default function FarmerRegistrationScreen() {
           </TouchableOpacity>
         </View>
 
-        {otpSent && !isMobileVerified && (
+        {otpSent && !isMobileVerified ? (
           <View style={styles.otpBox}>
             <Text style={styles.otpPrompt}>Enter 4-Digit OTP (Demo: 1234):</Text>
             <View style={styles.inlineActionRow}>
@@ -328,7 +328,7 @@ export default function FarmerRegistrationScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        )}
+        ) : null}
       </KisanCard>
 
       {/* Section 2: Bio Data & Address */}
@@ -372,7 +372,7 @@ export default function FarmerRegistrationScreen() {
         {/* 1. State Selector */}
         <View style={styles.dropdownHeaderRow}>
           <Text style={styles.inputLabel}>1. State / Union Territory *</Text>
-          <Text style={styles.countBadge}>All 36 States &amp; UTs</Text>
+          <Text style={styles.countBadge}>All 36 States & UTs</Text>
         </View>
         <TouchableOpacity
           style={styles.dropdownTrigger}
@@ -390,7 +390,7 @@ export default function FarmerRegistrationScreen() {
           <Ionicons name={showStateDD ? 'chevron-up' : 'chevron-down'} size={16} color="#666" />
         </TouchableOpacity>
 
-        {showStateDD && (
+        {showStateDD ? (
           <View style={styles.dropdownList}>
             {/* Search Input for State */}
             <View style={styles.dropdownSearchRow}>
@@ -403,11 +403,11 @@ export default function FarmerRegistrationScreen() {
                 onChangeText={setStateSearch}
                 autoFocus={true}
               />
-              {stateSearch.length > 0 && (
+              {stateSearch.length > 0 ? (
                 <TouchableOpacity onPress={() => setStateSearch('')}>
                   <Ionicons name="close-circle" size={16} color="#999" />
                 </TouchableOpacity>
-              )}
+              ) : null}
             </View>
 
             <ScrollView style={styles.dropdownScrollView} nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
@@ -424,24 +424,24 @@ export default function FarmerRegistrationScreen() {
                   }}
                 >
                   <Text style={[styles.dropdownItemText, state === s && styles.dropdownItemTextActive]}>{s}</Text>
-                  {state === s && <Ionicons name="checkmark" size={14} color={colors.primary} />}
+                  {state === s ? <Ionicons name="checkmark" size={14} color={colors.primary} /> : null}
                 </TouchableOpacity>
               ))}
-              {stateList.length === 0 && (
+              {stateList.length === 0 ? (
                 <View style={styles.dropdownEmpty}>
                   <Text style={styles.dropdownEmptyText}>No matching state found</Text>
                 </View>
-              )}
+              ) : null}
             </ScrollView>
           </View>
-        )}
+        ) : null}
 
         {/* 2. District Selector */}
         <View style={styles.dropdownHeaderRow}>
           <Text style={styles.inputLabel}>2. District / ज़िला *</Text>
-          {state && availableDistricts.length > 0 && (
+          {Boolean(state && availableDistricts.length > 0) ? (
             <Text style={styles.countBadge}>{availableDistricts.length} Districts in {state}</Text>
-          )}
+          ) : null}
         </View>
         <TouchableOpacity
           style={[styles.dropdownTrigger, !state && styles.dropdownDisabled]}
@@ -460,7 +460,7 @@ export default function FarmerRegistrationScreen() {
           <Ionicons name={showDistrictDD ? 'chevron-up' : 'chevron-down'} size={16} color="#666" />
         </TouchableOpacity>
 
-        {showDistrictDD && (
+        {showDistrictDD ? (
           <View style={styles.dropdownList}>
             {/* Search Input for District */}
             <View style={styles.dropdownSearchRow}>
@@ -473,11 +473,11 @@ export default function FarmerRegistrationScreen() {
                 onChangeText={setDistrictSearch}
                 autoFocus={true}
               />
-              {districtSearch.length > 0 && (
+              {districtSearch.length > 0 ? (
                 <TouchableOpacity onPress={() => setDistrictSearch('')}>
                   <Ionicons name="close-circle" size={16} color="#999" />
                 </TouchableOpacity>
-              )}
+              ) : null}
             </View>
 
             <ScrollView style={styles.dropdownScrollView} nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
@@ -493,17 +493,17 @@ export default function FarmerRegistrationScreen() {
                   }}
                 >
                   <Text style={[styles.dropdownItemText, district === d && styles.dropdownItemTextActive]}>{d}</Text>
-                  {district === d && <Ionicons name="checkmark" size={14} color={colors.primary} />}
+                  {district === d ? <Ionicons name="checkmark" size={14} color={colors.primary} /> : null}
                 </TouchableOpacity>
               ))}
-              {districtList.length === 0 && (
+              {districtList.length === 0 ? (
                 <View style={styles.dropdownEmpty}>
                   <Text style={styles.dropdownEmptyText}>No matching district found</Text>
                 </View>
-              )}
+              ) : null}
             </ScrollView>
           </View>
-        )}
+        ) : null}
 
         {/* 3. Village / Gram Selector & Custom Entry */}
         <View style={styles.dropdownHeaderRow}>
@@ -529,11 +529,11 @@ export default function FarmerRegistrationScreen() {
               onChangeText={setVillage}
               autoFocus={true}
             />
-            {village.length > 0 && (
+            {village.length > 0 ? (
               <View style={styles.checkBadge}>
                 <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
               </View>
-            )}
+            ) : null}
           </View>
         ) : (
           <>
@@ -554,7 +554,7 @@ export default function FarmerRegistrationScreen() {
               <Ionicons name={showVillageDD ? 'chevron-up' : 'chevron-down'} size={16} color="#666" />
             </TouchableOpacity>
 
-            {showVillageDD && (
+            {showVillageDD ? (
               <View style={styles.dropdownList}>
                 {/* Search Input for Village */}
                 <View style={styles.dropdownSearchRow}>
@@ -567,11 +567,11 @@ export default function FarmerRegistrationScreen() {
                     onChangeText={setVillageSearch}
                     autoFocus={true}
                   />
-                  {villageSearch.length > 0 && (
+                  {villageSearch.length > 0 ? (
                     <TouchableOpacity onPress={() => setVillageSearch('')}>
                       <Ionicons name="close-circle" size={16} color="#999" />
                     </TouchableOpacity>
-                  )}
+                  ) : null}
                 </View>
 
                 <ScrollView style={styles.dropdownScrollView} nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
@@ -586,7 +586,7 @@ export default function FarmerRegistrationScreen() {
                       }}
                     >
                       <Text style={[styles.dropdownItemText, village === v && styles.dropdownItemTextActive]}>{v}</Text>
-                      {village === v && <Ionicons name="checkmark" size={14} color={colors.primary} />}
+                      {village === v ? <Ionicons name="checkmark" size={14} color={colors.primary} /> : null}
                     </TouchableOpacity>
                   ))}
 
@@ -605,7 +605,7 @@ export default function FarmerRegistrationScreen() {
                   </TouchableOpacity>
                 </ScrollView>
               </View>
-            )}
+            ) : null}
           </>
         )}
 
@@ -754,7 +754,7 @@ export default function FarmerRegistrationScreen() {
           </Text>
         </View>
 
-        {landDocUploaded && (
+        {landDocUploaded ? (
           <View style={styles.landDocSuccessRow}>
             <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
             <View style={{ flex: 1, marginLeft: 6 }}>
@@ -767,9 +767,9 @@ export default function FarmerRegistrationScreen() {
               <Text style={styles.reUploadText}>Change</Text>
             </TouchableOpacity>
           </View>
-        )}
+        ) : null}
 
-        {!landDocUploaded && (
+        {!landDocUploaded ? (
           <TouchableOpacity
             style={styles.uploadBox}
             onPress={handleUploadLandDoc}
@@ -780,7 +780,7 @@ export default function FarmerRegistrationScreen() {
               Tap to Upload Bhu-Abhilekh / Land Record Copy (PDF/JPG)
             </Text>
           </TouchableOpacity>
-        )}
+        ) : null}
       </KisanCard>
 
       {/* Registration Submit Action */}
