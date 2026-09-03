@@ -8,6 +8,7 @@ import {
   Image,
   Alert,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,21 +25,19 @@ import {
 import { useAppContext } from '../../src/store/app-context';
 import { FirestoreService } from '../../src/services/firebase/firestore.service';
 import { UserRole } from '../../src/types/enums';
-
-const SAMPLE_AVATARS = [
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-];
+import {
+  ALL_INDIAN_STATES,
+  getDistrictsForState,
+  getVillagesForDistrict,
+} from '../../src/data/india-locations';
 
 export default function FarmerRegistrationScreen() {
   const router = useRouter();
   const { dispatch } = useAppContext();
 
-  // Profile Picture State
-  const [profileImage, setProfileImage] = useState<string>(SAMPLE_AVATARS[0]);
-  const [fileName, setFileName] = useState<string>('farmer_passport_photo.jpg');
+  // Profile Picture State (null = no photo chosen yet)
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string>('No file chosen');
 
   // 1. Aadhaar & Mobile
   const [aadhaar, setAadhaar] = useState('');
@@ -52,10 +51,32 @@ export default function FarmerRegistrationScreen() {
   const [fullName, setFullName] = useState('');
   const [fatherName, setFatherName] = useState('');
   const [gender, setGender] = useState<'Male' | 'Female' | 'Other'>('Male');
+  const [state, setState] = useState('');
+  const [district, setDistrict] = useState('');
   const [village, setVillage] = useState('');
-  const [district, setDistrict] = useState('Bhopal');
-  const [state, setState] = useState('Madhya Pradesh');
   const [pinCode, setPinCode] = useState('');
+  const [showStateDD, setShowStateDD] = useState(false);
+  const [showDistrictDD, setShowDistrictDD] = useState(false);
+  const [showVillageDD, setShowVillageDD] = useState(false);
+  const [stateSearch, setStateSearch] = useState('');
+  const [districtSearch, setDistrictSearch] = useState('');
+  const [villageSearch, setVillageSearch] = useState('');
+  const [isCustomVillage, setIsCustomVillage] = useState(false);
+
+  // Comprehensive Location Filtering across All 36 States/UTs & All Districts
+  const stateList = ALL_INDIAN_STATES.filter((s) =>
+    s.toLowerCase().includes(stateSearch.toLowerCase().trim())
+  );
+
+  const availableDistricts = state ? getDistrictsForState(state) : [];
+  const districtList = availableDistricts.filter((d) =>
+    d.toLowerCase().includes(districtSearch.toLowerCase().trim())
+  );
+
+  const availableVillages = district ? getVillagesForDistrict(district) : [];
+  const villageList = availableVillages.filter((v) =>
+    v.toLowerCase().includes(villageSearch.toLowerCase().trim())
+  );
 
   // 4. Bank Details & IFSC
   const [accountNo, setAccountNo] = useState('');
@@ -69,6 +90,8 @@ export default function FarmerRegistrationScreen() {
   const [landArea, setLandArea] = useState('');
   const [primaryCrop, setPrimaryCrop] = useState('Wheat (गेहूं)');
   const [landDocUploaded, setLandDocUploaded] = useState(false);
+  const [landDocFileName, setLandDocFileName] = useState<string>('No file chosen');
+  const [landDocFileSize, setLandDocFileSize] = useState<string>('');
 
   const formatAadhaar = (text: string) => {
     const cleaned = text.replace(/\D/g, '').slice(0, 12);
@@ -120,7 +143,6 @@ export default function FarmerRegistrationScreen() {
           reader.onload = (uploadEvent: any) => {
             if (uploadEvent.target?.result) {
               setProfileImage(uploadEvent.target.result as string);
-              Alert.alert('Photo Selected', `Loaded: ${file.name}`);
             }
           };
           reader.readAsDataURL(file);
@@ -128,16 +150,35 @@ export default function FarmerRegistrationScreen() {
       };
       input.click();
     } else {
-      // Rotate through preset samples on native or when file dialog is closed
-      const nextIdx = (SAMPLE_AVATARS.indexOf(profileImage) + 1) % SAMPLE_AVATARS.length;
-      setProfileImage(SAMPLE_AVATARS[nextIdx]);
-      setFileName(`farmer_photo_${nextIdx + 1}.jpg`);
+      // Native: camera/gallery not available in demo — show alert
+      Alert.alert('Upload Photo', 'On a real device, this would open your camera or gallery.');
     }
   };
 
   const handleUploadLandDoc = () => {
-    setLandDocUploaded(true);
-    Alert.alert('Document Attached', 'Khasra-Khatauni land record uploaded successfully (PDF/Image).');
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*,.pdf,.doc,.docx';
+      input.onchange = (e: any) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          setLandDocFileName(file.name);
+          const sizeKB = (file.size / 1024).toFixed(1);
+          const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+          setLandDocFileSize(file.size > 1024 * 1024 ? `${sizeMB} MB` : `${sizeKB} KB`);
+          setLandDocUploaded(true);
+          Alert.alert('Document Attached', `Land record attached: ${file.name}`);
+        }
+      };
+      input.click();
+    } else {
+      // Native fallback
+      setLandDocFileName('Khasra_Document_2026.pdf');
+      setLandDocFileSize('1.2 MB');
+      setLandDocUploaded(true);
+      Alert.alert('Document Attached', 'Khasra-Khatauni land record uploaded successfully (PDF/Image).');
+    }
   };
 
   const handleSubmitRegistration = async () => {
@@ -212,10 +253,13 @@ export default function FarmerRegistrationScreen() {
           onPress={handleChooseFile}
           activeOpacity={0.8}
         >
-          <Image
-            source={{ uri: profileImage }}
-            style={styles.avatarImage}
-          />
+          {profileImage ? (
+            <Image source={{ uri: profileImage }} style={styles.avatarImage} />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Ionicons name="person" size={28} color="#BDBDBD" />
+            </View>
+          )}
           <View style={styles.cameraIconBadge}>
             <Ionicons name="camera" size={14} color="#FFFFFF" />
           </View>
@@ -324,39 +368,257 @@ export default function FarmerRegistrationScreen() {
           ))}
         </View>
 
-        <View style={styles.twoCol}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.inputLabel}>Village / Gram *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Village name"
-              value={village}
-              onChangeText={setVillage}
-            />
+        {/* Address: State → District → Village → PIN */}
+        {/* 1. State Selector */}
+        <View style={styles.dropdownHeaderRow}>
+          <Text style={styles.inputLabel}>1. State / Union Territory *</Text>
+          <Text style={styles.countBadge}>All 36 States &amp; UTs</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.dropdownTrigger}
+          onPress={() => {
+            setShowStateDD(!showStateDD);
+            setShowDistrictDD(false);
+            setShowVillageDD(false);
+            setStateSearch('');
+          }}
+          activeOpacity={0.85}
+        >
+          <Text style={[styles.dropdownTriggerText, !state && styles.dropdownPlaceholder]}>
+            {state || 'Select your State / राज्य चुनें'}
+          </Text>
+          <Ionicons name={showStateDD ? 'chevron-up' : 'chevron-down'} size={16} color="#666" />
+        </TouchableOpacity>
+
+        {showStateDD && (
+          <View style={styles.dropdownList}>
+            {/* Search Input for State */}
+            <View style={styles.dropdownSearchRow}>
+              <Ionicons name="search-outline" size={15} color="#888" />
+              <TextInput
+                style={styles.dropdownSearchInput}
+                placeholder="Search state (e.g. Odisha, MP, UP)..."
+                placeholderTextColor="#999"
+                value={stateSearch}
+                onChangeText={setStateSearch}
+                autoFocus={true}
+              />
+              {stateSearch.length > 0 && (
+                <TouchableOpacity onPress={() => setStateSearch('')}>
+                  <Ionicons name="close-circle" size={16} color="#999" />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <ScrollView style={styles.dropdownScrollView} nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
+              {stateList.map((s) => (
+                <TouchableOpacity
+                  key={s}
+                  style={[styles.dropdownItem, state === s && styles.dropdownItemActive]}
+                  onPress={() => {
+                    setState(s);
+                    setDistrict('');
+                    setVillage('');
+                    setShowStateDD(false);
+                    setStateSearch('');
+                  }}
+                >
+                  <Text style={[styles.dropdownItemText, state === s && styles.dropdownItemTextActive]}>{s}</Text>
+                  {state === s && <Ionicons name="checkmark" size={14} color={colors.primary} />}
+                </TouchableOpacity>
+              ))}
+              {stateList.length === 0 && (
+                <View style={styles.dropdownEmpty}>
+                  <Text style={styles.dropdownEmptyText}>No matching state found</Text>
+                </View>
+              )}
+            </ScrollView>
           </View>
-          <View style={{ flex: 1, marginLeft: spacing.sm }}>
-            <Text style={styles.inputLabel}>PIN Code (6 Digits) *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. 462001"
-              keyboardType="numeric"
-              maxLength={6}
-              value={pinCode}
-              onChangeText={setPinCode}
-            />
+        )}
+
+        {/* 2. District Selector */}
+        <View style={styles.dropdownHeaderRow}>
+          <Text style={styles.inputLabel}>2. District / ज़िला *</Text>
+          {state && availableDistricts.length > 0 && (
+            <Text style={styles.countBadge}>{availableDistricts.length} Districts in {state}</Text>
+          )}
+        </View>
+        <TouchableOpacity
+          style={[styles.dropdownTrigger, !state && styles.dropdownDisabled]}
+          onPress={() => {
+            if (!state) return;
+            setShowDistrictDD(!showDistrictDD);
+            setShowStateDD(false);
+            setShowVillageDD(false);
+            setDistrictSearch('');
+          }}
+          activeOpacity={0.85}
+        >
+          <Text style={[styles.dropdownTriggerText, !district && styles.dropdownPlaceholder]}>
+            {district || (state ? `Select District in ${state}` : 'Select State first')}
+          </Text>
+          <Ionicons name={showDistrictDD ? 'chevron-up' : 'chevron-down'} size={16} color="#666" />
+        </TouchableOpacity>
+
+        {showDistrictDD && (
+          <View style={styles.dropdownList}>
+            {/* Search Input for District */}
+            <View style={styles.dropdownSearchRow}>
+              <Ionicons name="search-outline" size={15} color="#888" />
+              <TextInput
+                style={styles.dropdownSearchInput}
+                placeholder="Search district name..."
+                placeholderTextColor="#999"
+                value={districtSearch}
+                onChangeText={setDistrictSearch}
+                autoFocus={true}
+              />
+              {districtSearch.length > 0 && (
+                <TouchableOpacity onPress={() => setDistrictSearch('')}>
+                  <Ionicons name="close-circle" size={16} color="#999" />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <ScrollView style={styles.dropdownScrollView} nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
+              {districtList.map((d) => (
+                <TouchableOpacity
+                  key={d}
+                  style={[styles.dropdownItem, district === d && styles.dropdownItemActive]}
+                  onPress={() => {
+                    setDistrict(d);
+                    setVillage('');
+                    setShowDistrictDD(false);
+                    setDistrictSearch('');
+                  }}
+                >
+                  <Text style={[styles.dropdownItemText, district === d && styles.dropdownItemTextActive]}>{d}</Text>
+                  {district === d && <Ionicons name="checkmark" size={14} color={colors.primary} />}
+                </TouchableOpacity>
+              ))}
+              {districtList.length === 0 && (
+                <View style={styles.dropdownEmpty}>
+                  <Text style={styles.dropdownEmptyText}>No matching district found</Text>
+                </View>
+              )}
+            </ScrollView>
           </View>
+        )}
+
+        {/* 3. Village / Gram Selector & Custom Entry */}
+        <View style={styles.dropdownHeaderRow}>
+          <Text style={styles.inputLabel}>3. Village / Gram Panchayat / गाँव *</Text>
+          <TouchableOpacity
+            onPress={() => setIsCustomVillage(!isCustomVillage)}
+            style={styles.modeToggleBtn}
+          >
+            <Ionicons name={isCustomVillage ? 'list-outline' : 'create-outline'} size={13} color={colors.primary} />
+            <Text style={styles.modeToggleBtnText}>
+              {isCustomVillage ? 'Choose from List' : '+ Type Any Village'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.twoCol}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.inputLabel}>District</Text>
-            <TextInput style={styles.input} value={district} onChangeText={setDistrict} />
+        {isCustomVillage ? (
+          <View style={styles.customVillageRow}>
+            <TextInput
+              style={[styles.input, { flex: 1 }]}
+              placeholder="Type your Village or Gram Panchayat name..."
+              placeholderTextColor="#999"
+              value={village}
+              onChangeText={setVillage}
+              autoFocus={true}
+            />
+            {village.length > 0 && (
+              <View style={styles.checkBadge}>
+                <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
+              </View>
+            )}
           </View>
-          <View style={{ flex: 1, marginLeft: spacing.sm }}>
-            <Text style={styles.inputLabel}>State</Text>
-            <TextInput style={styles.input} value={state} onChangeText={setState} />
-          </View>
-        </View>
+        ) : (
+          <>
+            <TouchableOpacity
+              style={[styles.dropdownTrigger, !district && styles.dropdownDisabled]}
+              onPress={() => {
+                if (!district) return;
+                setShowVillageDD(!showVillageDD);
+                setShowStateDD(false);
+                setShowDistrictDD(false);
+                setVillageSearch('');
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={[styles.dropdownTriggerText, !village && styles.dropdownPlaceholder]}>
+                {village || (district ? `Select Village / Panchayat in ${district}` : 'Select District first')}
+              </Text>
+              <Ionicons name={showVillageDD ? 'chevron-up' : 'chevron-down'} size={16} color="#666" />
+            </TouchableOpacity>
+
+            {showVillageDD && (
+              <View style={styles.dropdownList}>
+                {/* Search Input for Village */}
+                <View style={styles.dropdownSearchRow}>
+                  <Ionicons name="search-outline" size={15} color="#888" />
+                  <TextInput
+                    style={styles.dropdownSearchInput}
+                    placeholder="Search village name or tehsil..."
+                    placeholderTextColor="#999"
+                    value={villageSearch}
+                    onChangeText={setVillageSearch}
+                    autoFocus={true}
+                  />
+                  {villageSearch.length > 0 && (
+                    <TouchableOpacity onPress={() => setVillageSearch('')}>
+                      <Ionicons name="close-circle" size={16} color="#999" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                <ScrollView style={styles.dropdownScrollView} nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
+                  {villageList.map((v) => (
+                    <TouchableOpacity
+                      key={v}
+                      style={[styles.dropdownItem, village === v && styles.dropdownItemActive]}
+                      onPress={() => {
+                        setVillage(v);
+                        setShowVillageDD(false);
+                        setVillageSearch('');
+                      }}
+                    >
+                      <Text style={[styles.dropdownItemText, village === v && styles.dropdownItemTextActive]}>{v}</Text>
+                      {village === v && <Ionicons name="checkmark" size={14} color={colors.primary} />}
+                    </TouchableOpacity>
+                  ))}
+
+                  {/* Option to type custom village at the end of the list */}
+                  <TouchableOpacity
+                    style={styles.typeCustomItem}
+                    onPress={() => {
+                      setShowVillageDD(false);
+                      setIsCustomVillage(true);
+                    }}
+                  >
+                    <Ionicons name="add-circle-outline" size={16} color={colors.primary} />
+                    <Text style={styles.typeCustomItemText}>
+                      Can't find your village? Type it manually →
+                    </Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              </View>
+            )}
+          </>
+        )}
+
+        {/* 4. PIN Code */}
+        <Text style={styles.inputLabel}>4. PIN Code (6 Digits) *</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. 462001"
+          keyboardType="numeric"
+          maxLength={6}
+          value={pinCode}
+          onChangeText={setPinCode}
+        />
       </KisanCard>
 
       {/* Section 3: Profile Picture with Choose File Option (Placed after Bio Data) */}
@@ -365,45 +627,33 @@ export default function FarmerRegistrationScreen() {
         subtitle="Upload a clear passport size photograph for Mandi pass & identity verification"
       />
       <KisanCard style={styles.card}>
-        <View style={styles.photoUploadRow}>
-          {/* Photo Preview */}
-          <View style={styles.photoPreviewBox}>
-            <Image source={{ uri: profileImage }} style={styles.previewImage} />
-            <View style={styles.photoBadge}>
-              <Text style={styles.photoBadgeText}>Preview</Text>
-            </View>
-          </View>
-
           {/* Choose File Controls */}
-          <View style={styles.fileChooserControls}>
-            <Text style={styles.uploadHeading}>Passport Photo Document</Text>
-            <Text style={styles.uploadGuideline}>
-              Formats: JPG, PNG • Max size: 5 MB
-            </Text>
+          <Text style={styles.uploadHeading}>Passport Photo Document</Text>
+          <Text style={styles.uploadGuideline}>
+            Formats: JPG, PNG • Max size: 5 MB
+          </Text>
 
-            <View style={styles.fileInputRow}>
-              <TouchableOpacity
-                style={styles.chooseFileBtn}
-                onPress={handleChooseFile}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="folder-open-outline" size={16} color="#FFFFFF" />
-                <Text style={styles.chooseFileBtnText}>Choose File</Text>
-              </TouchableOpacity>
-              <Text style={styles.fileNameText} numberOfLines={1}>
-                {fileName}
-              </Text>
-            </View>
-
+          <View style={styles.fileInputRow}>
             <TouchableOpacity
-              style={styles.altCameraBtn}
+              style={styles.chooseFileBtn}
               onPress={handleChooseFile}
+              activeOpacity={0.8}
             >
-              <Ionicons name="camera-outline" size={14} color={colors.primary} />
-              <Text style={styles.altCameraBtnText}>Take Live Selfie / Change</Text>
+              <Ionicons name="folder-open-outline" size={16} color="#FFFFFF" />
+              <Text style={styles.chooseFileBtnText}>Choose File</Text>
             </TouchableOpacity>
+            <Text style={styles.fileNameText} numberOfLines={1}>
+              {fileName}
+            </Text>
           </View>
-        </View>
+
+          <TouchableOpacity
+            style={styles.altCameraBtn}
+            onPress={handleChooseFile}
+          >
+            <Ionicons name="camera-outline" size={14} color={colors.primary} />
+            <Text style={styles.altCameraBtnText}>Take Live Selfie / Change</Text>
+          </TouchableOpacity>
       </KisanCard>
 
       {/* Section 4: Bank Account & IFSC (DBT) */}
@@ -487,22 +737,50 @@ export default function FarmerRegistrationScreen() {
           onChangeText={setPrimaryCrop}
         />
 
-        <Text style={styles.inputLabel}>Land Record Document (Khasra Copy)</Text>
-        <TouchableOpacity
-          style={[styles.uploadBox, landDocUploaded && styles.uploadBoxDone]}
-          onPress={handleUploadLandDoc}
-        >
-          <Ionicons
-            name={landDocUploaded ? 'checkmark-circle' : 'cloud-upload-outline'}
-            size={28}
-            color={landDocUploaded ? colors.primary : colors.secondary}
-          />
-          <Text style={[styles.uploadText, landDocUploaded && styles.uploadTextDone]}>
-            {landDocUploaded
-              ? '✓ Khasra_Document_2026.pdf Attached'
-              : 'Tap to Upload Bhu-Abhilekh / Land Record Copy (PDF/JPG)'}
+        <Text style={styles.inputLabel}>Land Record Document (Khasra / Bhu-Abhilekh Copy) *</Text>
+        <Text style={styles.uploadGuideline}>Formats: PDF, JPG, PNG, DOC • Max size: 10 MB</Text>
+
+        <View style={styles.fileInputRow}>
+          <TouchableOpacity
+            style={styles.chooseFileBtn}
+            onPress={handleUploadLandDoc}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="folder-open-outline" size={16} color="#FFFFFF" />
+            <Text style={styles.chooseFileBtnText}>Choose File</Text>
+          </TouchableOpacity>
+          <Text style={styles.fileNameText} numberOfLines={1}>
+            {landDocFileName}
           </Text>
-        </TouchableOpacity>
+        </View>
+
+        {landDocUploaded && (
+          <View style={styles.landDocSuccessRow}>
+            <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
+            <View style={{ flex: 1, marginLeft: 6 }}>
+              <Text style={styles.landDocFileName} numberOfLines={1}>{landDocFileName}</Text>
+              {landDocFileSize ? (
+                <Text style={styles.landDocFileSize}>{landDocFileSize} • Uploaded ✓</Text>
+              ) : null}
+            </View>
+            <TouchableOpacity onPress={handleUploadLandDoc}>
+              <Text style={styles.reUploadText}>Change</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {!landDocUploaded && (
+          <TouchableOpacity
+            style={styles.uploadBox}
+            onPress={handleUploadLandDoc}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="cloud-upload-outline" size={28} color={colors.secondary} />
+            <Text style={styles.uploadText}>
+              Tap to Upload Bhu-Abhilekh / Land Record Copy (PDF/JPG)
+            </Text>
+          </TouchableOpacity>
+        )}
       </KisanCard>
 
       {/* Registration Submit Action */}
@@ -575,6 +853,14 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 32,
   },
+  avatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 32,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   cameraIconBadge: {
     position: 'absolute',
     bottom: -2,
@@ -607,6 +893,142 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     fontSize: 14,
     color: colors.textPrimary,
+  },
+  dropdownTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FAFAFA',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 2,
+  },
+  dropdownDisabled: {
+    backgroundColor: '#F0F0F0',
+    opacity: 0.6,
+  },
+  dropdownTriggerText: {
+    fontSize: 14,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  dropdownPlaceholder: {
+    color: '#AAAAAA',
+  },
+  dropdownList: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    marginBottom: spacing.sm,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  dropdownHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.sm,
+  },
+  countBadge: {
+    fontSize: 11,
+    color: colors.primaryDark,
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    fontWeight: '600',
+  },
+  dropdownSearchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+    backgroundColor: '#FAFAFA',
+    gap: 8,
+  },
+  dropdownSearchInput: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.textPrimary,
+    paddingVertical: 2,
+  },
+  dropdownScrollView: {
+    maxHeight: 220,
+  },
+  dropdownEmpty: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  dropdownEmptyText: {
+    fontSize: 13,
+    color: '#888888',
+    fontStyle: 'italic',
+  },
+  modeToggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.sm,
+  },
+  modeToggleBtnText: {
+    fontSize: 11,
+    color: colors.primary,
+    fontWeight: 'bold',
+  },
+  customVillageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkBadge: {
+    marginLeft: 8,
+  },
+  typeCustomItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: '#F1F8E9',
+    borderTopWidth: 1,
+    borderTopColor: '#C8E6C9',
+    gap: 6,
+  },
+  typeCustomItemText: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: colors.primary,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  dropdownItemActive: {
+    backgroundColor: '#E8F5E9',
+  },
+  dropdownItemText: {
+    fontSize: 14,
+    color: colors.textPrimary,
+  },
+  dropdownItemTextActive: {
+    color: colors.primary,
+    fontWeight: '600',
   },
   inlineActionRow: {
     flexDirection: 'row',
@@ -763,7 +1185,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4,
+    marginTop: 8,
   },
   uploadBoxDone: {
     borderColor: colors.primary,
@@ -780,6 +1202,32 @@ const styles = StyleSheet.create({
   uploadTextDone: {
     color: colors.primary,
     fontWeight: 'bold',
+  },
+  landDocSuccessRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F8E9',
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    padding: spacing.sm,
+    marginTop: 6,
+  },
+  landDocFileName: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  landDocFileSize: {
+    fontSize: 11,
+    color: colors.primary,
+    marginTop: 1,
+  },
+  reUploadText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: colors.secondary,
+    marginLeft: 8,
   },
   actionBox: {
     marginVertical: spacing.md,

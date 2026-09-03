@@ -1,103 +1,250 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ImageBackground,
+  Platform,
+} from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { FirebaseStatusBadge } from '../../src/components/common/FirebaseStatusBadge';
 import { colors } from '../../src/theme/colors';
 import { radius } from '../../src/theme/radius';
+import { spacing } from '../../src/theme/spacing';
+
+const BG_IMAGE = 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200&auto=format&fit=crop&q=80';
 
 export default function WelcomeScreen() {
   const router = useRouter();
 
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.emblem}>🌾</Text>
-        <Text style={styles.title}>Kisan Mitra</Text>
-        <Text style={styles.subtitle}>Empowering Farmers, Streamlining Procurement</Text>
+    <ImageBackground
+      source={{ uri: BG_IMAGE }}
+      style={styles.bg}
+      resizeMode="cover"
+    >
+      {/* Dark gradient overlay */}
+      <View style={styles.overlay} />
 
-        <View style={styles.badgeContainer}>
-          <FirebaseStatusBadge />
+      <View style={styles.screen}>
+        {/* Top government strip */}
+        <View style={styles.govStrip}>
+          <Text style={styles.govStripText}>🇮🇳  Government of India · Department of Consumer Affairs (DoCA)</Text>
         </View>
 
-        <TouchableOpacity 
-          style={styles.primaryButton} 
-          onPress={() => router.push('/(auth)/language')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.primaryButtonText}>Sign In / Select Role</Text>
-        </TouchableOpacity>
+        {/* Center content */}
+        <View style={styles.centerContent}>
+          {/* Logo & Brand */}
+          <View style={styles.logoBox}>
+            <Text style={styles.emblem}>🌾</Text>
+          </View>
+          <Text style={styles.title}>Kisan Mitra</Text>
+          <Text style={styles.tagline}>Empowering Farmers, Streamlining Procurement</Text>
+          <Text style={styles.scheme}>PM-Kisan · MSP e-Uparjan · DBT Direct Payout</Text>
 
-        <TouchableOpacity 
-          style={styles.secondaryButton} 
-          onPress={() => router.push('/(auth)/register')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.secondaryButtonText}>+ Register as New Farmer</Text>
-        </TouchableOpacity>
+          {/* Glass card */}
+          <View style={styles.glassCard}>
+            {/* Firebase status */}
+            <View style={styles.badgeRow}>
+              <FirebaseStatusBadge />
+            </View>
+
+            {/* Sign In button */}
+            <TouchableOpacity
+              style={styles.primaryBtn}
+              onPress={() => router.push('/(auth)/language')}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="log-in-outline" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+              <Text style={styles.primaryBtnText}>Sign In / Select Role</Text>
+            </TouchableOpacity>
+
+            {/* Register button */}
+            <TouchableOpacity
+              style={styles.secondaryBtn}
+              onPress={() => router.push('/(auth)/register')}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="person-add-outline" size={17} color={colors.primary} style={{ marginRight: 8 }} />
+              <Text style={styles.secondaryBtnText}>Register as New Farmer</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Stats row */}
+          <View style={styles.statsRow}>
+            {[
+              { icon: 'people-outline', value: '1.2Cr+', label: 'Farmers' },
+              { icon: 'storefront-outline', value: '850+', label: 'Mandis' },
+              { icon: 'cash-outline', value: '₹4200Cr', label: 'Disbursed' },
+            ].map((s) => (
+              <View key={s.label} style={styles.statItem}>
+                <Ionicons name={s.icon as any} size={18} color="rgba(255,255,255,0.8)" />
+                <Text style={styles.statValue}>{s.value}</Text>
+                <Text style={styles.statLabel}>{s.label}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Footer */}
+        <Text style={styles.footer}>Powered by Digital India Initiative</Text>
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  bg: {
     flex: 1,
-    justifyContent: 'center',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+  screen: {
+    flex: 1,
+    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#F5F7FA',
-    padding: 24,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
   },
-  content: {
-    width: '100%',
-    maxWidth: 380,
-    alignItems: 'center',
+  govStrip: {
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: radius.sm,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
   },
-  emblem: {
-    fontSize: 48,
-    marginBottom: 4,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 6,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
+  govStripText: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.8)',
     textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 20,
+    letterSpacing: 0.3,
   },
-  badgeContainer: {
+  centerContent: {
     width: '100%',
-    marginBottom: 24,
+    maxWidth: 420,
+    alignItems: 'center',
   },
-  primaryButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: 14,
-    borderRadius: radius.md,
-    width: '100%',
+  logoBox: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.3)',
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
   },
-  primaryButtonText: {
+  emblem: {
+    fontSize: 42,
+  },
+  title: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    letterSpacing: 1,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+  tagline: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.75)',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  scheme: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 4,
+    marginBottom: 28,
+    letterSpacing: 0.3,
+    textAlign: 'center',
+  },
+  glassCard: {
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.13)',
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
+    padding: spacing.lg,
+    ...(Platform.OS === 'web' ? { backdropFilter: 'blur(16px)' } as any : {}),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+    marginBottom: 28,
+  },
+  badgeRow: {
+    marginBottom: 16,
+  },
+  primaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    paddingVertical: 15,
+    borderRadius: radius.md,
+    width: '100%',
+    marginBottom: 10,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  primaryBtnText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+    letterSpacing: 0.3,
   },
-  secondaryButton: {
-    backgroundColor: '#E8F5E9',
+  secondaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.9)',
     borderWidth: 1.5,
     borderColor: colors.primary,
     paddingVertical: 14,
     borderRadius: radius.md,
     width: '100%',
-    alignItems: 'center',
   },
-  secondaryButtonText: {
+  secondaryBtnText: {
     color: colors.primaryDark,
     fontSize: 15,
     fontWeight: 'bold',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  statItem: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  statValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginTop: 2,
+  },
+  statLabel: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.55)',
+  },
+  footer: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.35)',
+    letterSpacing: 0.3,
+    marginBottom: 4,
   },
 });
