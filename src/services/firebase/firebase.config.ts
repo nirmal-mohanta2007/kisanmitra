@@ -5,7 +5,12 @@ import {
   browserLocalPersistence,
   Auth,
 } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import {
+  initializeFirestore,
+  getFirestore,
+  setLogLevel,
+  Firestore,
+} from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -76,7 +81,22 @@ if (isFirebaseConfigured()) {
       auth = getAuth(app);
     }
 
-    db = getFirestore(app);
+    try {
+      // Suppress noisy internal RPC transport retry warnings
+      setLogLevel('error');
+    } catch {
+      // ignore
+    }
+
+    try {
+      // Use initializeFirestore with experimentalForceLongPolling to resolve
+      // WebChannelConnection RPC 'Listen' stream transport errors in React Native/Expo
+      db = initializeFirestore(app, {
+        experimentalForceLongPolling: true,
+      });
+    } catch {
+      db = getFirestore(app);
+    }
     storage = getStorage(app);
     console.log('[Firebase] Initialized successfully for project:', firebaseConfig.projectId);
   } catch (error) {
