@@ -76,7 +76,7 @@ export const FirestoreService = {
       }
       return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Centre));
     } catch (e) {
-      console.warn('[Firestore] Error fetching centres, using mock data:', e);
+      console.log('[Firestore] Error fetching centres, using mock data:', e);
       return MOCK_CENTRES;
     }
   },
@@ -102,7 +102,7 @@ export const FirestoreService = {
         callback(centres);
       },
       (error) => {
-        console.warn('[Firestore] Error subscribing to centres, falling back to mock data:', error);
+        console.log('[Firestore] Error subscribing to centres, falling back to mock data:', error);
         callback(MOCK_CENTRES);
       }
     );
@@ -123,7 +123,7 @@ export const FirestoreService = {
       }
       return MOCK_CENTRES.find((c) => c.id === id) || null;
     } catch (e) {
-      console.warn(`[Firestore] Error fetching centre ${id}:`, e);
+      console.log(`[Firestore] Error fetching centre ${id}:`, e);
       return MOCK_CENTRES.find((c) => c.id === id) || null;
     }
   },
@@ -143,7 +143,7 @@ export const FirestoreService = {
       if (snap.empty) return MOCK_FARMERS;
       return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Farmer));
     } catch (e) {
-      console.warn('[Firestore] Error fetching farmers:', e);
+      console.log('[Firestore] Error fetching farmers:', e);
       return MOCK_FARMERS;
     }
   },
@@ -163,7 +163,7 @@ export const FirestoreService = {
       }
       return MOCK_FARMERS.find((f) => f.id === id) || null;
     } catch (e) {
-      console.warn(`[Firestore] Error fetching farmer ${id}:`, e);
+      console.log(`[Firestore] Error fetching farmer ${id}:`, e);
       return MOCK_FARMERS.find((f) => f.id === id) || null;
     }
   },
@@ -177,7 +177,7 @@ export const FirestoreService = {
     try {
       await setDoc(doc(db, COLLECTIONS.FARMERS, farmer.id), sanitizeForFirestore(farmer), { merge: true });
     } catch (e) {
-      console.warn(`[Firestore] Error saving farmer ${farmer.id}:`, e);
+      console.log(`[Firestore] Error saving farmer ${farmer.id}:`, e);
     }
   },
 
@@ -197,7 +197,7 @@ export const FirestoreService = {
       if (snap.empty) return mockTxs;
       return snap.docs.map((d) => ({ id: d.id, ...d.data() } as ProcurementTransaction));
     } catch (e) {
-      console.warn('[Firestore] Error fetching transactions:', e);
+      console.log('[Firestore] Error fetching transactions:', e);
       return mockTxs;
     }
   },
@@ -243,12 +243,12 @@ export const FirestoreService = {
           callback(items);
         },
         (error) => {
-          console.warn('[Firestore] Error subscribing to transactions:', error);
+          console.log('[Firestore] Error subscribing to transactions:', error);
           callback(mockTxs);
         }
       );
     } catch (e) {
-      console.warn('[Firestore] Query creation error:', e);
+      console.log('[Firestore] Query creation error:', e);
       callback(mockTxs);
       return () => {};
     }
@@ -292,7 +292,7 @@ export const FirestoreService = {
         callback(items);
       },
       (error) => {
-        console.warn(`[Firestore] Error subscribing to queue for ${centreId}:`, error);
+        console.log(`[Firestore] Error subscribing to queue for ${centreId}:`, error);
       }
     );
   },
@@ -342,7 +342,7 @@ export const FirestoreService = {
       try {
         await setDoc(doc(db, COLLECTIONS.TRANSACTIONS, id), sanitizeForFirestore(newTx));
       } catch (e) {
-        console.warn('[Firestore] Failed to persist transaction to Firestore:', e);
+        console.log('[Firestore] Failed to persist transaction to Firestore:', e);
       }
     }
 
@@ -362,7 +362,7 @@ export const FirestoreService = {
         updatedAt: new Date().toISOString(),
       }));
     } catch (e) {
-      console.warn(`[Firestore] Error updating transaction ${id}:`, e);
+      console.log(`[Firestore] Error updating transaction ${id}:`, e);
     }
   },
 
@@ -399,7 +399,7 @@ export const FirestoreService = {
         updatedAt: new Date().toISOString(),
       }));
     } catch (e) {
-      console.warn(`[Firestore] Error transitioning status for ${id}:`, e);
+      console.log(`[Firestore] Error transitioning status for ${id}:`, e);
     }
   },
 
@@ -425,7 +425,7 @@ export const FirestoreService = {
           const { signInAnonymously } = await import('firebase/auth');
           await signInAnonymously(auth);
         } catch (authErr) {
-          console.warn('[Firestore] Anonymous auth before seed:', authErr);
+          console.log('[Firestore] Anonymous auth before seed:', authErr);
         }
       }
 
@@ -439,7 +439,7 @@ export const FirestoreService = {
           };
         }
       } catch (readErr) {
-        console.warn('[Firestore] Read check error:', readErr);
+        console.log('[Firestore] Read check error:', readErr);
       }
 
       const batch = writeBatch(db);
@@ -469,7 +469,7 @@ export const FirestoreService = {
         message: `Successfully seeded Cloud Firestore with ${MOCK_CENTRES.length} centres, ${MOCK_FARMERS.length} farmers, and ${initialTransactions.length} transactions! 🎉`,
       };
     } catch (error: any) {
-      console.warn('[Firestore] Seeding notice:', error);
+      console.log('[Firestore] Seeding notice:', error);
       const code = error?.code || '';
       const msg = error?.message || String(error);
 
