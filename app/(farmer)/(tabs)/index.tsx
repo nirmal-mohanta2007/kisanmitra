@@ -59,6 +59,12 @@ const TRANSLATIONS = {
     support: 'किसान सहायता',
     dataSynced: 'डेटा सफलतापूर्वक सिंक हो गया!',
     syncError: 'सिंक में त्रुटि हुई',
+    unitBelowPrice: '/प्रति क्विंटल (100 किग्रा)',
+    mandiPrefix: 'मंडी:',
+    mspPrefix: 'MSP:',
+    weatherCondition: 'धूप और हल्के बादल',
+    humidity: 'नमी',
+    rain: 'बारिश',
   },
   en: {
     brand: 'Kisan Mitra',
@@ -102,6 +108,12 @@ const TRANSLATIONS = {
     support: 'Support',
     dataSynced: 'Data synced successfully!',
     syncError: 'Sync error',
+    unitBelowPrice: '/quintal (100 kg)',
+    mandiPrefix: 'mandi:',
+    mspPrefix: 'MSP:',
+    weatherCondition: 'Partly Sunny',
+    humidity: 'Humidity',
+    rain: 'Rain',
   },
 };
 
@@ -619,26 +631,49 @@ export default function FarmerDashboard() {
           <Text style={styles.sectionHeaderTitle}>{t.envSection}</Text>
 
           <View style={styles.environmentRow}>
-            {/* Market Price Card: Aligned dynamically with farmer's primary crop */}
+            {/* Market Price Card: Aligned dynamically with farmer's primary crop + MSP comparison */}
             <View style={styles.environmentCard}>
               <Text style={styles.envCardTitle}>{t.marketPrice}</Text>
               <Text style={styles.envCardSub} numberOfLines={1}>{cropMarketSubtitle}</Text>
+
+              {/* Main Price Row with /q */}
               <View style={styles.priceRow}>
-                <Text style={styles.envPriceBig}>{cropMarketPrice}</Text>
+                <Text style={styles.envPriceBig}>
+                  {cropMarketPrice}
+                  <Text style={styles.priceUnitSlash}>/q</Text>
+                </Text>
                 <View style={styles.arrowUpPill}>
-                  <Ionicons name="arrow-up" size={13} color="#2E7D32" />
+                  <Ionicons name="arrow-up" size={12} color="#2E7D32" />
                 </View>
               </View>
-              <Text style={styles.envTrendText}>{cropMarketTrend}</Text>
+
+              {/* Explicit unit below the market price */}
+              <Text style={styles.unitSubText}>{t.unitBelowPrice}</Text>
+
+              {/* MSP Comparison display */}
+              <View style={styles.mspCompareBox}>
+                <Text style={styles.mspCompareText}>
+                  {t.mandiPrefix} {cropMarketPrice}/q / {t.mspPrefix} {cropPriceInfo.mspDisplay}/q
+                </Text>
+                <View style={styles.mspBenefitTag}>
+                  <Text style={styles.mspBenefitTagText}>{cropMarketTrend}</Text>
+                </View>
+              </View>
             </View>
 
             {/* Weather Forecast Card */}
             <View style={styles.environmentCard}>
               <Text style={styles.envCardTitle}>{t.weatherTitle}</Text>
-              <Text style={styles.envCardSub}>({mandiLocation})</Text>
+              <Text style={styles.envCardSub} numberOfLines={1}>({mandiLocation})</Text>
               <View style={styles.weatherRow}>
                 <Text style={styles.weatherEmoji}>⛅</Text>
                 <Text style={styles.weatherTempBig}>32°C</Text>
+              </View>
+              <Text style={styles.weatherConditionText}>{t.weatherCondition}</Text>
+              <View style={styles.weatherMetaPill}>
+                <Text style={styles.weatherMetaItem}>💧 {t.humidity}: 58%</Text>
+                <Text style={styles.weatherMetaDivider}>•</Text>
+                <Text style={styles.weatherMetaItem}>☂ {t.rain}: 0%</Text>
               </View>
             </View>
           </View>
@@ -1211,11 +1246,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 6,
   },
-  envTrendText: {
+  priceUnitSlash: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#64748B',
+    marginLeft: 2,
+  },
+  unitSubText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: '#64748B',
+    marginTop: 2,
+    marginBottom: 4,
+  },
+  mspCompareBox: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingVertical: 5,
+    paddingHorizontal: 7,
+    borderWidth: 1,
+    borderColor: '#EFE5D0',
+    marginTop: 3,
+  },
+  mspCompareText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#1E293B',
+    lineHeight: 14,
+  },
+  mspBenefitTag: {
+    backgroundColor: '#E8F5E9',
+    borderRadius: 4,
+    paddingVertical: 2,
+    paddingHorizontal: 5,
     marginTop: 4,
+    alignSelf: 'flex-start',
+  },
+  mspBenefitTagText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#2E7D32',
   },
   weatherRow: {
     flexDirection: 'row',
@@ -1223,13 +1293,41 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   weatherEmoji: {
-    fontSize: 26,
+    fontSize: 24,
     marginRight: 6,
   },
   weatherTempBig: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '900',
     color: '#1A202C',
+  },
+  weatherConditionText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#64748B',
+    marginTop: 2,
+    marginBottom: 4,
+  },
+  weatherMetaPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingVertical: 5,
+    paddingHorizontal: 7,
+    borderWidth: 1,
+    borderColor: '#EFE5D0',
+    marginTop: 3,
+  },
+  weatherMetaItem: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#334155',
+  },
+  weatherMetaDivider: {
+    fontSize: 9,
+    color: '#94A3B8',
+    marginHorizontal: 3,
   },
 
   /* QUICK ACTIONS */
