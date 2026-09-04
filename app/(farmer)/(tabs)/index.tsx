@@ -14,9 +14,12 @@ import {
   FirebaseStatusBadge,
 } from '../../../src/components/common';
 import { MOCK_TRANSACTIONS, MOCK_CENTRES } from '../../../src/services/mock-data.service';
+import { useAppContext } from '../../../src/store/app-context';
 
 export default function FarmerDashboard() {
   const router = useRouter();
+  const { state } = useAppContext();
+  const currentFarmer = state.currentFarmer;
   const activeTx = MOCK_TRANSACTIONS[0]; // Active booking
   const activeMandi = MOCK_CENTRES[0];
 
@@ -29,8 +32,10 @@ export default function FarmerDashboard() {
       <View style={styles.greetingBanner}>
         <View>
           <Text style={styles.greetingSub}>Welcome back,</Text>
-          <Text style={styles.greetingName}>Ramesh Nayak 🌾</Text>
-          <Text style={styles.farmerId}>Farmer ID: F-001 • Sehore, MP</Text>
+          <Text style={styles.greetingName}>{currentFarmer ? currentFarmer.name : 'Ramesh Nayak'} 🌾</Text>
+          <Text style={styles.farmerId}>
+            Farmer ID: {currentFarmer ? currentFarmer.id : 'F-001'} • {currentFarmer?.village || 'Sehore'}, {currentFarmer?.district || currentFarmer?.state || 'MP'}
+          </Text>
         </View>
         <TouchableOpacity
           style={styles.langBtn}

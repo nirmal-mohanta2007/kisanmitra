@@ -4,10 +4,12 @@ import type { Centre, Farmer, ProcurementTransaction, CentreStats } from '../typ
 import { MOCK_CENTRES, MOCK_FARMERS, generateMockTransactions } from '../services/mock-data.service';
 import { isFirebaseConfigured } from '../services/firebase/firebase.config';
 import { FirestoreService } from '../services/firebase/firestore.service';
+import { StorageService } from '../services/storage/storage.service';
 
 interface AppState {
   currentRole: UserRole;
   currentUserId: string;
+  currentFarmer: Farmer | null;
   centres: Centre[];
   farmers: Farmer[];
   transactions: ProcurementTransaction[];
@@ -18,6 +20,7 @@ interface AppState {
 
 type AppAction =
   | { type: 'SET_ROLE'; payload: { role: UserRole; userId: string } }
+  | { type: 'SET_CURRENT_FARMER'; payload: Farmer }
   | { type: 'LOAD_MOCK_DATA' }
   | { type: 'SET_CENTRES'; payload: Centre[] }
   | { type: 'SET_TRANSACTIONS'; payload: ProcurementTransaction[] }
@@ -31,6 +34,7 @@ type AppAction =
 const initialState: AppState = {
   currentRole: UserRole.FARMER,
   currentUserId: 'F-001',
+  currentFarmer: null,
   centres: [],
   farmers: [],
   transactions: [],
@@ -57,6 +61,17 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         currentRole: action.payload.role,
         currentUserId: action.payload.userId,
+      };
+    case 'SET_CURRENT_FARMER':
+      return {
+        ...state,
+        currentFarmer: action.payload,
+        currentUserId: action.payload.id,
+        currentRole: UserRole.FARMER,
+        farmers: [
+          action.payload,
+          ...state.farmers.filter((f) => f.id !== action.payload.id),
+        ],
       };
     case 'LOAD_MOCK_DATA':
       return {
@@ -129,6 +144,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // Always ensure initial state is pre-populated
     dispatch({ type: 'LOAD_MOCK_DATA' });
 
+    // Restore saved farmer from local storage if available
+    StorageService.getItem<Farmer>('kisan_current_farmer').then((saved) => {
+      if (saved && saved.id) {
+        dispatch({ type: 'SET_CURRENT_FARMER', payload: saved });
+      }
+    });
+
     if (!configured) {
       return;
     }
@@ -171,9 +193,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const now = new Date().toISOString();
       const localTx: ProcurementTransaction = {
         id: `KM-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`,
-        farmerId: state.currentUserId || 'F-001',
-        farmerName: 'Kisan Kumar',
-        farmerPhone: '9876543210',
+        farmerId: state.currentFarmer?.id || state.currentUserId || 'F-001',
+        farmerName: state.currentFarmer?.name || 'Kisan Kumar',
+        farmerPhone: state.currentFarmer?.phone || '9876543210',
         centreId: tx.centreId || 'C-001',
         centreName: tx.centreName || 'Demo Krishi Upaj Mandi, Bhopal',
         crop: tx.crop || ('' as any),

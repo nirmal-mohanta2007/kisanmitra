@@ -30,6 +30,20 @@ export interface Farmer {
   status?: string;
   createdAt?: string;
   updatedAt?: string;
+  aadhaar?: string;
+  pinCode?: string;
+  fatherName?: string;
+  gender?: string;
+  khasraNo?: string;
+  landArea?: number;
+  primaryCrop?: string;
+  bankAccount?: string;
+  ifsc?: string;
+  bankName?: string;
+  branchName?: string;
+  photoUrl?: string | null;
+  landDocFileName?: string;
+  isVerified?: boolean;
 }
 
 /**

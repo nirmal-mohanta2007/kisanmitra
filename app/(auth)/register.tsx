@@ -24,6 +24,8 @@ import {
 } from '../../src/components/common';
 import { useAppContext } from '../../src/store/app-context';
 import { FirestoreService } from '../../src/services/firebase/firestore.service';
+import { StorageService } from '../../src/services/storage/storage.service';
+import { Farmer } from '../../src/types/models';
 import { UserRole } from '../../src/types/enums';
 import {
   ALL_INDIAN_STATES,
@@ -34,6 +36,9 @@ import {
 export default function FarmerRegistrationScreen() {
   const router = useRouter();
   const { dispatch } = useAppContext();
+
+  // Submitted farmer state (when set, display full real registered data card)
+  const [submittedFarmer, setSubmittedFarmer] = useState<Farmer | null>(null);
 
   // Profile Picture State (null = no photo chosen yet)
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -192,48 +197,274 @@ export default function FarmerRegistrationScreen() {
     }
 
     const farmerId = `F-${Math.floor(100 + Math.random() * 900)}`;
-    const newFarmer = {
+    const newFarmer: Farmer = {
       id: farmerId,
       name: fullName,
       phone: mobile || '9876543210',
       aadhaar: aadhaar || 'XXXX-XXXX-XXXX',
-      district: district,
-      village: village,
-      state: state,
-      pinCode: pinCode,
+      district: district || 'Bhopal',
+      village: village || 'Gram Panchayat',
+      state: state || 'Madhya Pradesh',
+      pinCode: pinCode || '462001',
       landArea: parseFloat(landArea) || 5.0,
       khasraNo: khasraNo || '142/1',
-      primaryCrop: primaryCrop,
+      primaryCrop: primaryCrop || 'Wheat (गेहूं)',
       bankAccount: accountNo ? `•••• ${accountNo.slice(-4)}` : '•••• 5678',
-      ifsc: ifsc,
-      bankName: bankName,
+      ifsc: ifsc || 'SBIN0001234',
+      bankName: bankName || 'State Bank of India',
+      branchName: branchName || 'Main Branch',
+      fatherName: fatherName || '',
+      gender: gender || 'Male',
+      landDocFileName: landDocUploaded ? landDocFileName : 'Khasra_Record.pdf',
       photoUrl: profileImage,
       isVerified: true,
+      profileComplete: true,
+      status: 'Active',
+      createdAt: new Date().toISOString(),
     };
 
-    // Save to Firestore & context
+    // 1. Save to persistent device storage so it survives app restarts
+    try {
+      await StorageService.setItem('kisan_current_farmer', newFarmer);
+    } catch (e) {
+      console.warn('Farmer storage error:', e);
+    }
+
+    // 2. Save to Firestore DB
     try {
       await FirestoreService.saveFarmer(newFarmer as any);
     } catch (e) {
       console.warn('Farmer save notice:', e);
     }
 
+    // 3. Dispatch to AppContext global state
     dispatch({
-      type: 'SET_ROLE',
-      payload: { role: UserRole.FARMER, userId: farmerId },
+      type: 'SET_CURRENT_FARMER',
+      payload: newFarmer,
     });
 
-    Alert.alert(
-      'Registration Completed! 🎉',
-      `Welcome ${fullName}! Your Kisan Mitra Registration ID is ${farmerId}. Direct DBT has been linked.`,
-      [
-        {
-          text: 'Go to Farmer Dashboard',
-          onPress: () => router.replace('/(farmer)/(tabs)'),
-        },
-      ]
-    );
+    // 4. Set submittedFarmer to show the real submitted registration view
+    setSubmittedFarmer(newFarmer);
   };
+
+  if (submittedFarmer) {
+    return (
+      <ScreenContainer scrollable style={styles.container}>
+        {/* Registration Success Banner */}
+        <View style={styles.successBanner}>
+          <Ionicons name="checkmark-circle" size={48} color="#2E7D32" />
+          <Text style={styles.successBannerTitle}>Registration Successful! 🎉</Text>
+          <Text style={styles.successBannerSub}>
+            Digital Farmer Identity Card (Kisan Pehchan Patra) Generated
+          </Text>
+          <View style={styles.successBadgeRow}>
+            <StatusBadge status="UIDAI VERIFIED" variant="success" />
+            <View style={{ width: 6 }} />
+            <StatusBadge status="DBT SEEDED" variant="success" />
+            <View style={{ width: 6 }} />
+            <StatusBadge status="BHU-ABHILEKH LINKED" variant="success" />
+          </View>
+        </View>
+
+        {/* Digital Farmer ID Card */}
+        <View style={styles.idCard}>
+          {/* Card Top Header */}
+          <View style={styles.idCardTop}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.idCardGovt}>GOVERNMENT OF INDIA • PM KISAN</Text>
+              <Text style={styles.idCardPortal}>Ministry of Agriculture & Farmers Welfare</Text>
+            </View>
+            <View style={styles.idEmblemBox}>
+              <Ionicons name="shield-checkmark" size={22} color="#FFFFFF" />
+            </View>
+          </View>
+
+          {/* Farmer Photo & Basic Info */}
+          <View style={styles.idCardBody}>
+            <View style={styles.idPhotoContainer}>
+              {submittedFarmer.photoUrl ? (
+                <Image source={{ uri: submittedFarmer.photoUrl }} style={styles.idPhoto} />
+              ) : (
+                <View style={styles.idPhotoPlaceholder}>
+                  <Ionicons name="person" size={36} color="#BDBDBD" />
+                </View>
+              )}
+              <View style={styles.idPhotoTag}>
+                <Text style={styles.idPhotoTagText}>PHOTO ID</Text>
+              </View>
+            </View>
+
+            <View style={styles.idDetailsCol}>
+              <Text style={styles.idFarmerName}>{submittedFarmer.name}</Text>
+              <View style={styles.idPill}>
+                <Text style={styles.idNumberText}>ID: {submittedFarmer.id}</Text>
+              </View>
+              {submittedFarmer.fatherName ? (
+                <Text style={styles.idSubDetail}>S/o, W/o: {submittedFarmer.fatherName}</Text>
+              ) : null}
+              <Text style={styles.idSubDetail}>
+                Gender: {submittedFarmer.gender} • Mobile: +91 {submittedFarmer.phone}
+              </Text>
+            </View>
+          </View>
+
+          {/* Quick Summary Strip inside Card */}
+          <View style={styles.idCardGrid}>
+            <View style={styles.idGridItem}>
+              <Text style={styles.idGridLabel}>Aadhaar</Text>
+              <Text style={styles.idGridValue} numberOfLines={1}>{submittedFarmer.aadhaar}</Text>
+            </View>
+            <View style={styles.idGridItem}>
+              <Text style={styles.idGridLabel}>Primary Crop</Text>
+              <Text style={styles.idGridValue} numberOfLines={1}>{submittedFarmer.primaryCrop}</Text>
+            </View>
+            <View style={styles.idGridItem}>
+              <Text style={styles.idGridLabel}>Land Holding</Text>
+              <Text style={styles.idGridValue} numberOfLines={1}>{submittedFarmer.landArea} Acres</Text>
+            </View>
+            <View style={styles.idGridItem}>
+              <Text style={styles.idGridLabel}>Location</Text>
+              <Text style={styles.idGridValue} numberOfLines={1}>
+                {submittedFarmer.village}, {submittedFarmer.district}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Section 1: Real Identity Details */}
+        <SectionHeader
+          title="1. Registered Identity & Aadhaar"
+          subtitle="Real data verified via DigiLocker UIDAI"
+        />
+        <KisanCard style={styles.card}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Full Name:</Text>
+            <Text style={styles.summaryValue}>{submittedFarmer.name}</Text>
+          </View>
+          {submittedFarmer.fatherName ? (
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Father's / Husband's Name:</Text>
+              <Text style={styles.summaryValue}>{submittedFarmer.fatherName}</Text>
+            </View>
+          ) : null}
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Gender:</Text>
+            <Text style={styles.summaryValue}>{submittedFarmer.gender}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Aadhaar Number:</Text>
+            <Text style={styles.summaryValue}>{submittedFarmer.aadhaar} (Verified ✓)</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Registered Mobile:</Text>
+            <Text style={styles.summaryValue}>+91 {submittedFarmer.phone} (OTP Verified ✓)</Text>
+          </View>
+        </KisanCard>
+
+        {/* Section 2: Real Address Details */}
+        <SectionHeader
+          title="2. Registered Address"
+          subtitle="Revenue jurisdiction mapping"
+        />
+        <KisanCard style={styles.card}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Village / Gram Panchayat:</Text>
+            <Text style={styles.summaryValue}>{submittedFarmer.village}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>District:</Text>
+            <Text style={styles.summaryValue}>{submittedFarmer.district}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>State / UT:</Text>
+            <Text style={styles.summaryValue}>{submittedFarmer.state}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>PIN Code:</Text>
+            <Text style={styles.summaryValue}>{submittedFarmer.pinCode}</Text>
+          </View>
+        </KisanCard>
+
+        {/* Section 3: Real Bank & DBT Details */}
+        <SectionHeader
+          title="3. Direct Benefit Transfer (DBT) Bank Account"
+          subtitle="Linked for immediate MSP payout settlement"
+        />
+        <KisanCard style={styles.card}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Bank Name:</Text>
+            <Text style={styles.summaryValue}>{submittedFarmer.bankName}</Text>
+          </View>
+          {submittedFarmer.branchName ? (
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Branch:</Text>
+              <Text style={styles.summaryValue}>{submittedFarmer.branchName}</Text>
+            </View>
+          ) : null}
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Bank Account No:</Text>
+            <Text style={styles.summaryValue}>{submittedFarmer.bankAccount}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>IFSC Code:</Text>
+            <Text style={styles.summaryValue}>{submittedFarmer.ifsc}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>DBT Payout Status:</Text>
+            <StatusBadge status="ACTIVE & SEEDED" variant="success" />
+          </View>
+        </KisanCard>
+
+        {/* Section 4: Real Land & Crop Details */}
+        <SectionHeader
+          title="4. Land Record & Agriculture Holdings"
+          subtitle="Bhu-Abhilekh revenue registry linkage"
+        />
+        <KisanCard style={styles.card}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Khasra / Survey No.:</Text>
+            <Text style={styles.summaryValue}>{submittedFarmer.khasraNo}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Cultivable Land Area:</Text>
+            <Text style={styles.summaryValue}>{submittedFarmer.landArea} Acres</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Primary Crop:</Text>
+            <Text style={styles.summaryValue}>{submittedFarmer.primaryCrop}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Attached Land Record:</Text>
+            <Text style={styles.summaryValue}>{submittedFarmer.landDocFileName || 'Khasra_Document.pdf'}</Text>
+          </View>
+        </KisanCard>
+
+        {/* Action Buttons */}
+        <View style={styles.successActions}>
+          <KisanButton
+            title="Go to Farmer Dashboard 🌾"
+            onPress={() => router.replace('/(farmer)/(tabs)')}
+            variant="primary"
+          />
+
+          <View style={{ height: spacing.sm }} />
+
+          <KisanButton
+            title="View Official Farmer Profile"
+            onPress={() => router.replace('/(farmer)/(tabs)/profile')}
+            variant="outline"
+          />
+
+          <TouchableOpacity
+            style={styles.editAgainBtn}
+            onPress={() => setSubmittedFarmer(null)}
+          >
+            <Text style={styles.editAgainText}>✏️ Edit Registration Data / Register Another</Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer scrollable style={styles.container}>
@@ -1240,5 +1471,203 @@ const styles = StyleSheet.create({
   loginLinkText: {
     fontSize: 13,
     color: colors.textSecondary,
+  },
+  /* Registration Verified Certificate / Card Styles */
+  successBanner: {
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    borderWidth: 1.5,
+    borderColor: '#81C784',
+    marginBottom: spacing.md,
+  },
+  successBannerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1B5E20',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  successBannerSub: {
+    fontSize: 13,
+    color: '#388E3C',
+    textAlign: 'center',
+    marginTop: 4,
+    marginBottom: spacing.sm,
+  },
+  successBadgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginTop: 6,
+    gap: 6,
+  },
+  idCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: radius.md,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    overflow: 'hidden',
+    marginBottom: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  idCardTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.primaryDark,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  idCardGovt: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    letterSpacing: 0.8,
+  },
+  idCardPortal: {
+    fontSize: 10,
+    color: '#C8E6C9',
+    marginTop: 1,
+  },
+  idEmblemBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  idCardBody: {
+    flexDirection: 'row',
+    padding: spacing.md,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+  },
+  idPhotoContainer: {
+    position: 'relative',
+    marginRight: spacing.md,
+  },
+  idPhoto: {
+    width: 74,
+    height: 84,
+    borderRadius: radius.sm,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+  },
+  idPhotoPlaceholder: {
+    width: 74,
+    height: 84,
+    borderRadius: radius.sm,
+    backgroundColor: '#F5F5F5',
+    borderWidth: 1.5,
+    borderColor: '#CCCCCC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  idPhotoTag: {
+    position: 'absolute',
+    bottom: -6,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.primary,
+    borderRadius: 3,
+    paddingVertical: 1,
+    alignItems: 'center',
+  },
+  idPhotoTagText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  idDetailsCol: {
+    flex: 1,
+  },
+  idFarmerName: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+  },
+  idPill: {
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  idNumberText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: colors.primaryDark,
+  },
+  idSubDetail: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  idCardGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    backgroundColor: '#F9FBE7',
+    padding: spacing.sm,
+  },
+  idGridItem: {
+    width: '50%',
+    padding: 6,
+  },
+  idGridLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+  },
+  idGridValue: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+    marginTop: 1,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  summaryLabel: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    flex: 1,
+  },
+  summaryValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    flex: 1.2,
+    textAlign: 'right',
+  },
+  successActions: {
+    marginTop: spacing.sm,
+    marginBottom: spacing.xxl,
+  },
+  editAgainBtn: {
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    marginTop: spacing.xs,
+  },
+  editAgainText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.secondary,
   },
 });

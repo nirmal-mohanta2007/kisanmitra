@@ -13,11 +13,13 @@ import {
   KisanButton,
 } from '../../../src/components/common';
 import { MOCK_FARMERS } from '../../../src/services/mock-data.service';
+import { useAppContext } from '../../../src/store/app-context';
 
 export default function FarmerProfileScreen() {
   const router = useRouter();
-  const farmer = MOCK_FARMERS[0];
-  const avatarUrl = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80';
+  const { state } = useAppContext();
+  const farmer = state.currentFarmer || MOCK_FARMERS[0];
+  const avatarUrl = farmer.photoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80';
 
   const handleLogout = () => {
     router.replace('/(auth)/welcome');
@@ -32,7 +34,7 @@ export default function FarmerProfileScreen() {
           <Text style={styles.farmerName}>{farmer.name}</Text>
           <Text style={styles.phoneText}>📞 +91 {farmer.phone}</Text>
           <Text style={styles.locationText}>
-            📍 {farmer.village}, {farmer.district}, {farmer.state} (PIN: 466001)
+            📍 {farmer.village ? `${farmer.village}, ` : ''}{farmer.district ? `${farmer.district}, ` : ''}{farmer.state}{farmer.pinCode ? ` (PIN: ${farmer.pinCode})` : ''}
           </Text>
           <View style={styles.kycTag}>
             <StatusBadge status="UIDAI AADHAAR VERIFIED" variant="success" />
@@ -59,12 +61,24 @@ export default function FarmerProfileScreen() {
       <KisanCard style={styles.card}>
         <View style={styles.row}>
           <Text style={styles.label}>Aadhaar Card Number:</Text>
-          <Text style={styles.value}>XXXX-XXXX-9012 (DigiLocker Linked)</Text>
+          <Text style={styles.value}>{farmer.aadhaar || 'XXXX-XXXX-9012'} (DigiLocker Linked)</Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>Registered Mobile:</Text>
           <Text style={styles.value}>+91 {farmer.phone} (OTP Active)</Text>
         </View>
+        {farmer.fatherName ? (
+          <View style={styles.row}>
+            <Text style={styles.label}>Father / Husband Name:</Text>
+            <Text style={styles.value}>{farmer.fatherName}</Text>
+          </View>
+        ) : null}
+        {farmer.gender ? (
+          <View style={styles.row}>
+            <Text style={styles.label}>Gender:</Text>
+            <Text style={styles.value}>{farmer.gender}</Text>
+          </View>
+        ) : null}
         <View style={styles.row}>
           <Text style={styles.label}>e-KYC Status:</Text>
           <StatusBadge status="ACTIVE & VERIFIED" variant="success" />
@@ -80,9 +94,9 @@ export default function FarmerProfileScreen() {
         <View style={styles.bankRow}>
           <Ionicons name="business" size={26} color={colors.primary} />
           <View style={styles.bankInfo}>
-            <Text style={styles.bankName}>State Bank of India</Text>
-            <Text style={styles.bankAccount}>A/C: •••• •••• 5678</Text>
-            <Text style={styles.ifscText}>IFSC: SBIN0001234 • Sehore Branch</Text>
+            <Text style={styles.bankName}>{farmer.bankName || farmer.bankDetails?.bankName || 'State Bank of India'}</Text>
+            <Text style={styles.bankAccount}>A/C: {farmer.bankAccount || (farmer.bankDetails?.accountNumber ? `•••• ${farmer.bankDetails.accountNumber.slice(-4)}` : '•••• 5678')}</Text>
+            <Text style={styles.ifscText}>IFSC: {farmer.ifsc || farmer.bankDetails?.ifscCode || 'SBIN0001234'}{farmer.branchName ? ` • ${farmer.branchName}` : ''}</Text>
           </View>
           <StatusBadge status="Aadhaar Seeded" variant="success" />
         </View>
@@ -91,24 +105,28 @@ export default function FarmerProfileScreen() {
       {/* 3. Land Record (Bhu-Abhilekh) */}
       <SectionHeader
         title="3. Land Record & Cultivation Area"
-        subtitle="Synchronized with MP Revenue Department"
+        subtitle="Synchronized with State Revenue Department"
       />
       <KisanCard style={styles.card}>
         <View style={styles.row}>
           <Text style={styles.label}>Khasra / Survey No.:</Text>
-          <Text style={styles.value}>142/1, 142/2 (Sehore)</Text>
+          <Text style={styles.value}>{farmer.khasraNo || '142/1, 142/2'}</Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>Total Cultivable Area:</Text>
-          <Text style={styles.value}>4.5 Hectares (11.1 Acres)</Text>
+          <Text style={styles.value}>
+            {farmer.landArea ? `${farmer.landArea} Hectares (${(farmer.landArea * 2.471).toFixed(1)} Acres)` : '4.5 Hectares (11.1 Acres)'}
+          </Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>Primary Crops:</Text>
-          <Text style={styles.value}>Wheat (गेहूं), Soybean, Paddy</Text>
+          <Text style={styles.value}>{farmer.primaryCrop || 'Wheat (गेहूं), Soybean, Paddy'}</Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>Land Document:</Text>
-          <Text style={[styles.value, { color: colors.primary }]}>📄 Khasra_Verified.pdf</Text>
+          <Text style={[styles.value, { color: colors.primary }]}>
+            📄 {farmer.landDocFileName || 'Khasra_Verified.pdf'}
+          </Text>
         </View>
       </KisanCard>
 
