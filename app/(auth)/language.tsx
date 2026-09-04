@@ -10,9 +10,9 @@ export default function LanguageScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Select Language</Text>
+      <Text style={styles.title}>Select Language / भाषा चुनें</Text>
       
-      {['English', 'हिंदी', 'ଓଡ଼ିଆ'].map((lang) => (
+      {['हिंदी (Hindi)', 'English'].map((lang) => (
         <TouchableOpacity 
           key={lang}
           style={styles.button} 

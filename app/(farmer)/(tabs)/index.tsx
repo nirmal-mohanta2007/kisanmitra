@@ -106,7 +106,7 @@ export default function FarmerDashboard() {
               <Text style={styles.brandTitle}>Kisan Mitra</Text>
             </View>
 
-            {/* Language Switcher Pill */}
+            {/* Language Switcher Pill: Hindi or English */}
             <View style={styles.langPill}>
               <TouchableOpacity
                 style={[styles.langOption, selectedLang === 'hi' && styles.langOptionActive]}
@@ -123,7 +123,7 @@ export default function FarmerDashboard() {
                 activeOpacity={0.8}
               >
                 <Text style={[styles.langText, selectedLang === 'en' && styles.langTextActive]}>
-                  धी
+                  English
                 </Text>
               </TouchableOpacity>
             </View>
