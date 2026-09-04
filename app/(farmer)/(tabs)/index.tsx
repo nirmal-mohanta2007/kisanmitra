@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { MOCK_TRANSACTIONS, MOCK_CENTRES } from '../../../src/services/mock-data
 import { useAppContext } from '../../../src/store/app-context';
 import { SpeakerButton } from '../../../src/components/SpeakerButton';
 import { AccessibilityToolbar, TextScale } from '../../../src/components/AccessibilityToolbar';
+import { weatherService, RealTimeWeather } from '../../../src/services/weather.service';
 
 // Translation dictionary for Simple Hindi, Odia, and English
 const TRANSLATIONS = {
@@ -483,6 +484,54 @@ export default function FarmerDashboard() {
   const [activeWeatherTab, setActiveWeatherTab] = useState<'rain' | 'frost' | 'heat'>('rain');
   const [alertBannerVisible, setAlertBannerVisible] = useState(true);
 
+  // Real-time location-based weather state
+  const [weather, setWeather] = useState<RealTimeWeather | null>(null);
+  const [isLoadingWeather, setIsLoadingWeather] = useState(false);
+
+  const fetchLiveWeather = async () => {
+    setIsLoadingWeather(true);
+    try {
+      const data = await weatherService.getRealTimeWeather();
+      setWeather(data);
+    } catch (e) {
+      console.warn('Real-time weather fetch error:', e);
+    } finally {
+      setIsLoadingWeather(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveWeather();
+  }, []);
+
+  // Sync active weather modal tab to detected hazard (unseasonal rain, frost, or heatwave)
+  useEffect(() => {
+    if (weather?.hazardType && weather.hazardType !== 'favorable') {
+      setActiveWeatherTab(weather.hazardType);
+    }
+  }, [weather?.hazardType]);
+
+  // Live weather metrics derived dynamically from real-time GPS & meteorological server
+  const liveTemp = weather ? `${weather.temperature}°C` : '32°C';
+  const liveWindText = weather ? `${weather.windSpeed} km/h` : '18 km/h';
+  const liveGusts = weather ? weather.windGusts : 32;
+  const liveRain24 = weather ? weather.rainProb24h : 20;
+  const liveRain48 = weather ? weather.rainProb48h : 75;
+  const liveLocation = weather?.locationName || (isOr ? 'ଭୁବନେଶ୍ୱର / ଭୋପାଲ' : isHi ? 'भोपाल' : 'Bhopal');
+  const liveIsGPS = weather?.isLiveGPS ?? false;
+  const liveEmoji = weather?.conditionEmoji || '⛅';
+  const liveConditionText = isOr
+    ? (weather?.conditionOr || 'ଖଣ୍ଡିଆ ମେଘୁଆ')
+    : isHi
+    ? (weather?.conditionHi || 'आंशिक बादल')
+    : (weather?.conditionEn || 'Partly Cloudy');
+  const liveAdvisory = isOr
+    ? (weather?.advisoryOr || t.advisorySnippet)
+    : isHi
+    ? (weather?.advisoryHi || t.advisorySnippet)
+    : (weather?.advisoryEn || t.advisorySnippet);
+  const isSevereHazard = weather ? weather.hazardType !== 'favorable' : true;
+
   // Active transaction and centre
   const activeTx = state.transactions?.find((t) => t.farmerId === currentFarmer?.id) || MOCK_TRANSACTIONS[0];
   const activeMandi = state.centres?.[0] || MOCK_CENTRES[0];
@@ -803,20 +852,21 @@ export default function FarmerDashboard() {
             <TouchableOpacity
               style={[
                 styles.weatherAlertBanner,
+                !isSevereHazard && styles.weatherAlertBannerFavorable,
                 isHighContrast && styles.bannerHighContrast,
               ]}
               onPress={() => setShowWeatherModal(true)}
               activeOpacity={0.9}
             >
-              <View style={styles.weatherAlertIconBox}>
-                <Ionicons name="warning" size={18} color="#FFFFFF" />
+              <View style={[styles.weatherAlertIconBox, !isSevereHazard && styles.weatherAlertIconBoxFavorable]}>
+                <Ionicons name={isSevereHazard ? "warning" : "partly-sunny"} size={18} color="#FFFFFF" />
               </View>
               <View style={styles.weatherAlertTextBox}>
-                <Text style={[styles.weatherAlertTitle, isHighContrast && styles.textHighContrast]} numberOfLines={1}>
-                  {t.urgentAlertTitle}
+                <Text style={[styles.weatherAlertTitle, !isSevereHazard && styles.weatherAlertTitleFavorable, isHighContrast && styles.textHighContrast]} numberOfLines={1}>
+                  {isSevereHazard ? t.urgentAlertTitle : (isOr ? `☀️ କୃଷି ପାଣିପାଗ ସ୍ଥିତି (ଆଗାମୀ ୨୪-୪୮ ଘଣ୍ଟା)` : isHi ? `☀️ कृषि मौसम स्थिति (अगले 24-48 घंटे)` : `☀️ Agro-Met Weather Status (Next 24-48h)`)}
                 </Text>
-                <Text style={[styles.weatherAlertSub, isHighContrast && styles.textSubHighContrast]} numberOfLines={1}>
-                  {t.urgentAlertSub}
+                <Text style={[styles.weatherAlertSub, !isSevereHazard && styles.weatherAlertSubFavorable, isHighContrast && styles.textSubHighContrast]} numberOfLines={1}>
+                  📍 {liveLocation}: {liveAdvisory}
                 </Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -824,20 +874,20 @@ export default function FarmerDashboard() {
                   cardId="urgent-weather-alert"
                   getText={() => {
                     if (isOr) {
-                      return `କୃଷି-ପାଣିପାଗ ସତର୍କତା: ଆଗାମୀ ୨୪ ରୁ ୪୮ ଘଣ୍ଟା ମଧ୍ୟରେ ୭୫ ପ୍ରତିଶତ ଅସାମୟିକ ବର୍ଷା ଏବଂ ୩୨ କିଲୋମିଟର ବେଗରେ ପ୍ରବଳ ପବନ ହେବାର ସମ୍ଭାବନା ରହିଛି। ସୁରକ୍ଷା ପାଇଁ ପରାମର୍ଶ ଦେଖନ୍ତୁ।`;
+                      return `ପାଣିପାଗ ସୂଚନା, ସ୍ଥାନ ${liveLocation}। ତାପମାତ୍ରା ${liveTemp}। ଆଗାମୀ ୨୪ ରୁ ୪୮ ଘଣ୍ଟା ମଧ୍ୟରେ ବର୍ଷା ସମ୍ଭାବନା ${liveRain48} ପ୍ରତିଶତ ଏବଂ ପବନ ବେଗ ${liveWindText}। କୃଷି ପରାମର୍ଶ: ${liveAdvisory}`;
                     }
                     if (isHi) {
-                      return `मौसम चेतावनी: अगले चौबीस से अड़तालीस घंटे में पिचहत्तर प्रतिशत बेमौसम बारिश और बत्तीस किलोमीटर प्रति घंटा तेज हवा की आशंका है। सुरक्षा उपाय देखें।`;
+                      return `मौसम सूचना, स्थान ${liveLocation}। तापमान ${liveTemp}। अगले 24 से 48 घंटे में बारिश की संभावना ${liveRain48} प्रतिशत और हवा की गति ${liveWindText}। कृषि सलाह: ${liveAdvisory}`;
                     }
-                    return `Agro-Met Weather Alert: Unseasonal rain at 75 percent and gusty winds up to 32 kilometers per hour expected in next 24 to 48 hours. Tap to view advisory.`;
+                    return `Weather information for ${liveLocation}. Temperature ${liveTemp}. Rain probability ${liveRain48} percent and wind speed ${liveWindText} in next 24 to 48 hours. Agri advisory: ${liveAdvisory}`;
                   }}
                   lang={currentLang}
                   size={15}
-                  bgColor="#FEF3C7"
-                  color="#B45309"
+                  bgColor={isSevereHazard ? "#FEF3C7" : "#DCFCE7"}
+                  color={isSevereHazard ? "#B45309" : "#15803D"}
                   isHighContrast={isHighContrast}
                 />
-                <Ionicons name="chevron-forward" size={18} color={isHighContrast ? '#FFE500' : '#92400E'} />
+                <Ionicons name="chevron-forward" size={18} color={isHighContrast ? '#FFE500' : isSevereHazard ? '#92400E' : '#15803D'} />
               </View>
             </TouchableOpacity>
           )}
@@ -998,42 +1048,73 @@ export default function FarmerDashboard() {
               activeOpacity={0.85}
             >
               <View style={styles.agroHeaderRow}>
-                <Text style={[styles.envCardTitle, isHighContrast && styles.textHighContrast]}>{t.agroMetTitle}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 }}>
+                  <Text style={[styles.envCardTitle, isHighContrast && styles.textHighContrast]}>{t.agroMetTitle}</Text>
+                  {liveIsGPS && (
+                    <View style={styles.liveGpsBadge}>
+                      <Ionicons name="navigate-circle" size={11} color="#15803D" />
+                      <Text style={styles.liveGpsText}>GPS</Text>
+                    </View>
+                  )}
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                  {/* Real-time Weather Refresh Button */}
+                  <TouchableOpacity
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      fetchLiveWeather();
+                    }}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    style={styles.refreshWeatherBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel="Refresh real-time weather"
+                  >
+                    <Ionicons
+                      name="refresh"
+                      size={13}
+                      color="#0F766E"
+                      style={isLoadingWeather ? { opacity: 0.5 } : undefined}
+                    />
+                  </TouchableOpacity>
+
                   <SpeakerButton
                     cardId="agro-met-card"
                     getText={() => {
                       if (isOr) {
-                        return `କୃଷି-ପାଣିପାଗ ପରାମର୍ଶ। ତାପମାତ୍ରା ୩୨ ଡିଗ୍ରୀ, ପବନ ୧୮ କିମି ପ୍ରତି ଘଣ୍ଟା। ବର୍ଷା ସମ୍ଭାବନା: ୨୪ ଘଣ୍ଟାରେ ୨୦ ପ୍ରତିଶତ, ୪୮ ଘଣ୍ଟାରେ ୭୫ ପ୍ରତିଶତ। ଜରୁରୀ ପରାମର୍ଶ: କଟା ଫସଲକୁ ତାରପୋଲିନରେ ଘୋଡ଼ାନ୍ତୁ ଏବଂ କୀଟନାଶକ ସ୍ପ୍ରେ ବନ୍ଦ ରଖନ୍ତୁ।`;
+                        return `କୃଷି-ପାଣିପାଗ ପରାମର୍ଶ, ସ୍ଥାନ ${liveLocation}। ତାପମାତ୍ରା ${liveTemp}, ପବନ ${liveWindText}। ବର୍ଷା ସମ୍ଭାବନା ୨୪ ଘଣ୍ଟାରେ ${liveRain24} ପ୍ରତିଶତ, ୪୮ ଘଣ୍ଟାରେ ${liveRain48} ପ୍ରତିଶତ। ପରାମର୍ଶ: ${liveAdvisory}`;
                       }
                       if (isHi) {
-                        return `कृषि-मौसम सलाह। तापमान बत्तीस डिग्री, हवा अठारह किलोमीटर प्रति घंटा। बारिश की संभावना: चौबीस घंटे में बीस प्रतिशत, अड़तालीस घंटे में पिचहत्तर प्रतिशत। जरूरी सलाह: कटी फसल को ढकें, कीटनाशक छिड़काव रोकें।`;
+                        return `कृषि-मौसम सलाह, स्थान ${liveLocation}। तापमान ${liveTemp}, हवा ${liveWindText}। बारिश की संभावना 24 घंटे में ${liveRain24} प्रतिशत, 48 घंटे में ${liveRain48} प्रतिशत। सलाह: ${liveAdvisory}`;
                       }
-                      return `Agro-met Advisory. Temperature 32 degrees, wind speed 18 kilometers per hour. Rain probability: 20 percent in 24 hours, 75 percent in 48 hours. Advisory: Cover harvested produce and pause spray.`;
+                      return `Agro-met advisory for ${liveLocation}. Temperature ${liveTemp}, wind speed ${liveWindText}. Rain probability: 24 hours ${liveRain24} percent, 48 hours ${liveRain48} percent. Advisory: ${liveAdvisory}`;
                     }}
                     lang={currentLang}
                     size={14}
                     isHighContrast={isHighContrast}
                   />
-                  <View style={styles.alertMiniPill}>
-                    <Ionicons name="warning" size={10} color="#D97706" />
-                    <Text style={styles.alertMiniPillText}>{t.alertTag}</Text>
+
+                  <View style={isSevereHazard ? styles.alertMiniPill : styles.alertMiniPillOk}>
+                    <Ionicons name={isSevereHazard ? "warning" : "checkmark-circle"} size={10} color={isSevereHazard ? "#D97706" : "#15803D"} />
+                    <Text style={isSevereHazard ? styles.alertMiniPillText : styles.alertMiniPillTextOk}>
+                      {isSevereHazard ? t.alertTag : (isOr ? 'ଅନୁକୂଳ' : isHi ? 'अनुकूल' : 'FAVORABLE')}
+                    </Text>
                   </View>
                 </View>
               </View>
+
               <Text style={[styles.envCardSub, isHighContrast && styles.textSubHighContrast]} numberOfLines={1}>
-                {mandiLocation} • {t.agroMetDuration}
+                📍 {liveLocation} • {t.agroMetDuration}
               </Text>
 
               {/* Temp & Wind Speed Row */}
               <View style={styles.agroMetricsRow}>
                 <View style={styles.weatherRow}>
-                  <Text style={styles.weatherEmoji}>⛅</Text>
-                  <Text style={[styles.weatherTempBig, isHighContrast && styles.textHighContrast]}>32°C</Text>
+                  <Text style={styles.weatherEmoji}>{liveEmoji}</Text>
+                  <Text style={[styles.weatherTempBig, isHighContrast && styles.textHighContrast]}>{liveTemp}</Text>
                 </View>
                 <View style={styles.windSpeedBadge}>
                   <Ionicons name="speedometer-outline" size={11} color="#1E3A8A" />
-                  <Text style={styles.windSpeedText}>{t.windSpeedText}</Text>
+                  <Text style={styles.windSpeedText}>{liveWindText}</Text>
                 </View>
               </View>
 
@@ -1041,16 +1122,18 @@ export default function FarmerDashboard() {
               <View style={[styles.rainProbBox, isHighContrast && styles.rainProbBoxHighContrast]}>
                 <Text style={[styles.rainProbTitle, isHighContrast && styles.textHighContrast]}>🌧️ {t.rainProbLabel}</Text>
                 <View style={styles.rainProbItemsRow}>
-                  <Text style={styles.rainProb24}>24h: 20%</Text>
+                  <Text style={styles.rainProb24}>24h: {liveRain24}%</Text>
                   <Text style={styles.rainProbDivider}>|</Text>
-                  <Text style={styles.rainProb48}>48h: 75% ⚠️</Text>
+                  <Text style={[styles.rainProb48, liveRain48 >= 50 && { color: '#DC2626' }]}>
+                    48h: {liveRain48}% {liveRain48 >= 50 ? '⚠️' : ''}
+                  </Text>
                 </View>
               </View>
 
               {/* Actionable Advisory CTA */}
               <View style={styles.agroSnippetBox}>
                 <Text style={styles.agroSnippetText} numberOfLines={1}>
-                  ⚠️ {t.advisorySnippet}
+                  {liveEmoji} {liveAdvisory}
                 </Text>
               </View>
               <Text style={[styles.viewAdvisoryLink, isHighContrast && styles.textHighlightHighContrast]}>{t.tapForAdvisory}</Text>
@@ -1166,25 +1249,29 @@ export default function FarmerDashboard() {
                 <SpeakerButton
                   cardId="modal-weather-advisory"
                   getText={() => {
+                    const loc = `ସ୍ଥାନ ${liveLocation}, ତାପମାତ୍ରା ${liveTemp}, ପବନ ${liveWindText}। `;
+                    const locHi = `स्थान ${liveLocation}, तापमान ${liveTemp}, हवा ${liveWindText}। `;
+                    const locEn = `Location ${liveLocation}, temperature ${liveTemp}, wind speed ${liveWindText}. `;
+
                     if (activeWeatherTab === 'rain') {
                       return isOr
-                        ? `ଅସାମୟିକ ବର୍ଷା ସତର୍କତା: ୪୮ ଘଣ୍ଟାରେ ୭୫ ପ୍ରତିଶତ ବର୍ଷା ସମ୍ଭାବନା। ପଦକ୍ଷେପ ଏକ: କଟା ଫସଲକୁ ତାରପୋଲିନ ଦ୍ୱାରା ଘୋଡ଼ାନ୍ତୁ। ପଦକ୍ଷେପ ଦୁଇ: ୪୮ ଘଣ୍ଟା ଯାଏଁ ସାର ଓ କୀଟନାଶକ ପ୍ରୟୋଗ ବନ୍ଦ ରଖନ୍ତୁ। ପଦକ୍ଷେପ ତିନି: କ୍ଷେତରେ ନାଳୀ ସଫା କରି ଜଳ ନିଷ୍କାସନ ବ୍ୟବସ୍ଥା କରନ୍ତୁ। କିଷାନ କଲ୍ ସେଣ୍ଟର: ୧୮୦୦-୧୮୦-୧୫୫୧।`
+                        ? `${loc}ଅସାମୟିକ ବର୍ଷା ପରାମର୍ଶ। ଆଗାମୀ ୨୪ ଘଣ୍ଟାରେ ବର୍ଷା ସମ୍ଭାବନା ${liveRain24} ପ୍ରତିଶତ, ୪୮ ଘଣ୍ଟାରେ ${liveRain48} ପ୍ରତିଶତ। ପଦକ୍ଷେପ ଏକ: କଟା ଫସଲକୁ ସୁରକ୍ଷିତ ସ୍ଥାନକୁ ନିଅନ୍ତୁ ବା ତାରପୋଲିନରେ ଘୋଡ଼ାନ୍ତୁ। ପଦକ୍ଷେପ ଦୁଇ: ଆଗାମୀ ୪୮ ଘଣ୍ଟା କୌଣସି କୀଟନାଶକ ସ୍ପ୍ରେ ବା ଜଳସେଚନ କରନ୍ତୁ ନାହିଁ। ପଦକ୍ଷେପ ତିନି: କ୍ଷେତରେ ନାଳୀ ସଫା କରି ପାଣି ନିଷ୍କାସନ ବ୍ୟବସ୍ଥା କରନ୍ତୁ।`
                         : isHi
-                        ? `बेमौसम बारिश सलाह: अड़तालीस घंटे में पिचहत्तर प्रतिशत बारिश। कदम एक: कटी फसल को तिरपाल से ढकें। कदम दो: अड़तालीस घंटे तक कीटनाशक छिड़काव रोकें। कदम तीन: जलनिकासी नालियां साफ रखें। किसान कॉल सेंटर: 1800-180-1551।`
-                        : `Unseasonal Rain Advisory: 75 percent rain probability in 48 hours. Step 1: Cover harvested crops with tarpaulin. Step 2: Postpone chemical spraying and irrigation for 48 hours. Step 3: Clear drainage furrows. Kisan Call Centre toll free: 1800-180-1551.`;
+                        ? `${locHi}बेमौसम बारिश सलाह। 24 घंटे में बारिश की संभावना ${liveRain24} प्रतिशत, 48 घंटे में ${liveRain48} प्रतिशत। कदम एक: कटी फसल व अनाज को तिरपाल से अच्छी तरह ढकें। कदम दो: अगले 48 घंटे तक कीटनाशक छिड़काव व सिंचाई टालें। कदम तीन: खेतों में जल निकासी की व्यवस्था करें।`
+                        : `${locEn}Unseasonal rain advisory. Rain probability 24 hours ${liveRain24} percent, 48 hours ${liveRain48} percent. Step 1: Move harvested crop under cover or tarp immediately. Step 2: Postpone chemical spraying and irrigation for 48 hours. Step 3: Clear drainage channels to prevent waterlogging.`;
                     }
                     if (activeWeatherTab === 'frost') {
                       return isOr
-                        ? `କାକର ଓ ଶୀତଲହରୀ ପରାମର୍ଶ। ପଦକ୍ଷେପ ଏକ: ସନ୍ଧ୍ୟାରେ ହାଲୁକା ପାଣି ମଡ଼ାନ୍ତୁ। ପଦକ୍ଷେପ ଦୁଇ: କ୍ଷେତର ଉତ୍ତର-ପଶ୍ଚିମ ସୀମାରେ ଧୂଆଁ ସୃଷ୍ଟି କରନ୍ତୁ। ପଦକ୍ଷେପ ତିନି: ପନିପରିବା ନର୍ସରୀକୁ ନଡ଼ା କିମ୍ବା ପଲିଥିନରେ ଢାଙ୍କନ୍ତୁ।`
+                        ? `${loc}କାକର ଓ ଶୀତଲହରୀ ପରାମର୍ଶ। ପଦକ୍ଷେପ ଏକ: ସନ୍ଧ୍ୟାରେ ହାଲୁକା ପାଣି ମଡ଼ାନ୍ତୁ। ପଦକ୍ଷେପ ଦୁଇ: କ୍ଷେତର ଉତ୍ତର-ପଶ୍ଚିମ ସୀମାରେ ଧୂଆଁ ସୃଷ୍ଟି କରନ୍ତୁ। ପଦକ୍ଷେପ ତିନି: ପନିପରିବା ନର୍ସରୀକୁ ନଡ଼ା କିମ୍ବା ପଲିଥିନରେ ଢାଙ୍କନ୍ତୁ।`
                         : isHi
-                        ? `पाला और शीतलहर सलाह। कदम एक: शाम के समय हल्की सिंचाई करें। कदम दो: उत्तर पश्चिम मेड़ों पर जैविक कचरे का धुआं करें। कदम तीन: नर्सरी और सब्जियों को पुआल से ढकें।`
-                        : `Frost and cold wave advisory. Step 1: Apply light evening irrigation. Step 2: Create light smoke on north-west border. Step 3: Cover nurseries and vegetable plants with straw or plastic.`;
+                        ? `${locHi}पाला और शीतलहर सलाह। कदम एक: शाम के समय हल्की सिंचाई करें। कदम दो: उत्तर पश्चिम मेड़ों पर जैविक कचरे का धुआं करें। कदम तीन: नर्सरी और सब्जियों को पुआल से ढकें।`
+                        : `${locEn}Frost and cold wave advisory. Step 1: Apply light evening irrigation. Step 2: Create light smoke on north-west border. Step 3: Cover nurseries and vegetable plants with straw or plastic.`;
                     }
                     return isOr
-                      ? `ପ୍ରଚଣ୍ଡ ଖରା ଓ ଲୁ ପରାମର୍ଶ। ପଦକ୍ଷେପ ଏକ: କେବଳ ସକାଳେ କିମ୍ବା ସନ୍ଧ୍ୟାରେ ଜଳସେଚନ କରନ୍ତୁ। ପଦକ୍ଷେପ ଦୁଇ: ନଡ଼ାର ମଲଚିଂ ବ୍ୟବହାର କରନ୍ତୁ। ପଦକ୍ଷେପ ତିନି: ଗୃହପାଳିତ ପଶୁଙ୍କୁ ଛାଇରେ ରଖନ୍ତୁ ଓ ପ୍ରଚୁର ଥଣ୍ଡା ପାଣି ଦିଅନ୍ତୁ।`
+                      ? `${loc}ପ୍ରଚଣ୍ଡ ଖରା ଓ ଲୁ ପରାମର୍ଶ। ପଦକ୍ଷେପ ଏକ: କେବଳ ସକାଳେ କିମ୍ବା ସନ୍ଧ୍ୟାରେ ଜଳସେଚନ କରନ୍ତୁ। ପଦକ୍ଷେପ ଦୁଇ: ନଡ଼ାର ମଲଚିଂ ବ୍ୟବହାର କରନ୍ତୁ। ପଦକ୍ଷେପ ତିନି: ଗୃହପାଳିତ ପଶୁଙ୍କୁ ଛାଇରେ ରଖନ୍ତୁ ଓ ପ୍ରଚୁର ଥଣ୍ଡା ପାଣି ଦିଅନ୍ତୁ।`
                       : isHi
-                      ? `लू और प्रचंड गर्मी सलाह। कदम एक: केवल सुबह या देर शाम हल्की सिंचाई करें। कदम दो: पुआल की मल्चिंग बिछाएं। कदम तीन: पशुओं को छायादार जगह में रखें और भरपूर ठंडा पानी दें।`
-                      : `Heatwave advisory. Step 1: Irrigate strictly during early morning or late evening. Step 2: Apply organic mulch to conserve moisture. Step 3: Keep cattle in shaded shelters with plenty of clean water.`;
+                      ? `${locHi}लू और प्रचंड गर्मी सलाह। कदम एक: केवल सुबह या देर शाम हल्की सिंचाई करें। कदम दो: पुआल की मल्चिंग बिछाएं। कदम तीन: पशुओं को छायादार जगह में रखें और भरपूर ठंडा पानी दें।`
+                      : `${locEn}Heatwave advisory. Step 1: Irrigate strictly during early morning or late evening. Step 2: Apply organic mulch to conserve moisture. Step 3: Keep cattle in shaded shelters with plenty of clean water.`;
                   }}
                   lang={currentLang}
                   size={15}
@@ -1204,7 +1291,7 @@ export default function FarmerDashboard() {
             </View>
 
             <Text style={styles.modalSubHeader}>
-              {t.modalSub} • {mandiLocation}
+              {t.modalSub} • 📍 {liveLocation} {liveIsGPS ? '(Live GPS)' : ''}
             </Text>
 
             {/* Advisory Type Tabs: Unseasonal Rain, Frost, Heatwave */}
@@ -1267,17 +1354,19 @@ export default function FarmerDashboard() {
                 <>
                   <View style={styles.modalMetricItem}>
                     <Text style={styles.modalMetricLabel}>Rain Prob (24h)</Text>
-                    <Text style={styles.modalMetricVal}>20% (Light)</Text>
+                    <Text style={styles.modalMetricVal}>{liveRain24}% {liveRain24 > 40 ? '⚠️' : '(Light)'}</Text>
                   </View>
                   <View style={styles.modalMetricDivider} />
                   <View style={styles.modalMetricItem}>
                     <Text style={styles.modalMetricLabel}>Rain Prob (48h)</Text>
-                    <Text style={[styles.modalMetricVal, { color: '#DC2626' }]}>75% (Heavy ⚠️)</Text>
+                    <Text style={[styles.modalMetricVal, { color: liveRain48 >= 50 ? '#DC2626' : '#2E7D32' }]}>
+                      {liveRain48}% {liveRain48 >= 50 ? '(Heavy ⚠️)' : '(Normal)'}
+                    </Text>
                   </View>
                   <View style={styles.modalMetricDivider} />
                   <View style={styles.modalMetricItem}>
                     <Text style={styles.modalMetricLabel}>Wind Gusts</Text>
-                    <Text style={styles.modalMetricVal}>32 km/h</Text>
+                    <Text style={styles.modalMetricVal}>{liveGusts} km/h</Text>
                   </View>
                 </>
               )}
@@ -1285,13 +1374,15 @@ export default function FarmerDashboard() {
               {activeWeatherTab === 'frost' && (
                 <>
                   <View style={styles.modalMetricItem}>
-                    <Text style={styles.modalMetricLabel}>Min Temp</Text>
-                    <Text style={[styles.modalMetricVal, { color: '#2563EB' }]}>3.5°C ❄️</Text>
+                    <Text style={styles.modalMetricLabel}>Min / Air Temp</Text>
+                    <Text style={[styles.modalMetricVal, { color: '#2563EB' }]}>{liveTemp} ❄️</Text>
                   </View>
                   <View style={styles.modalMetricDivider} />
                   <View style={styles.modalMetricItem}>
                     <Text style={styles.modalMetricLabel}>Ground Temp</Text>
-                    <Text style={styles.modalMetricVal}>1.8°C</Text>
+                    <Text style={styles.modalMetricVal}>
+                      {weather ? `${Math.round(weather.temperature - 2)}°C` : '1.8°C'}
+                    </Text>
                   </View>
                   <View style={styles.modalMetricDivider} />
                   <View style={styles.modalMetricItem}>
@@ -1304,13 +1395,13 @@ export default function FarmerDashboard() {
               {activeWeatherTab === 'heat' && (
                 <>
                   <View style={styles.modalMetricItem}>
-                    <Text style={styles.modalMetricLabel}>Max Temp</Text>
-                    <Text style={[styles.modalMetricVal, { color: '#EA580C' }]}>43.2°C ☀️</Text>
+                    <Text style={styles.modalMetricLabel}>Max / Air Temp</Text>
+                    <Text style={[styles.modalMetricVal, { color: '#EA580C' }]}>{liveTemp} ☀️</Text>
                   </View>
                   <View style={styles.modalMetricDivider} />
                   <View style={styles.modalMetricItem}>
-                    <Text style={styles.modalMetricLabel}>Heat Index</Text>
-                    <Text style={styles.modalMetricVal}>Extreme</Text>
+                    <Text style={styles.modalMetricLabel}>Humidity</Text>
+                    <Text style={styles.modalMetricVal}>{weather ? `${weather.humidity}%` : '65%'}</Text>
                   </View>
                   <View style={styles.modalMetricDivider} />
                   <View style={styles.modalMetricItem}>
@@ -1933,6 +2024,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#F59E0B',
   },
+  weatherAlertBannerFavorable: {
+    backgroundColor: '#DCFCE7',
+    borderColor: '#86EFAC',
+  },
   weatherAlertIconBox: {
     width: 32,
     height: 32,
@@ -1942,6 +2037,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 10,
   },
+  weatherAlertIconBoxFavorable: {
+    backgroundColor: '#16A34A',
+  },
   weatherAlertTextBox: {
     flex: 1,
   },
@@ -1950,16 +2048,48 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#92400E',
   },
+  weatherAlertTitleFavorable: {
+    color: '#14532D',
+  },
   weatherAlertSub: {
     fontSize: 10,
     color: '#B45309',
     marginTop: 1,
+  },
+  weatherAlertSubFavorable: {
+    color: '#166534',
   },
 
   agroHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  liveGpsBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 4,
+    borderWidth: 0.5,
+    borderColor: '#86EFAC',
+  },
+  liveGpsText: {
+    fontSize: 8,
+    fontWeight: '800',
+    color: '#15803D',
+    marginLeft: 2,
+  },
+  refreshWeatherBtn: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#CCFBF1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 0.5,
+    borderColor: '#99F6E4',
   },
   alertMiniPill: {
     flexDirection: 'row',
@@ -1975,6 +2105,22 @@ const styles = StyleSheet.create({
     fontSize: 8,
     fontWeight: '800',
     color: '#B45309',
+    marginLeft: 2,
+  },
+  alertMiniPillOk: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DCFCE7',
+    borderRadius: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+  },
+  alertMiniPillTextOk: {
+    fontSize: 8,
+    fontWeight: '800',
+    color: '#15803D',
     marginLeft: 2,
   },
   agroMetricsRow: {
