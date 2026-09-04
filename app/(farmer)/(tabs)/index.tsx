@@ -105,6 +105,167 @@ const TRANSLATIONS = {
   },
 };
 
+interface CropPriceInfo {
+  nameEn: string;
+  nameHi: string;
+  priceDisplay: string;
+  mspDisplay: string;
+  trendTextEn: string;
+  trendTextHi: string;
+}
+
+const CROP_PRICE_MAP: Record<string, CropPriceInfo> = {
+  wheat: {
+    nameEn: 'Wheat',
+    nameHi: 'गेहूं',
+    priceDisplay: '₹2,450',
+    mspDisplay: '₹2,275',
+    trendTextEn: 'Current Price ↑ (MSP ₹2,275)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹2,275)',
+  },
+  गेहूं: {
+    nameEn: 'Wheat',
+    nameHi: 'गेहूं',
+    priceDisplay: '₹2,450',
+    mspDisplay: '₹2,275',
+    trendTextEn: 'Current Price ↑ (MSP ₹2,275)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹2,275)',
+  },
+  paddy: {
+    nameEn: 'Paddy',
+    nameHi: 'धान',
+    priceDisplay: '₹2,900',
+    mspDisplay: '₹2,320',
+    trendTextEn: 'Current Price ↑ (MSP ₹2,320)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹2,320)',
+  },
+  धान: {
+    nameEn: 'Paddy',
+    nameHi: 'धान',
+    priceDisplay: '₹2,900',
+    mspDisplay: '₹2,320',
+    trendTextEn: 'Current Price ↑ (MSP ₹2,320)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹2,320)',
+  },
+  rice: {
+    nameEn: 'Paddy (Rice)',
+    nameHi: 'धान (चावल)',
+    priceDisplay: '₹2,900',
+    mspDisplay: '₹2,320',
+    trendTextEn: 'Current Price ↑ (MSP ₹2,320)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹2,320)',
+  },
+  soybean: {
+    nameEn: 'Soybean',
+    nameHi: 'सोयाबीन',
+    priceDisplay: '₹4,892',
+    mspDisplay: '₹4,892',
+    trendTextEn: 'Current Price ↑ (MSP ₹4,892)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹4,892)',
+  },
+  सोयाबीन: {
+    nameEn: 'Soybean',
+    nameHi: 'सोयाबीन',
+    priceDisplay: '₹4,892',
+    mspDisplay: '₹4,892',
+    trendTextEn: 'Current Price ↑ (MSP ₹4,892)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹4,892)',
+  },
+  mustard: {
+    nameEn: 'Mustard',
+    nameHi: 'सरसों',
+    priceDisplay: '₹5,650',
+    mspDisplay: '₹5,650',
+    trendTextEn: 'Current Price ↑ (MSP ₹5,650)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹5,650)',
+  },
+  सरसों: {
+    nameEn: 'Mustard',
+    nameHi: 'सरसों',
+    priceDisplay: '₹5,650',
+    mspDisplay: '₹5,650',
+    trendTextEn: 'Current Price ↑ (MSP ₹5,650)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹5,650)',
+  },
+  maize: {
+    nameEn: 'Maize',
+    nameHi: 'मक्का',
+    priceDisplay: '₹2,090',
+    mspDisplay: '₹2,090',
+    trendTextEn: 'Current Price ↑ (MSP ₹2,090)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹2,090)',
+  },
+  मक्का: {
+    nameEn: 'Maize',
+    nameHi: 'मक्का',
+    priceDisplay: '₹2,090',
+    mspDisplay: '₹2,090',
+    trendTextEn: 'Current Price ↑ (MSP ₹2,090)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹2,090)',
+  },
+  cotton: {
+    nameEn: 'Cotton',
+    nameHi: 'कपास',
+    priceDisplay: '₹7,121',
+    mspDisplay: '₹7,121',
+    trendTextEn: 'Current Price ↑ (MSP ₹7,121)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹7,121)',
+  },
+  कपास: {
+    nameEn: 'Cotton',
+    nameHi: 'कपास',
+    priceDisplay: '₹7,121',
+    mspDisplay: '₹7,121',
+    trendTextEn: 'Current Price ↑ (MSP ₹7,121)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹7,121)',
+  },
+  gram: {
+    nameEn: 'Gram (Chana)',
+    nameHi: 'चना',
+    priceDisplay: '₹5,440',
+    mspDisplay: '₹5,440',
+    trendTextEn: 'Current Price ↑ (MSP ₹5,440)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹5,440)',
+  },
+  chana: {
+    nameEn: 'Gram (Chana)',
+    nameHi: 'चना',
+    priceDisplay: '₹5,440',
+    mspDisplay: '₹5,440',
+    trendTextEn: 'Current Price ↑ (MSP ₹5,440)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹5,440)',
+  },
+  चना: {
+    nameEn: 'Gram (Chana)',
+    nameHi: 'चना',
+    priceDisplay: '₹5,440',
+    mspDisplay: '₹5,440',
+    trendTextEn: 'Current Price ↑ (MSP ₹5,440)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹5,440)',
+  },
+};
+
+function getCropPriceInfo(rawCrop?: string): CropPriceInfo {
+  if (!rawCrop) {
+    return CROP_PRICE_MAP.wheat;
+  }
+  const clean = rawCrop.toLowerCase();
+  for (const key of Object.keys(CROP_PRICE_MAP)) {
+    if (clean.includes(key)) {
+      return CROP_PRICE_MAP[key];
+    }
+  }
+  const name = rawCrop.split('(')[0].trim();
+  return {
+    nameEn: name || 'Wheat',
+    nameHi: name || 'गेहूं',
+    priceDisplay: '₹2,450',
+    mspDisplay: '₹2,275',
+    trendTextEn: 'Current Price ↑',
+    trendTextHi: 'ताज़ा भाव ↑',
+  };
+}
+
 export default function FarmerDashboard() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -152,14 +313,34 @@ export default function FarmerDashboard() {
     : t.defaultLocation;
   const landArea = currentFarmer?.landArea || currentFarmer?.landAreaHectares || '4.5';
   
-  // Crop name display
+  // Crop name display & dynamic alignment with Market Price
+  const rawFarmerCrop = currentFarmer?.primaryCrop || 'Wheat';
+  const cropPriceInfo = getCropPriceInfo(rawFarmerCrop);
+
   const primaryCrop = currentFarmer?.primaryCrop
     ? isHi && currentFarmer.primaryCrop.toLowerCase().includes('wheat')
       ? 'गेहूं (Wheat)'
       : isHi && currentFarmer.primaryCrop.toLowerCase().includes('paddy')
       ? 'धान (Paddy)'
-      : currentFarmer.primaryCrop
+      : isHi
+      ? cropPriceInfo.nameHi
+      : cropPriceInfo.nameEn
     : t.cropDefault;
+
+  // Mandi district/city location
+  const mandiLocationRaw = currentFarmer?.district || activeMandi?.district || 'Bhopal';
+  const mandiLocation = isHi && (mandiLocationRaw.toLowerCase() === 'bhopal' || mandiLocationRaw.toLowerCase() === 'mp')
+    ? 'भोपाल'
+    : isHi && mandiLocationRaw.toLowerCase() === 'sehore'
+    ? 'सीहोर'
+    : mandiLocationRaw;
+
+  // Market price card data derived directly from farmer's primary crop
+  const cropMarketSubtitle = isHi
+    ? `(${cropPriceInfo.nameHi}, ${mandiLocation})`
+    : `(${cropPriceInfo.nameEn}, ${mandiLocation})`;
+  const cropMarketPrice = cropPriceInfo.priceDisplay;
+  const cropMarketTrend = isHi ? cropPriceInfo.trendTextHi : cropPriceInfo.trendTextEn;
 
   const bankAccount = currentFarmer?.bankAccount
     ? currentFarmer.bankAccount.slice(-4)
@@ -178,8 +359,12 @@ export default function FarmerDashboard() {
       ? 'धान'
       : isHi && activeTx.crop.toLowerCase().includes('wheat')
       ? 'गेहूं'
+      : isHi
+      ? cropPriceInfo.nameHi
       : activeTx.crop
-    : isHi ? 'धान' : 'Paddy';
+    : isHi
+    ? cropPriceInfo.nameHi
+    : cropPriceInfo.nameEn;
   const tokenQuantity = activeTx?.expectedQuantity || 20;
   const tokenMandi = activeTx?.centreName
     ? (isHi ? 'डेमो कृषि उपज मंडी, भोपाल' : activeTx.centreName)
@@ -434,23 +619,23 @@ export default function FarmerDashboard() {
           <Text style={styles.sectionHeaderTitle}>{t.envSection}</Text>
 
           <View style={styles.environmentRow}>
-            {/* Market Price Card */}
+            {/* Market Price Card: Aligned dynamically with farmer's primary crop */}
             <View style={styles.environmentCard}>
               <Text style={styles.envCardTitle}>{t.marketPrice}</Text>
-              <Text style={styles.envCardSub}>{t.marketCropLocation}</Text>
+              <Text style={styles.envCardSub} numberOfLines={1}>{cropMarketSubtitle}</Text>
               <View style={styles.priceRow}>
-                <Text style={styles.envPriceBig}>₹2,9000</Text>
+                <Text style={styles.envPriceBig}>{cropMarketPrice}</Text>
                 <View style={styles.arrowUpPill}>
                   <Ionicons name="arrow-up" size={13} color="#2E7D32" />
                 </View>
               </View>
-              <Text style={styles.envTrendText}>{t.currentPriceUp}</Text>
+              <Text style={styles.envTrendText}>{cropMarketTrend}</Text>
             </View>
 
             {/* Weather Forecast Card */}
             <View style={styles.environmentCard}>
               <Text style={styles.envCardTitle}>{t.weatherTitle}</Text>
-              <Text style={styles.envCardSub}>{t.bhopal}</Text>
+              <Text style={styles.envCardSub}>({mandiLocation})</Text>
               <View style={styles.weatherRow}>
                 <Text style={styles.weatherEmoji}>⛅</Text>
                 <Text style={styles.weatherTempBig}>32°C</Text>
