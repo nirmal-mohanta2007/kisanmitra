@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   TextInput,
   ImageBackground,
+  Image,
   Platform,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -48,7 +49,12 @@ export default function LoginScreen() {
       <View style={styles.screen}>
         {/* Top branding */}
         <View style={styles.brandRow}>
-          <Text style={styles.brandTitle}>🌾 Kisan Mitra</Text>
+          <Image
+            source={require('../../assets/logo.png')}
+            style={styles.brandLogo}
+            resizeMode="contain"
+          />
+          <Text style={styles.brandTitle}>Kisan Mitra</Text>
           <Text style={styles.brandSub}>PM-Kisan · e-Uparjan · MSP Portal</Text>
         </View>
 
@@ -151,6 +157,12 @@ const styles = StyleSheet.create({
   brandRow: {
     alignItems: 'center',
     marginBottom: spacing.xl,
+  },
+  brandLogo: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    marginBottom: 8,
   },
   brandTitle: {
     fontSize: 30,

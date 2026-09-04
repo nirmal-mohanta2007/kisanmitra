@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ImageBackground,
+  Image,
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -38,7 +39,11 @@ export default function WelcomeScreen() {
         <View style={styles.centerContent}>
           {/* Logo & Brand */}
           <View style={styles.logoBox}>
-            <Text style={styles.emblem}>🌾</Text>
+            <Image
+              source={require('../../assets/logo.png')}
+              style={styles.logoImg}
+              resizeMode="contain"
+            />
           </View>
           <Text style={styles.title}>Kisan Mitra</Text>
           <Text style={styles.tagline}>Empowering Farmers, Streamlining Procurement</Text>
@@ -135,18 +140,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoBox: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    width: 96,
+    height: 96,
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: 'rgba(255,255,255,0.8)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
+    overflow: 'hidden',
   },
-  emblem: {
-    fontSize: 42,
+  logoImg: {
+    width: 92,
+    height: 92,
+    borderRadius: 22,
   },
   title: {
     fontSize: 36,
