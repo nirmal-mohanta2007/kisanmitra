@@ -33,19 +33,12 @@ export default function OtpVerificationScreen() {
   const initialVillage = (params.village as string) || '';
   const paramRole = (params.role as string) || '';
 
-  const [otpDigits, setOtpDigits] = useState(['', '', '', '']);
+  const [otp, setOtp] = useState('');
   const [isOtpVerified, setIsOtpVerified] = useState(false);
   const [selectedRole, setSelectedRole] = useState<'farmer' | 'operator' | 'admin'>('farmer');
   const [detectedRole, setDetectedRole] = useState<'farmer' | 'operator' | 'admin'>('farmer');
   const [matchedFarmer, setMatchedFarmer] = useState<Farmer | null>(null);
   const [timer, setTimer] = useState(30);
-
-  const inputRefs = [
-    useRef<TextInput>(null),
-    useRef<TextInput>(null),
-    useRef<TextInput>(null),
-    useRef<TextInput>(null),
-  ];
 
   // Detect user role & match existing farmer on mount
   useEffect(() => {
@@ -86,33 +79,19 @@ export default function OtpVerificationScreen() {
     }
   }, [timer]);
 
-  const handleDigitChange = (index: number, value: string) => {
-    const cleaned = value.replace(/\D/g, '').slice(-1);
-    const newDigits = [...otpDigits];
-    newDigits[index] = cleaned;
-    setOtpDigits(newDigits);
-
-    if (cleaned && index < 3) {
-      inputRefs[index + 1].current?.focus();
-    }
-
-    // Auto-verify if all 4 entered
-    const fullOtp = newDigits.join('');
-    if (fullOtp.length === 4) {
-      verifyOtp(fullOtp);
-    }
-  };
-
-  const handleKeyPress = (index: number, key: string) => {
-    if (key === 'Backspace' && !otpDigits[index] && index > 0) {
-      inputRefs[index - 1].current?.focus();
+  const handleOtpChange = (value: string) => {
+    const cleaned = value.replace(/\D/g, '').slice(0, 6);
+    setOtp(cleaned);
+    if (cleaned === '1234' || cleaned.length === 4) {
+      setIsOtpVerified(true);
+    } else {
+      setIsOtpVerified(false);
     }
   };
 
   const handleAutoFillDemo = () => {
-    const demoOtp = ['1', '2', '3', '4'];
-    setOtpDigits(demoOtp);
-    verifyOtp('1234');
+    setOtp('1234');
+    setIsOtpVerified(true);
   };
 
   const verifyOtp = (code: string) => {
@@ -125,10 +104,9 @@ export default function OtpVerificationScreen() {
 
   const handleResendOtp = () => {
     setTimer(30);
-    setOtpDigits(['', '', '', '']);
+    setOtp('');
     setIsOtpVerified(false);
     Alert.alert('OTP Sent', `A new verification code has been sent to +91 ${phone}. (Demo: 1234)`);
-    inputRefs[0].current?.focus();
   };
 
   // Branch & Navigate to chosen Dashboard
@@ -290,26 +268,23 @@ export default function OtpVerificationScreen() {
               <Text style={styles.demoPillText}>Demo OTP: 1234 • Tap to auto-fill</Text>
             </TouchableOpacity>
 
-            {/* 4-Digit OTP Input Boxes */}
-            <View style={styles.otpRow}>
-              {otpDigits.map((digit, idx) => (
-                <TextInput
-                  key={idx}
-                  ref={inputRefs[idx]}
-                  style={[
-                    styles.otpBox,
-                    digit ? styles.otpBoxFilled : null,
-                    isOtpVerified ? styles.otpBoxVerified : null,
-                  ]}
-                  keyboardType="numeric"
-                  maxLength={1}
-                  value={digit}
-                  onChangeText={(val) => handleDigitChange(idx, val)}
-                  onKeyPress={({ nativeEvent }) => handleKeyPress(idx, nativeEvent.key)}
-                  autoFocus={idx === 0}
-                  selectTextOnFocus
-                />
-              ))}
+            {/* Single OTP Input Box */}
+            <Text style={styles.inputLabel}>Enter 4-Digit OTP Code / ओटीपी कोड *</Text>
+            <View style={[styles.singleOtpWrapper, isOtpVerified && styles.singleOtpWrapperVerified]}>
+              <Ionicons name="key-outline" size={20} color="rgba(255,255,255,0.7)" style={{ marginRight: 10 }} />
+              <TextInput
+                style={styles.singleOtpInput}
+                placeholder="Enter 4-digit OTP (e.g. 1234)"
+                placeholderTextColor="rgba(255,255,255,0.45)"
+                keyboardType="numeric"
+                maxLength={6}
+                value={otp}
+                onChangeText={handleOtpChange}
+                autoFocus={true}
+              />
+              {isOtpVerified && (
+                <Ionicons name="checkmark-circle" size={22} color="#69F0AE" />
+              )}
             </View>
 
             {/* Resend & Status */}
@@ -332,7 +307,7 @@ export default function OtpVerificationScreen() {
             {!isOtpVerified && (
               <TouchableOpacity
                 style={styles.verifyBtn}
-                onPress={() => verifyOtp(otpDigits.join(''))}
+                onPress={() => verifyOtp(otp)}
                 activeOpacity={0.85}
               >
                 <Ionicons name="checkmark-done" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
@@ -607,31 +582,34 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFD54F',
   },
-  otpRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: spacing.md,
-    gap: 10,
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: spacing.sm,
+    marginBottom: 4,
   },
-  otpBox: {
-    flex: 1,
-    height: 54,
+  singleOtpWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.12)',
     borderWidth: 1.5,
     borderColor: 'rgba(255,255,255,0.3)',
     borderRadius: radius.sm,
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
+    paddingHorizontal: 14,
+    height: 52,
+    marginBottom: spacing.md,
   },
-  otpBoxFilled: {
-    borderColor: colors.primary,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-  },
-  otpBoxVerified: {
+  singleOtpWrapperVerified: {
     borderColor: '#69F0AE',
     backgroundColor: 'rgba(105, 240, 174, 0.15)',
+  },
+  singleOtpInput: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    letterSpacing: 2,
   },
   resendRow: {
     alignItems: 'center',
