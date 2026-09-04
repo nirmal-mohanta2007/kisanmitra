@@ -22,7 +22,7 @@ const BG_IMAGE = 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [phone, setPhone] = useState('9876543210');
+  const [phone, setPhone] = useState('');
 
   const handleSendOtp = () => {
     const cleaned = phone.replace(/\D/g, '');

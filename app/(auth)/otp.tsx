@@ -28,7 +28,7 @@ export default function OtpVerificationScreen() {
   const params = useLocalSearchParams();
   const { state, dispatch } = useAppContext();
 
-  const phone = (params.phone as string) || '9876543210';
+  const phone = (params.phone as string) || '';
   const initialName = (params.name as string) || '';
   const initialVillage = (params.village as string) || '';
   const paramRole = (params.role as string) || '';
