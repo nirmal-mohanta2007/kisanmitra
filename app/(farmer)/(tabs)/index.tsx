@@ -30,11 +30,14 @@ export default function FarmerDashboard() {
 
       {/* Greeting Banner */}
       <View style={styles.greetingBanner}>
-        <View>
+        <View style={{ flex: 1, marginRight: spacing.sm }}>
           <Text style={styles.greetingSub}>Welcome back,</Text>
-          <Text style={styles.greetingName}>{currentFarmer ? currentFarmer.name : 'Ramesh Nayak'} 🌾</Text>
+          <Text style={styles.greetingName}>{currentFarmer ? currentFarmer.name : 'Registered Farmer'} 🌾</Text>
           <Text style={styles.farmerId}>
             Farmer ID: {currentFarmer ? currentFarmer.id : 'F-001'} • {currentFarmer?.village || 'Sehore'}, {currentFarmer?.district || currentFarmer?.state || 'MP'}
+          </Text>
+          <Text style={styles.farmerPhoneSub}>
+            📞 +91 {currentFarmer ? currentFarmer.phone : '9876543210'} • {currentFarmer?.primaryCrop || 'Wheat (गेहूं)'}
           </Text>
         </View>
         <TouchableOpacity
@@ -45,6 +48,57 @@ export default function FarmerDashboard() {
           <Text style={styles.langBtnText}>हिंदी / EN</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Verified Farmer Identity Card on Dashboard */}
+      {currentFarmer && (
+        <KisanCard style={styles.farmerProfileSummaryCard}>
+          <View style={styles.farmerProfileHeader}>
+            <View style={styles.farmerAvatarCircle}>
+              <Ionicons name="person" size={24} color="#FFFFFF" />
+            </View>
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <View style={styles.farmerNameBadgeRow}>
+                <Text style={styles.farmerSummaryName} numberOfLines={1}>{currentFarmer.name}</Text>
+                <StatusBadge status="ACTIVE & VERIFIED" variant="success" />
+              </View>
+              <Text style={styles.farmerSummarySub}>
+                Farmer ID: {currentFarmer.id} • 📞 +91 {currentFarmer.phone}
+              </Text>
+              <Text style={styles.farmerSummaryLocation} numberOfLines={1}>
+                📍 {currentFarmer.village ? `${currentFarmer.village}, ` : ''}{currentFarmer.district ? `${currentFarmer.district}, ` : ''}{currentFarmer.state}{currentFarmer.pinCode ? ` (${currentFarmer.pinCode})` : ''}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.farmerDetailsStrip}>
+            <View style={styles.farmerStripItem}>
+              <Text style={styles.farmerStripLabel}>PRIMARY CROP</Text>
+              <Text style={styles.farmerStripValue} numberOfLines={1}>{currentFarmer.primaryCrop || 'Wheat (गेहूं)'}</Text>
+            </View>
+            <View style={styles.farmerStripItem}>
+              <Text style={styles.farmerStripLabel}>LAND HOLDING</Text>
+              <Text style={styles.farmerStripValue}>{currentFarmer.landArea || 4.5} Acres</Text>
+            </View>
+            <View style={styles.farmerStripItem}>
+              <Text style={styles.farmerStripLabel}>AADHAAR</Text>
+              <Text style={styles.farmerStripValue}>{currentFarmer.aadhaar || 'Verified'}</Text>
+            </View>
+            <View style={styles.farmerStripItem}>
+              <Text style={styles.farmerStripLabel}>DBT BANK</Text>
+              <Text style={styles.farmerStripValue} numberOfLines={1}>
+                {currentFarmer.bankName || 'SBI'} ({currentFarmer.bankAccount ? currentFarmer.bankAccount.slice(-4) : '5678'})
+              </Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.viewFullProfileBtn}
+            onPress={() => router.push('/(farmer)/(tabs)/profile')}
+          >
+            <Text style={styles.viewFullProfileText}>View Full Verified Profile &amp; Land Records →</Text>
+          </TouchableOpacity>
+        </KisanCard>
+      )}
 
       {/* Current Active Token & Queue Card */}
       {activeTx && (
@@ -411,5 +465,97 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textPrimary,
     marginLeft: 8,
+  },
+  farmerPhoneSub: {
+    fontSize: 12,
+    color: colors.primaryDark,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  farmerProfileSummaryCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: radius.md,
+    marginBottom: spacing.md,
+    borderWidth: 1.5,
+    borderColor: '#C8E6C9',
+    padding: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  farmerProfileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  farmerAvatarCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  farmerNameBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 4,
+  },
+  farmerSummaryName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+  },
+  farmerSummarySub: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  farmerSummaryLocation: {
+    fontSize: 12,
+    color: colors.primaryDark,
+    fontWeight: '500',
+    marginTop: 1,
+  },
+  farmerDetailsStrip: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    backgroundColor: '#F1F8E9',
+    borderRadius: radius.sm,
+    padding: spacing.sm,
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  farmerStripItem: {
+    width: '50%',
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+  },
+  farmerStripLabel: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+  },
+  farmerStripValue: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+    marginTop: 1,
+  },
+  viewFullProfileBtn: {
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#EEEEEE',
+  },
+  viewFullProfileText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: colors.primary,
   },
 });

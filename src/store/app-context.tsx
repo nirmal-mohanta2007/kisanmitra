@@ -9,6 +9,7 @@ import { StorageService } from '../services/storage/storage.service';
 interface AppState {
   currentRole: UserRole;
   currentUserId: string;
+  currentUserName?: string;
   currentFarmer: Farmer | null;
   centres: Centre[];
   farmers: Farmer[];
@@ -19,7 +20,7 @@ interface AppState {
 }
 
 type AppAction =
-  | { type: 'SET_ROLE'; payload: { role: UserRole; userId: string } }
+  | { type: 'SET_ROLE'; payload: { role: UserRole; userId: string; userName?: string } }
   | { type: 'SET_CURRENT_FARMER'; payload: Farmer }
   | { type: 'LOAD_MOCK_DATA' }
   | { type: 'SET_CENTRES'; payload: Centre[] }
@@ -34,6 +35,7 @@ type AppAction =
 const initialState: AppState = {
   currentRole: UserRole.FARMER,
   currentUserId: 'F-001',
+  currentUserName: undefined,
   currentFarmer: null,
   centres: [],
   farmers: [],
@@ -61,12 +63,14 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         currentRole: action.payload.role,
         currentUserId: action.payload.userId,
+        currentUserName: action.payload.userName || state.currentUserName,
       };
     case 'SET_CURRENT_FARMER':
       return {
         ...state,
         currentFarmer: action.payload,
         currentUserId: action.payload.id,
+        currentUserName: action.payload.name,
         currentRole: UserRole.FARMER,
         farmers: [
           action.payload,

@@ -13,9 +13,12 @@ import {
   FirebaseStatusBadge,
 } from '../../src/components/common';
 import { MOCK_CENTRES } from '../../src/services/mock-data.service';
+import { useAppContext } from '../../src/store/app-context';
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { state } = useAppContext();
+  const adminName = state.currentUserName || 'Central Admin (DoCA)';
 
   return (
     <ScreenContainer scrollable style={styles.container}>
@@ -26,7 +29,7 @@ export default function AdminDashboard() {
         <View>
           <Text style={styles.adminSub}>STATE PROCUREMENT COMMAND</Text>
           <Text style={styles.adminTitle}>Central Monitoring Dashboard</Text>
-          <Text style={styles.adminMeta}>Jurisdiction: Department of Consumer Affairs (DoCA) • 2026 Season</Text>
+          <Text style={styles.adminMeta}>Administrator: {adminName} • 2026 Season</Text>
         </View>
         <TouchableOpacity
           style={styles.switchRoleBtn}

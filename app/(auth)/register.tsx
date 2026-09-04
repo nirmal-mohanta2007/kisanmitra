@@ -226,6 +226,9 @@ export default function FarmerRegistrationScreen() {
     // 1. Save to persistent device storage so it survives app restarts
     try {
       await StorageService.setItem('kisan_current_farmer', newFarmer);
+      const allFarmers = (await StorageService.getItem<Farmer[]>('kisan_all_farmers')) || [];
+      const updatedAll = [newFarmer, ...allFarmers.filter((f) => f.phone !== newFarmer.phone && f.id !== newFarmer.id)];
+      await StorageService.setItem('kisan_all_farmers', updatedAll);
     } catch (e) {
       console.warn('Farmer storage error:', e);
     }
