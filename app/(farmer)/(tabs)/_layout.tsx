@@ -27,10 +27,10 @@ export default function FarmerTabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
+          headerShown: false,
           title: 'Home',
-          headerTitle: '🌾 Kisan Mitra',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+            <Ionicons name="home" size={size} color={color} />
           ),
         }}
       />
