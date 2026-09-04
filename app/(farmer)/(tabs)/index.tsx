@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { MOCK_TRANSACTIONS, MOCK_CENTRES } from '../../../src/services/mock-data.service';
 import { useAppContext } from '../../../src/store/app-context';
+import { WeatherAlertBanner } from '../../../src/components/common';
 
 // Translation dictionary for Simple Hindi and English
 const TRANSLATIONS = {
@@ -65,6 +66,11 @@ const TRANSLATIONS = {
     weatherCondition: 'धूप और हल्के बादल',
     humidity: 'नमी',
     rain: 'बारिश',
+    agrometTitle: 'कृषि-मौसम सलाह',
+    agrometRainProb: 'बारिश: 75% (24-48 घंटे)',
+    agrometWind: 'हवा: 26 किमी/घं',
+    agrometAdvisory: 'कटी फसल तुरंत शेड में रखें; कीटनाशक छिड़काव स्थगित रखें।',
+    humidityText: 'नमी: 65%',
   },
   en: {
     brand: 'Kisan Mitra',
@@ -96,7 +102,7 @@ const TRANSLATIONS = {
     marketPrice: 'Market Price',
     marketCropLocation: '(Paddy, Bhopal)',
     currentPriceUp: 'Current Price ↑',
-    weatherTitle: 'Weather Forecast',
+    weatherTitle: 'Agro-met Advisory',
     bhopal: '(Bhopal)',
     quickActions: 'Quick Actions',
     seedData: 'Seed Firestore Data',
@@ -114,6 +120,11 @@ const TRANSLATIONS = {
     weatherCondition: 'Partly Sunny',
     humidity: 'Humidity',
     rain: 'Rain',
+    agrometTitle: 'Agro-met Advisory',
+    agrometRainProb: 'Rain: 75% (24-48h)',
+    agrometWind: 'Wind: 26 km/h',
+    agrometAdvisory: 'Cover harvested grains immediately; postpone pesticide spraying.',
+    humidityText: 'Humidity: 65%',
   },
 };
 
@@ -627,6 +638,9 @@ export default function FarmerDashboard() {
             </TouchableOpacity>
           </View>
 
+          {/* WEATHER ALERTS BANNER (SITE & APP NOTIFICATION WARNING) */}
+          <WeatherAlertBanner defaultType="unseasonal_rain" />
+
           {/* SECTION: NEW ADDED & ENVIRONMENT */}
           <Text style={styles.sectionHeaderTitle}>{t.envSection}</Text>
 
@@ -661,19 +675,37 @@ export default function FarmerDashboard() {
               </View>
             </View>
 
-            {/* Weather Forecast Card */}
+            {/* Actionable Agro-met Advisory Card (Replacing generic weather forecast) */}
             <View style={styles.environmentCard}>
-              <Text style={styles.envCardTitle}>{t.weatherTitle}</Text>
+              <View style={styles.agrometHeaderRow}>
+                <Text style={styles.envCardTitle}>{t.agrometTitle}</Text>
+                <View style={styles.liveRadarDot} />
+              </View>
               <Text style={styles.envCardSub} numberOfLines={1}>({mandiLocation})</Text>
-              <View style={styles.weatherRow}>
+
+              {/* Temperature & Rain Probability (24-48h) */}
+              <View style={styles.agrometTempRow}>
                 <Text style={styles.weatherEmoji}>⛅</Text>
                 <Text style={styles.weatherTempBig}>32°C</Text>
               </View>
-              <Text style={styles.weatherConditionText}>{t.weatherCondition}</Text>
-              <View style={styles.weatherMetaPill}>
-                <Text style={styles.weatherMetaItem}>💧 {t.humidity}: 58%</Text>
-                <Text style={styles.weatherMetaDivider}>•</Text>
-                <Text style={styles.weatherMetaItem}>☂ {t.rain}: 0%</Text>
+              
+              <View style={styles.rainProbBadge}>
+                <Ionicons name="rainy" size={12} color="#0284C7" />
+                <Text style={styles.rainProbText}>{t.agrometRainProb}</Text>
+              </View>
+
+              {/* Wind Speed & Humidity Specs */}
+              <View style={styles.windSpeedRow}>
+                <Ionicons name="speedometer-outline" size={11} color="#475569" />
+                <Text style={styles.windSpeedText} numberOfLines={1}>{t.agrometWind} • {t.humidityText}</Text>
+              </View>
+
+              {/* Actionable Advisory Box */}
+              <View style={styles.actionAdvisoryBox}>
+                <Text style={styles.actionAdvisoryLabel}>{isHi ? '⚠️ सलाह:' : '⚠️ Advisory:'}</Text>
+                <Text style={styles.actionAdvisoryText} numberOfLines={2}>
+                  {t.agrometAdvisory}
+                </Text>
               </View>
             </View>
           </View>
@@ -1287,10 +1319,68 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#2E7D32',
   },
-  weatherRow: {
+  agrometHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 6,
+    justifyContent: 'space-between',
+  },
+  liveRadarDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#0284C7',
+  },
+  agrometTempRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  rainProbBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E0F2FE',
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 6,
+    marginTop: 3,
+    alignSelf: 'flex-start',
+  },
+  rainProbText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#0369A1',
+    marginLeft: 3,
+  },
+  windSpeedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  windSpeedText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#475569',
+    marginLeft: 3,
+  },
+  actionAdvisoryBox: {
+    backgroundColor: '#FFFBEB',
+    borderRadius: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    marginTop: 5,
+  },
+  actionAdvisoryLabel: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#B45309',
+  },
+  actionAdvisoryText: {
+    fontSize: 9,
+    color: '#78350F',
+    lineHeight: 12,
+    marginTop: 1,
   },
   weatherEmoji: {
     fontSize: 24,
@@ -1300,34 +1390,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '900',
     color: '#1A202C',
-  },
-  weatherConditionText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#64748B',
-    marginTop: 2,
-    marginBottom: 4,
-  },
-  weatherMetaPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    paddingVertical: 5,
-    paddingHorizontal: 7,
-    borderWidth: 1,
-    borderColor: '#EFE5D0',
-    marginTop: 3,
-  },
-  weatherMetaItem: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#334155',
-  },
-  weatherMetaDivider: {
-    fontSize: 9,
-    color: '#94A3B8',
-    marginHorizontal: 3,
   },
 
   /* QUICK ACTIONS */
