@@ -56,14 +56,14 @@ export default function WelcomeScreen() {
               <FirebaseStatusBadge />
             </View>
 
-            {/* Sign In button */}
+            {/* Sign In button -> Mobile Number Login */}
             <TouchableOpacity
               style={styles.primaryBtn}
-              onPress={() => router.push('/(auth)/language')}
+              onPress={() => router.push('/(auth)/login')}
               activeOpacity={0.85}
             >
-              <Ionicons name="log-in-outline" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-              <Text style={styles.primaryBtnText}>Sign In / Select Role</Text>
+              <Ionicons name="phone-portrait-outline" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+              <Text style={styles.primaryBtnText}>📱 Mobile Number Login</Text>
             </TouchableOpacity>
 
             {/* Register button */}

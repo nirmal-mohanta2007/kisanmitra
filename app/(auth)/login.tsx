@@ -86,8 +86,26 @@ export default function LoginScreen() {
     }
   };
 
-  const handleLogin = async () => {
-    // 1. Handle Operator Login
+  const handleSendOtp = () => {
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length !== 10) {
+      Alert.alert('Invalid Mobile Number', 'Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
+    router.push({
+      pathname: '/(auth)/otp',
+      params: {
+        phone: cleaned,
+        name: fullName.trim(),
+        village: village.trim(),
+        role: (role as string) || '',
+      },
+    });
+  };
+
+  const handleDirectLogin = async () => {
+    // Direct bypass if needed
     if (role === 'operator') {
       const opName = fullName.trim() || 'Suresh Verma';
       dispatch({
@@ -98,7 +116,6 @@ export default function LoginScreen() {
       return;
     }
 
-    // 2. Handle Admin Login
     if (role === 'admin') {
       const admName = fullName.trim() || 'Central Admin (DoCA)';
       dispatch({
@@ -109,9 +126,7 @@ export default function LoginScreen() {
       return;
     }
 
-    // 3. Handle Farmer Login
     let farmerToLogin: Farmer;
-
     if (matchedFarmer) {
       farmerToLogin = {
         ...matchedFarmer,
@@ -120,7 +135,6 @@ export default function LoginScreen() {
         village: village.trim() || matchedFarmer.village,
       };
     } else {
-      // Check if current stored farmer matches or create active session
       const stored = await StorageService.getItem<Farmer>('kisan_current_farmer');
       if (stored && (!phone || stored.phone === phone.trim())) {
         farmerToLogin = {
@@ -154,7 +168,6 @@ export default function LoginScreen() {
       }
     }
 
-    // Persist to local storage
     try {
       await StorageService.setItem('kisan_current_farmer', farmerToLogin);
       const all = (await StorageService.getItem<Farmer[]>('kisan_all_farmers')) || [];
@@ -164,7 +177,6 @@ export default function LoginScreen() {
       console.warn('Storage save notice:', e);
     }
 
-    // Dispatch to AppContext global state
     dispatch({
       type: 'SET_CURRENT_FARMER',
       payload: farmerToLogin,
@@ -288,10 +300,18 @@ export default function LoginScreen() {
               </>
             )}
 
-            {/* Login button */}
-            <TouchableOpacity style={styles.loginBtn} onPress={handleLogin} activeOpacity={0.85}>
-              <Ionicons name="log-in-outline" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-              <Text style={styles.loginBtnText}>Confirm &amp; Log In to Dashboard</Text>
+            {/* Send OTP button */}
+            <TouchableOpacity style={styles.loginBtn} onPress={handleSendOtp} activeOpacity={0.85}>
+              <Ionicons name="send" size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
+              <Text style={styles.loginBtnText}>Send OTP / ओटीपी भेजें →</Text>
+            </TouchableOpacity>
+
+            {/* Quick direct login option */}
+            <TouchableOpacity
+              style={styles.directLoginBtn}
+              onPress={handleDirectLogin}
+            >
+              <Text style={styles.directLoginText}>⚡ Quick Login without OTP</Text>
             </TouchableOpacity>
 
             {/* Divider */}
@@ -510,6 +530,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
     letterSpacing: 0.5,
+  },
+  directLoginBtn: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    marginBottom: spacing.xs,
+  },
+  directLoginText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#69F0AE',
   },
   divider: {
     flexDirection: 'row',
