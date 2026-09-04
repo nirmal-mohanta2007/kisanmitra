@@ -17,12 +17,46 @@ import { useAppContext } from '../../../src/store/app-context';
 
 export default function FarmerProfileScreen() {
   const router = useRouter();
-  const { state } = useAppContext();
+  const { state, setLanguage } = useAppContext();
   const farmer = state.currentFarmer || MOCK_FARMERS[0];
   const avatarUrl = farmer.photoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80';
+  const lang = state.language || 'hi';
+
+  const text = {
+    farmerId: lang === 'or' ? `ଚାଷୀ ଆଇଡି: ${farmer.id}` : lang === 'hi' ? `किसान आईडी: ${farmer.id}` : `FARMER ID: ${farmer.id}`,
+    sec1Title: lang === 'or' ? '୧. ଆଧାର ଓ ଯୋଗାଯୋଗ ବିବରଣୀ' : lang === 'hi' ? '1. आधार एवं संपर्क विवरण' : '1. Aadhaar & Contact Details',
+    sec1Sub: lang === 'or' ? 'ଡିବିଟି ଏବଂ ଟୋକନ୍ ପାସ୍ ସହିତ ସଂଯୁକ୍ତ' : lang === 'hi' ? 'डीबीटी एवं टोकन पास हेतु लिंक' : 'Linked for DBT settlement & token pass',
+    aadhaarNo: lang === 'or' ? 'ଆଧାର କାର୍ଡ ନମ୍ବର:' : lang === 'hi' ? 'आधार कार्ड नंबर:' : 'Aadhaar Card Number:',
+    regMobile: lang === 'or' ? 'ପଞ୍ଜୀକୃତ ମୋବାଇଲ୍:' : lang === 'hi' ? 'पंजीकृत मोबाइल:' : 'Registered Mobile:',
+    kycStatus: lang === 'or' ? 'ଇ-କେୱାଇସି ସ୍ଥିତି:' : lang === 'hi' ? 'ई-केवाईसी स्थिति:' : 'e-KYC Status:',
+    sec2Title: lang === 'or' ? '୨. ବ୍ୟାଙ୍କ ଆକାଉଣ୍ଟ ବିବରଣୀ (DBT)' : lang === 'hi' ? '2. बैंक खाता विवरण (DBT)' : '2. Bank Account Details (DBT Payout)',
+    sec2Sub: lang === 'or' ? 'PFMS ଦ୍ୱାରା ଯାଞ୍ଚ ହୋଇଛି' : lang === 'hi' ? 'PFMS द्वारा सत्यापित' : 'Verified with Public Financial Management System (PFMS)',
+    sec3Title: lang === 'or' ? '୩. ଜମି ରେକର୍ଡ ଓ ଚାଷ ଜମି' : lang === 'hi' ? '3. भूमि रिकॉर्ड एवं कृषि क्षेत्र' : '3. Land Record & Cultivation Area',
+    sec3Sub: lang === 'or' ? 'ରାଜସ୍ୱ ବିଭାଗ ସହିତ ସିଙ୍କ୍ ହୋଇଛି' : lang === 'hi' ? 'राजस्व विभाग से सिंक' : 'Synchronized with State Revenue Department',
+    khasra: lang === 'or' ? 'ଖସରା / ସର୍ଭେ ନଂ:' : lang === 'hi' ? 'खसरा / सर्वे नंबर:' : 'Khasra / Survey No.:',
+    cultivable: lang === 'or' ? 'ମୋଟ ଚାଷ ଜମି:' : lang === 'hi' ? 'कुल कृषि क्षेत्र:' : 'Total Cultivable Area:',
+    primaryCrops: lang === 'or' ? 'ପ୍ରମୁଖ ଫସଲ:' : lang === 'hi' ? 'मुख्य फसलें:' : 'Primary Crops:',
+    landDoc: lang === 'or' ? 'ଜମି ଦସ୍ତାବିଜ:' : lang === 'hi' ? 'भूमि दस्तावेज़:' : 'Land Document:',
+    editReg: lang === 'or' ? 'ପଞ୍ଜୀକରଣ ବିବରଣୀ ସଂଶୋଧନ କରନ୍ତୁ' : lang === 'hi' ? 'पंजीकरण विवरण संशोधित करें' : 'Update / Edit Registration Details',
+    appPref: lang === 'or' ? 'ଆପ୍ ସେଟିଙ୍ଗ୍ ଏବଂ ସହାୟତା' : lang === 'hi' ? 'ऐप प्राथमिकताएं एवं सहायता' : 'App Preferences & Support',
+    changeLang: lang === 'or' ? 'ଭାଷା ବଦଳାନ୍ତୁ (Change Language)' : lang === 'hi' ? 'भाषा बदलें (Change Language)' : 'Change Language',
+    currentLangDisplay: lang === 'or' ? 'ଓଡ଼ିଆ (Odia) ›' : lang === 'hi' ? 'हिंदी (Hindi) ›' : 'English ›',
+    helpline: lang === 'or' ? 'କିଷାନ ହେଲ୍ପଲାଇନ୍ ଓ ସମସ୍ୟା ନିବାରଣ' : lang === 'hi' ? 'किसान हेल्पलाइन एवं शिकायतें' : 'Kisan Helpline & Grievances',
+    logout: lang === 'or' ? 'ଲଗଆଉଟ୍ / ଭୂମିକା ପରିବର୍ତ୍ତନ କରନ୍ତୁ' : lang === 'hi' ? 'लॉगआउट / भूमिका बदलें' : 'Logout / Switch Role',
+  };
 
   const handleLogout = () => {
     router.replace('/(auth)/welcome');
+  };
+
+  const toggleLanguage = () => {
+    if (lang === 'hi') {
+      setLanguage('or');
+    } else if (lang === 'or') {
+      setLanguage('en');
+    } else {
+      setLanguage('hi');
+    }
   };
 
   return (
@@ -30,7 +64,7 @@ export default function FarmerProfileScreen() {
       {/* Profile Header with Profile Picture in Corner */}
       <View style={styles.profileHeader}>
         <View style={styles.headerInfo}>
-          <Text style={styles.farmerIdBadge}>FARMER ID: {farmer.id}</Text>
+          <Text style={styles.farmerIdBadge}>{text.farmerId}</Text>
           <Text style={styles.farmerName}>{farmer.name}</Text>
           <Text style={styles.phoneText}>📞 +91 {farmer.phone}</Text>
           <Text style={styles.locationText}>
@@ -55,16 +89,16 @@ export default function FarmerProfileScreen() {
 
       {/* 1. Identity & Aadhaar Verification */}
       <SectionHeader
-        title="1. Aadhaar & Contact Details"
-        subtitle="Linked for DBT settlement & token pass"
+        title={text.sec1Title}
+        subtitle={text.sec1Sub}
       />
       <KisanCard style={styles.card}>
         <View style={styles.row}>
-          <Text style={styles.label}>Aadhaar Card Number:</Text>
+          <Text style={styles.label}>{text.aadhaarNo}</Text>
           <Text style={styles.value}>{farmer.aadhaar || 'XXXX-XXXX-9012'} (DigiLocker Linked)</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Registered Mobile:</Text>
+          <Text style={styles.label}>{text.regMobile}</Text>
           <Text style={styles.value}>+91 {farmer.phone} (OTP Active)</Text>
         </View>
         {farmer.fatherName ? (
@@ -80,15 +114,15 @@ export default function FarmerProfileScreen() {
           </View>
         ) : null}
         <View style={styles.row}>
-          <Text style={styles.label}>e-KYC Status:</Text>
+          <Text style={styles.label}>{text.kycStatus}</Text>
           <StatusBadge status="ACTIVE & VERIFIED" variant="success" />
         </View>
       </KisanCard>
 
       {/* 2. Bank Account Details (DBT) */}
       <SectionHeader
-        title="2. Bank Account Details (DBT Payout)"
-        subtitle="Verified with Public Financial Management System (PFMS)"
+        title={text.sec2Title}
+        subtitle={text.sec2Sub}
       />
       <KisanCard style={styles.card}>
         <View style={styles.bankRow}>
@@ -104,26 +138,26 @@ export default function FarmerProfileScreen() {
 
       {/* 3. Land Record (Bhu-Abhilekh) */}
       <SectionHeader
-        title="3. Land Record & Cultivation Area"
-        subtitle="Synchronized with State Revenue Department"
+        title={text.sec3Title}
+        subtitle={text.sec3Sub}
       />
       <KisanCard style={styles.card}>
         <View style={styles.row}>
-          <Text style={styles.label}>Khasra / Survey No.:</Text>
+          <Text style={styles.label}>{text.khasra}</Text>
           <Text style={styles.value}>{farmer.khasraNo || '142/1, 142/2'}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Total Cultivable Area:</Text>
+          <Text style={styles.label}>{text.cultivable}</Text>
           <Text style={styles.value}>
             {farmer.landArea ? `${farmer.landArea} Hectares (${(farmer.landArea * 2.471).toFixed(1)} Acres)` : '4.5 Hectares (11.1 Acres)'}
           </Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Primary Crops:</Text>
-          <Text style={styles.value}>{farmer.primaryCrop || 'Wheat (गेहूं), Soybean, Paddy'}</Text>
+          <Text style={styles.label}>{text.primaryCrops}</Text>
+          <Text style={styles.value}>{farmer.primaryCrop || 'Wheat (गेहूं / ଗହମ), Soybean, Paddy'}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Land Document:</Text>
+          <Text style={styles.label}>{text.landDoc}</Text>
           <Text style={[styles.value, { color: colors.primary }]}>
             📄 {farmer.landDocFileName || 'Khasra_Verified.pdf'}
           </Text>
@@ -133,24 +167,24 @@ export default function FarmerProfileScreen() {
       {/* Edit Registration Info Action */}
       <View style={styles.editActionBox}>
         <KisanButton
-          title="Update / Edit Registration Details"
+          title={text.editReg}
           onPress={() => router.push('/(auth)/register')}
           variant="secondary"
         />
       </View>
 
       {/* Preferences & Settings */}
-      <SectionHeader title="App Preferences & Support" />
+      <SectionHeader title={text.appPref} />
       <KisanCard style={styles.card}>
         <TouchableOpacity
           style={styles.settingItem}
-          onPress={() => router.push('/(auth)/language')}
+          onPress={toggleLanguage}
         >
           <View style={styles.settingLeft}>
             <Ionicons name="language-outline" size={20} color={colors.textPrimary} />
-            <Text style={styles.settingText}>Change Language</Text>
+            <Text style={styles.settingText}>{text.changeLang}</Text>
           </View>
-          <Text style={styles.settingValue}>Hindi (हिंदी) ›</Text>
+          <Text style={styles.settingValue}>{text.currentLangDisplay}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -159,7 +193,7 @@ export default function FarmerProfileScreen() {
         >
           <View style={styles.settingLeft}>
             <Ionicons name="help-circle-outline" size={20} color={colors.textPrimary} />
-            <Text style={styles.settingText}>Kisan Helpline & Grievances</Text>
+            <Text style={styles.settingText}>{text.helpline}</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
         </TouchableOpacity>
@@ -168,7 +202,7 @@ export default function FarmerProfileScreen() {
       {/* Logout / Switch Role */}
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
         <Ionicons name="log-out-outline" size={20} color={colors.error} />
-        <Text style={styles.logoutBtnText}>Logout / Switch Role</Text>
+        <Text style={styles.logoutBtnText}>{text.logout}</Text>
       </TouchableOpacity>
     </ScreenContainer>
   );

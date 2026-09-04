@@ -2,9 +2,9 @@ import { create } from 'zustand';
 
 interface AppState {
   theme: 'light' | 'dark';
-  language: 'en' | 'hi';
+  language: 'en' | 'hi' | 'or';
   setTheme: (theme: 'light' | 'dark') => void;
-  setLanguage: (lang: 'en' | 'hi') => void;
+  setLanguage: (lang: 'en' | 'hi' | 'or') => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({

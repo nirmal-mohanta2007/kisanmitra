@@ -13,9 +13,27 @@ import {
 } from '../../../src/components/common';
 import { MOCK_TRANSACTIONS } from '../../../src/services/mock-data.service';
 import { TransactionStatus } from '../../../src/types/enums';
+import { useAppContext } from '../../../src/store/app-context';
 
 export default function FarmerHistoryScreen() {
   const router = useRouter();
+  const { state } = useAppContext();
+  const lang = state.language || 'hi';
+
+  const text = {
+    title: lang === 'or' ? 'କ୍ରୟ ଇତିହାସ' : lang === 'hi' ? 'खरीद इतिहास' : 'Procurement History',
+    subtitle: lang === 'or' ? 'ସମ୍ପନ୍ନ କ୍ରୟ, ଓଜନ ରସିଦ ଏବଂ ଦେୟ ବିବରଣୀ' : lang === 'hi' ? 'पूर्ण हुई विज़िट, वज़न रसीदें और भुगतान रिकॉर्ड' : 'Completed visits, weight receipts, and payment records',
+    emptyTitle: lang === 'or' ? 'ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ସମ୍ପୂର୍ଣ୍ଣ କାରବାର ନାହିଁ' : lang === 'hi' ? 'अभी तक कोई पूर्ण विज़िट नहीं' : 'No Completed Visits Yet',
+    emptySub: lang === 'or' ? 'ଆପଣଙ୍କ ମଣ୍ଡି ବିକ୍ରୟ ରସିଦ ଏଠାରେ ଦେଖାଯିବ।' : lang === 'hi' ? 'आपकी पूरी हुई मंडी बिक्री रसीदें यहाँ दिखाई देंगी।' : 'Your completed mandi sales receipts will appear here.',
+    deliveredWeight: lang === 'or' ? 'ପ୍ରଦତ୍ତ ଓଜନ' : lang === 'hi' ? 'दिया गया वज़न' : 'Delivered Weight',
+    qualityGrade: lang === 'or' ? 'ଗୁଣବତ୍ତା ଗ୍ରେଡ୍' : lang === 'hi' ? 'गुणवत्ता ग्रेड' : 'Quality Grade',
+    totalPayout: lang === 'or' ? 'ମୋଟ ଦେୟ' : lang === 'hi' ? 'कुल भुगतान' : 'Total Payout',
+    viewReceipt: lang === 'or' ? 'ରସିଦ ଦେଖନ୍ତୁ' : lang === 'hi' ? 'रसीद देखें' : 'View Receipt',
+    paymentStatus: lang === 'or' ? 'ଦେୟ ସ୍ଥିତି' : lang === 'hi' ? 'भुगतान स्थिति' : 'Payment Status',
+    grade: lang === 'or' ? 'ଗ୍ରେଡ୍' : lang === 'hi' ? 'ग्रेड' : 'Grade',
+    qtl: lang === 'or' ? 'କ୍ୱି' : lang === 'hi' ? 'क्वि' : 'Qtl',
+  };
+
   const pastTransactions = MOCK_TRANSACTIONS.filter(
     (t) =>
       t.status === TransactionStatus.PROCUREMENT_COMPLETED ||
@@ -26,15 +44,15 @@ export default function FarmerHistoryScreen() {
   return (
     <ScreenContainer scrollable style={styles.container}>
       <SectionHeader
-        title="Procurement History"
-        subtitle="Completed visits, weight receipts, and payment records"
+        title={text.title}
+        subtitle={text.subtitle}
       />
 
       {pastTransactions.length === 0 ? (
         <KisanCard style={styles.emptyCard}>
           <Ionicons name="document-text-outline" size={48} color={colors.textSecondary} />
-          <Text style={styles.emptyTitle}>No Completed Visits Yet</Text>
-          <Text style={styles.emptySub}>Your completed mandi sales receipts will appear here.</Text>
+          <Text style={styles.emptyTitle}>{text.emptyTitle}</Text>
+          <Text style={styles.emptySub}>{text.emptySub}</Text>
         </KisanCard>
       ) : (
         pastTransactions.map((tx) => (
@@ -49,19 +67,19 @@ export default function FarmerHistoryScreen() {
 
             <View style={styles.detailsBox}>
               <View style={styles.detailItem}>
-                <Text style={styles.label}>Delivered Weight</Text>
+                <Text style={styles.label}>{text.deliveredWeight}</Text>
                 <Text style={styles.value}>
-                  {tx.weighing ? `${tx.weighing.netWeight} Qtl` : `${tx.expectedQuantity} Qtl`}
+                  {tx.weighing ? `${tx.weighing.netWeight} ${text.qtl}` : `${tx.expectedQuantity} ${text.qtl}`}
                 </Text>
               </View>
               <View style={styles.detailItem}>
-                <Text style={styles.label}>Quality Grade</Text>
+                <Text style={styles.label}>{text.qualityGrade}</Text>
                 <Text style={styles.value}>
-                  {tx.qualityCheck ? `Grade ${tx.qualityCheck.grade}` : 'Grade A'}
+                  {tx.qualityCheck ? `${text.grade} ${tx.qualityCheck.grade}` : `${text.grade} A`}
                 </Text>
               </View>
               <View style={styles.detailItem}>
-                <Text style={styles.label}>Total Payout</Text>
+                <Text style={styles.label}>{text.totalPayout}</Text>
                 <Text style={styles.amountValue}>
                   ₹{(tx.procurementAmount || 22750).toLocaleString()}
                 </Text>
@@ -79,7 +97,7 @@ export default function FarmerHistoryScreen() {
                 onPress={() => router.push('/(farmer)/procurement/receipt' as any)}
               >
                 <Ionicons name="receipt-outline" size={16} color={colors.primary} />
-                <Text style={styles.receiptBtnText}>View Receipt</Text>
+                <Text style={styles.receiptBtnText}>{text.viewReceipt}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -87,7 +105,7 @@ export default function FarmerHistoryScreen() {
                 onPress={() => router.push(`/(farmer)/payment/${tx.id}` as any)}
               >
                 <Ionicons name="cash-outline" size={16} color={colors.secondary} />
-                <Text style={styles.paymentBtnText}>Payment Status</Text>
+                <Text style={styles.paymentBtnText}>{text.paymentStatus}</Text>
               </TouchableOpacity>
             </View>
           </KisanCard>

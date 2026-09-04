@@ -15,8 +15,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { MOCK_TRANSACTIONS, MOCK_CENTRES } from '../../../src/services/mock-data.service';
 import { useAppContext } from '../../../src/store/app-context';
+import { SpeakerButton } from '../../../src/components/SpeakerButton';
+import { AccessibilityToolbar, TextScale } from '../../../src/components/AccessibilityToolbar';
 
-// Translation dictionary for Simple Hindi and English
+// Translation dictionary for Simple Hindi, Odia, and English
 const TRANSLATIONS = {
   hi: {
     brand: 'किसान मित्र',
@@ -89,6 +91,78 @@ const TRANSLATIONS = {
     heatStep3: 'पशुओं को दोपहर 12 से 4 बजे तक छायादार जगह में रखें और भरपूर ठंडा पानी दें।',
     kisanCallCenter: 'किसान कॉल सेंटर टोल-फ्री: 1800-180-1551 (मुफ्त वैज्ञानिक सलाह)',
     dismissBtn: 'समझ गया / सावधानी बरती जाएगी',
+  },
+  or: {
+    brand: 'କିଷାନ ମିତ୍ର',
+    liveConnected: 'ଅନଲାଇନ୍ ସକ୍ରିୟ',
+    tokenHeader: (num: number | string) => `ଆପଣଙ୍କ ସକ୍ରିୟ ଟୋକନ୍ #${num}`,
+    booked: 'ବୁକ୍ ହୋଇଛି',
+    ahead: '୩ ଚାଷୀ ଆଗରେ',
+    estWait: 'ଆନୁମାନିକ ସମୟ',
+    waitMins: '~୨୫ ମିନିଟ୍',
+    arriveBy: 'ପହଞ୍ଚିବା ସମୟ',
+    arriveTime: 'ସକାଳ ୧୦:୧୫',
+    cropLabel: 'ଫସଲ: ',
+    mandiLabel: 'ମଣ୍ଡି: ',
+    slotLabel: 'ସମୟ: ',
+    quintal: 'କ୍ୱିଣ୍ଟାଲ',
+    trackStatus: 'ଲାଇଭ୍ ସ୍ଥିତି ଦେଖନ୍ତୁ',
+    farmerId: (id: string) => `ଚାଷୀ ଆଇଡି: ${id}`,
+    defaultLocation: 'ଗ୍ରାମ ପଞ୍ଚାୟତ, ଭୁବନେଶ୍ୱର / ଭୋପାଲ',
+    landHolding: 'ଜମି (ଭୂମି)',
+    acres: 'ଏକର',
+    primaryCrop: 'ପ୍ରମୁଖ ଫସଲ',
+    cropDefault: 'ଗହମ (Wheat)',
+    aadhaar: 'ଆଧାର କାର୍ଡ',
+    verified: 'ଯାଞ୍ଚ ହୋଇଛି ✓',
+    dbtBank: 'ଡିବିଟି ବ୍ୟାଙ୍କ',
+    bankDefault: 'ଷ୍ଟେଟ୍ ବ୍ୟାଙ୍କ ଅଫ୍ ଇଣ୍ଡିଆ, ୫୬୭୮',
+    viewProfile: 'ବିସ୍ତୃତ ପ୍ରୋଫାଇଲ୍ ଏବଂ ଜମି ରେକର୍ଡ ଦେଖନ୍ତୁ →',
+    envSection: 'ସଦ୍ୟତମ ତଥ୍ୟ ଏବଂ ପାଣିପାଗ',
+    marketPrice: 'ମଣ୍ଡି ଦର',
+    marketCropLocation: '(ଧାନ, ଭୁବନେଶ୍ୱର/ଭୋପାଲ)',
+    currentPriceUp: 'ସାମ୍ପ୍ରତିକ ଦର ↑',
+    weatherTitle: 'ପାଣିପାଗ ସ୍ଥିତି',
+    bhopal: '(ଭୋପାଲ)',
+    quickActions: 'ଦ୍ରୁତ ସେବା',
+    seedData: 'ତଥ୍ୟ ସିଙ୍କ କରନ୍ତୁ',
+    bookVisit: 'ନୂଆ ଟୋକନ୍ ବୁକ୍',
+    trackQueue: 'ଧାଡ଼ି ଦେଖନ୍ତୁ',
+    procurement: 'କ୍ରୟ ପ୍ରକ୍ରିୟା',
+    payment: 'ଦେୟ ସ୍ଥିତି',
+    mandis: 'ମଣ୍ଡି କେନ୍ଦ୍ର',
+    support: 'ଚାଷୀ ସହାୟତା',
+    dataSynced: 'ତଥ୍ୟ ସଫଳତାର ସହ ସିଙ୍କ୍ ହେଲା!',
+    syncError: 'ସିଙ୍କରେ ତ୍ରୁଟି ଘଟିଲା',
+    unitBelowPrice: '/ପ୍ରତି କ୍ୱିଣ୍ଟାଲ (୧୦୦ କିଗ୍ରା)',
+    mandiPrefix: 'ମଣ୍ଡି:',
+    mspPrefix: 'MSP:',
+    urgentAlertTitle: '🚨 କୃଷି-ପାଣିପାଗ ସତର୍କତା (ଆଗାମୀ ୨୪-୪୮ ଘଣ୍ଟା)',
+    urgentAlertSub: 'ଅସାମୟିକ ବର୍ଷା (୭୫%) ଏବଂ ପ୍ରବଳ ପବନ (୩୨ କିମି/ଘଣ୍ଟା) ସମ୍ଭାବନା! ସତର୍କତା ଦେଖନ୍ତୁ →',
+    agroMetTitle: 'କୃଷି-ପାଣିପାଗ ପରାମର୍ଶ',
+    alertTag: 'ସତର୍କତା',
+    agroMetDuration: '୨୪-୪୮ ଘଣ୍ଟା',
+    rainProbLabel: 'ବର୍ଷା ସମ୍ଭାବନା:',
+    windSpeedText: 'ପବନ: ୧୮ କିମି/ଘଣ୍ଟା',
+    advisorySnippet: 'କଟା ଫସଲ ଘୋଡ଼ାନ୍ତୁ, କୀଟନାଶକ ସ୍ପ୍ରେ ବନ୍ଦ ରଖନ୍ତୁ',
+    tapForAdvisory: 'ସମ୍ପୂର୍ଣ୍ଣ ପରାମର୍ଶ ଏବଂ ସତର୍କତା ଦେଖନ୍ତୁ ›',
+    modalTitle: '🚨 ଜରୁରୀ କୃଷି-ପାଣିପାଗ ପରାମର୍ଶ (Agro-Met Alert)',
+    modalSub: 'ଭାରତ ପାଣିପାଗ ବିଭାଗ (IMD) ଏବଂ କୃଷି ବିଜ୍ଞାନ କେନ୍ଦ୍ର (KVK)',
+    tabRain: '🌧️ ଅସାମୟିକ ବର୍ଷା',
+    tabFrost: '❄️ କାକର / ଶୀତଲହରୀ',
+    tabHeat: '☀️ ଲୁ / ପ୍ରଚଣ୍ଡ ଖରା',
+    precautionsTitle: 'ଫସଲ ସୁରକ୍ଷା ପାଇଁ ଜରୁରୀ ପଦକ୍ଷେପ (ଚାଷୀ ପରାମର୍ଶ):',
+    rainStep1: 'କଟା ଯାଇଥିବା ଫସଲ ଓ ଶସ୍ୟକୁ ତୁରନ୍ତ ସୁରକ୍ଷିତ ସ୍ଥାନକୁ ନିଅନ୍ତୁ କିମ୍ବା ପଲିଥିନ ତାରପୋଲିନ ଦ୍ୱାରା ଭଲ ଭାବରେ ଘୋଡ଼ାଇ ରଖନ୍ତୁ।',
+    rainStep2: 'ଆଗାମୀ ୪୮ ଘଣ୍ଟା ପର୍ଯ୍ୟନ୍ତ କ୍ଷେତରେ କୌଣସି କୀଟନାଶକ, ରାସାୟନିକ ସାର କିମ୍ବା ଜଳସେଚନ କରନ୍ତୁ ନାହିଁ।',
+    rainStep3: 'ଜଳବନ୍ଦୀ ସମସ୍ୟାରୁ ଫସଲକୁ ବଞ୍ଚାଇବା ପାଇଁ କ୍ଷେତରେ ନାଳୀ ସଫା କରି ପାଣି ନିଷ୍କାସନର ବ୍ୟବସ୍ଥା କରନ୍ତୁ।',
+    frostStep1: 'କାକର ଓ ଶୀତଲହରୀରୁ ବଞ୍ଚାଇବା ପାଇଁ ସନ୍ଧ୍ୟା ସମୟରେ କ୍ଷେତରେ ହାଲୁକା ପାଣି ମଡ଼ାନ୍ତୁ ଯାହାଦ୍ୱାରା ମାଟିର ତାପମାତ୍ରା ସ୍ଥିର ରହିବ।',
+    frostStep2: 'କ୍ଷେତର ଉତ୍ତର-ପଶ୍ଚିମ ସୀମାରେ ସନ୍ଧ୍ୟା ସମୟରେ ଅଳିଆ ଆବର୍ଜନା ଜଳାଇ ଧୂଆଁ ସୃଷ୍ଟି କରନ୍ତୁ।',
+    frostStep3: 'ପନିପରିବା ଏବଂ ଛୋଟ ଚାରା ଗଛଗୁଡ଼ିକୁ ନଡ଼ା କିମ୍ବା ପ୍ଲାଷ୍ଟିକ ଚାଦର ଦ୍ୱାରା ଢାଙ୍କି ସୁରକ୍ଷା ଦିଅନ୍ତୁ।',
+    heatStep1: 'ପ୍ରଚଣ୍ଡ ଖରା ଓ ଲୁରୁ ଫସଲକୁ ରକ୍ଷା କରିବା ପାଇଁ କେବଳ ସକାଳେ କିମ୍ବା ବିଳମ୍ବିତ ସନ୍ଧ୍ୟାରେ ଜଳସେଚନ କରନ୍ତୁ।',
+    heatStep2: 'ମାଟିରେ ଆର୍ଦ୍ରତା ବଜାୟ ରଖିବା ପାଇଁ ଫସଲ ଅବଶିଷ୍ଟାଂଶ ବା ନଡ଼ାର ମଲଚିଂ (Mulching) ବ୍ୟବହାର କରନ୍ତୁ।',
+    heatStep3: 'ଗୃହପାଳିତ ପଶୁମାନଙ୍କୁ ମଧ୍ୟାହ୍ନ ୧୨ ରୁ ୪ ଟା ପର୍ଯ୍ୟନ୍ତ ଛାଇରେ ରଖନ୍ତୁ ଏବଂ ପର୍ଯ୍ୟାପ୍ତ ଥଣ୍ଡା ପିଇବା ପାଣି ଦିଅନ୍ତୁ।',
+    kisanCallCenter: 'କିଷାନ କଲ୍ ସେଣ୍ଟର୍ ଟୋଲ୍-ଫ୍ରି: ୧୮୦୦-୧୮୦-୧୫୫୧ (ବିଶେଷଜ୍ଞ କୃଷି ପରାମର୍ଶ)',
+    dismissBtn: 'ବୁଝିଲି / ଆବଶ୍ୟକ ସତର୍କତା ଅବଲମ୍ବନ କରିବି',
   },
   en: {
     brand: 'Kisan Mitra',
@@ -165,140 +239,204 @@ const TRANSLATIONS = {
 interface CropPriceInfo {
   nameEn: string;
   nameHi: string;
+  nameOr: string;
   priceDisplay: string;
   mspDisplay: string;
   trendTextEn: string;
   trendTextHi: string;
+  trendTextOr: string;
 }
 
 const CROP_PRICE_MAP: Record<string, CropPriceInfo> = {
   wheat: {
     nameEn: 'Wheat',
     nameHi: 'गेहूं',
+    nameOr: 'ଗହମ',
     priceDisplay: '₹2,450',
     mspDisplay: '₹2,275',
     trendTextEn: 'Current Price ↑ (MSP ₹2,275)',
     trendTextHi: 'ताज़ा भाव ↑ (MSP ₹2,275)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୨,୨୭୫)',
   },
   गेहूं: {
     nameEn: 'Wheat',
     nameHi: 'गेहूं',
+    nameOr: 'ଗହମ',
     priceDisplay: '₹2,450',
     mspDisplay: '₹2,275',
     trendTextEn: 'Current Price ↑ (MSP ₹2,275)',
     trendTextHi: 'ताज़ा भाव ↑ (MSP ₹2,275)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୨,୨୭୫)',
+  },
+  ଗହମ: {
+    nameEn: 'Wheat',
+    nameHi: 'गेहूं',
+    nameOr: 'ଗହମ',
+    priceDisplay: '₹2,450',
+    mspDisplay: '₹2,275',
+    trendTextEn: 'Current Price ↑ (MSP ₹2,275)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹2,275)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୨,୨୭୫)',
   },
   paddy: {
     nameEn: 'Paddy',
     nameHi: 'धान',
+    nameOr: 'ଧାନ',
     priceDisplay: '₹2,900',
     mspDisplay: '₹2,320',
     trendTextEn: 'Current Price ↑ (MSP ₹2,320)',
     trendTextHi: 'ताज़ा भाव ↑ (MSP ₹2,320)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୨,୩୨୦)',
   },
   धान: {
     nameEn: 'Paddy',
     nameHi: 'धान',
+    nameOr: 'ଧାନ',
     priceDisplay: '₹2,900',
     mspDisplay: '₹2,320',
     trendTextEn: 'Current Price ↑ (MSP ₹2,320)',
     trendTextHi: 'ताज़ा भाव ↑ (MSP ₹2,320)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୨,୩୨୦)',
+  },
+  ଧାନ: {
+    nameEn: 'Paddy',
+    nameHi: 'धान',
+    nameOr: 'ଧାନ',
+    priceDisplay: '₹2,900',
+    mspDisplay: '₹2,320',
+    trendTextEn: 'Current Price ↑ (MSP ₹2,320)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹2,320)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୨,୩୨୦)',
   },
   rice: {
     nameEn: 'Paddy (Rice)',
     nameHi: 'धान (चावल)',
+    nameOr: 'ଧାନ (ଚାଉଳ)',
     priceDisplay: '₹2,900',
     mspDisplay: '₹2,320',
     trendTextEn: 'Current Price ↑ (MSP ₹2,320)',
     trendTextHi: 'ताज़ा भाव ↑ (MSP ₹2,320)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୨,୩୨୦)',
   },
   soybean: {
     nameEn: 'Soybean',
     nameHi: 'सोयाबीन',
+    nameOr: 'ସୋୟାବିନ୍',
     priceDisplay: '₹4,892',
     mspDisplay: '₹4,892',
     trendTextEn: 'Current Price ↑ (MSP ₹4,892)',
     trendTextHi: 'ताज़ा भाव ↑ (MSP ₹4,892)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୪,୮୯୨)',
   },
   सोयाबीन: {
     nameEn: 'Soybean',
     nameHi: 'सोयाबीन',
+    nameOr: 'ସୋୟାବିନ୍',
     priceDisplay: '₹4,892',
     mspDisplay: '₹4,892',
     trendTextEn: 'Current Price ↑ (MSP ₹4,892)',
     trendTextHi: 'ताज़ा भाव ↑ (MSP ₹4,892)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୪,୮୯୨)',
   },
   mustard: {
     nameEn: 'Mustard',
     nameHi: 'सरसों',
+    nameOr: 'ସୋରିଷ',
     priceDisplay: '₹5,650',
     mspDisplay: '₹5,650',
     trendTextEn: 'Current Price ↑ (MSP ₹5,650)',
     trendTextHi: 'ताज़ा भाव ↑ (MSP ₹5,650)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୫,୬୫୦)',
   },
   सरसों: {
     nameEn: 'Mustard',
     nameHi: 'सरसों',
+    nameOr: 'ସୋରିଷ',
     priceDisplay: '₹5,650',
     mspDisplay: '₹5,650',
     trendTextEn: 'Current Price ↑ (MSP ₹5,650)',
     trendTextHi: 'ताज़ा भाव ↑ (MSP ₹5,650)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୫,୬୫୦)',
+  },
+  ସୋରିଷ: {
+    nameEn: 'Mustard',
+    nameHi: 'सरसों',
+    nameOr: 'ସୋରିଷ',
+    priceDisplay: '₹5,650',
+    mspDisplay: '₹5,650',
+    trendTextEn: 'Current Price ↑ (MSP ₹5,650)',
+    trendTextHi: 'ताज़ा भाव ↑ (MSP ₹5,650)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୫,୬୫୦)',
   },
   maize: {
     nameEn: 'Maize',
     nameHi: 'मक्का',
+    nameOr: 'ମକା',
     priceDisplay: '₹2,090',
     mspDisplay: '₹2,090',
     trendTextEn: 'Current Price ↑ (MSP ₹2,090)',
     trendTextHi: 'ताज़ा भाव ↑ (MSP ₹2,090)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୨,୦୯୦)',
   },
   मक्का: {
     nameEn: 'Maize',
     nameHi: 'मक्का',
+    nameOr: 'ମକା',
     priceDisplay: '₹2,090',
     mspDisplay: '₹2,090',
     trendTextEn: 'Current Price ↑ (MSP ₹2,090)',
     trendTextHi: 'ताज़ा भाव ↑ (MSP ₹2,090)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୨,୦୯୦)',
   },
   cotton: {
     nameEn: 'Cotton',
     nameHi: 'कपास',
+    nameOr: 'କପା',
     priceDisplay: '₹7,121',
     mspDisplay: '₹7,121',
     trendTextEn: 'Current Price ↑ (MSP ₹7,121)',
     trendTextHi: 'ताज़ा भाव ↑ (MSP ₹7,121)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୭,୧୨୧)',
   },
   कपास: {
     nameEn: 'Cotton',
     nameHi: 'कपास',
+    nameOr: 'କପା',
     priceDisplay: '₹7,121',
     mspDisplay: '₹7,121',
     trendTextEn: 'Current Price ↑ (MSP ₹7,121)',
     trendTextHi: 'ताज़ा भाव ↑ (MSP ₹7,121)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୭,୧୨୧)',
   },
   gram: {
     nameEn: 'Gram (Chana)',
     nameHi: 'चना',
+    nameOr: 'ବୁଟ/ଚଣା',
     priceDisplay: '₹5,440',
     mspDisplay: '₹5,440',
     trendTextEn: 'Current Price ↑ (MSP ₹5,440)',
     trendTextHi: 'ताज़ा भाव ↑ (MSP ₹5,440)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୫,୪୪୦)',
   },
   chana: {
     nameEn: 'Gram (Chana)',
     nameHi: 'चना',
+    nameOr: 'ବୁଟ/ଚଣା',
     priceDisplay: '₹5,440',
     mspDisplay: '₹5,440',
     trendTextEn: 'Current Price ↑ (MSP ₹5,440)',
     trendTextHi: 'ताज़ा भाव ↑ (MSP ₹5,440)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୫,୪୪୦)',
   },
   चना: {
     nameEn: 'Gram (Chana)',
     nameHi: 'चना',
+    nameOr: 'ବୁଟ/ଚଣା',
     priceDisplay: '₹5,440',
     mspDisplay: '₹5,440',
     trendTextEn: 'Current Price ↑ (MSP ₹5,440)',
     trendTextHi: 'ताज़ा भाव ↑ (MSP ₹5,440)',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑ (MSP ₹୫,୪୪୦)',
   },
 };
 
@@ -316,10 +454,12 @@ function getCropPriceInfo(rawCrop?: string): CropPriceInfo {
   return {
     nameEn: name || 'Wheat',
     nameHi: name || 'गेहूं',
+    nameOr: name || 'ଗହମ',
     priceDisplay: '₹2,450',
     mspDisplay: '₹2,275',
     trendTextEn: 'Current Price ↑',
     trendTextHi: 'ताज़ा भाव ↑',
+    trendTextOr: 'ସାମ୍ପ୍ରତିକ ଦର ↑',
   };
 }
 
@@ -329,9 +469,13 @@ export default function FarmerDashboard() {
   const { state, setLanguage, seedFirebaseDatabase } = useAppContext();
   const currentFarmer = state.currentFarmer;
 
-  const currentLang = state.language || 'hi';
+  const currentLang = (state.language || 'hi') as 'hi' | 'en' | 'or';
   const isHi = currentLang === 'hi';
-  const t = TRANSLATIONS[currentLang];
+  const isOr = currentLang === 'or';
+  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.hi;
+
+  const [textScale, setTextScale] = useState<TextScale>(1.0);
+  const [isHighContrast, setIsHighContrast] = useState(false);
 
   const [isSeeding, setIsSeeding] = useState(false);
   const [seedMessage, setSeedMessage] = useState<string | null>(null);
@@ -361,7 +505,7 @@ export default function FarmerDashboard() {
   };
 
   // Farmer dynamic values with fallback matching reference screenshot
-  const farmerName = currentFarmer?.name || (isHi ? 'किसान 7888' : 'Farmer 7888');
+  const farmerName = currentFarmer?.name || (isOr ? 'ଚାଷୀ ୭୮୮୮' : isHi ? 'किसान 7888' : 'Farmer 7888');
   const farmerId = currentFarmer?.id || 'F-523';
   const farmerPhone = currentFarmer?.phone
     ? currentFarmer.phone.startsWith('+')
@@ -369,7 +513,7 @@ export default function FarmerDashboard() {
       : `+91 ${currentFarmer.phone}`
     : '+11234567888';
   const farmerLocation = currentFarmer?.village
-    ? `${currentFarmer.village}, ${currentFarmer.district || 'Bhopal'}, ${currentFarmer.state || 'MP'}`
+    ? `${currentFarmer.village}, ${currentFarmer.district || (isOr ? 'ଭୁବନେଶ୍ୱର' : 'Bhopal')}, ${currentFarmer.state || (isOr ? 'ଓଡ଼ିଶା' : 'MP')}`
     : t.defaultLocation;
   const landArea = currentFarmer?.landArea || currentFarmer?.landAreaHectares || '4.5';
   
@@ -378,7 +522,9 @@ export default function FarmerDashboard() {
   const cropPriceInfo = getCropPriceInfo(rawFarmerCrop);
 
   const primaryCrop = currentFarmer?.primaryCrop
-    ? isHi && currentFarmer.primaryCrop.toLowerCase().includes('wheat')
+    ? isOr
+      ? cropPriceInfo.nameOr
+      : isHi && currentFarmer.primaryCrop.toLowerCase().includes('wheat')
       ? 'गेहूं (Wheat)'
       : isHi && currentFarmer.primaryCrop.toLowerCase().includes('paddy')
       ? 'धान (Paddy)'
@@ -389,18 +535,22 @@ export default function FarmerDashboard() {
 
   // Mandi district/city location
   const mandiLocationRaw = currentFarmer?.district || activeMandi?.district || 'Bhopal';
-  const mandiLocation = isHi && (mandiLocationRaw.toLowerCase() === 'bhopal' || mandiLocationRaw.toLowerCase() === 'mp')
+  const mandiLocation = isOr && (mandiLocationRaw.toLowerCase() === 'bhopal' || mandiLocationRaw.toLowerCase() === 'mp')
+    ? 'ଭୋପାଲ / ଭୁବନେଶ୍ୱର'
+    : isHi && (mandiLocationRaw.toLowerCase() === 'bhopal' || mandiLocationRaw.toLowerCase() === 'mp')
     ? 'भोपाल'
     : isHi && mandiLocationRaw.toLowerCase() === 'sehore'
     ? 'सीहोर'
     : mandiLocationRaw;
 
   // Market price card data derived directly from farmer's primary crop
-  const cropMarketSubtitle = isHi
+  const cropMarketSubtitle = isOr
+    ? `(${cropPriceInfo.nameOr}, ${mandiLocation})`
+    : isHi
     ? `(${cropPriceInfo.nameHi}, ${mandiLocation})`
     : `(${cropPriceInfo.nameEn}, ${mandiLocation})`;
   const cropMarketPrice = cropPriceInfo.priceDisplay;
-  const cropMarketTrend = isHi ? cropPriceInfo.trendTextHi : cropPriceInfo.trendTextEn;
+  const cropMarketTrend = isOr ? cropPriceInfo.trendTextOr : isHi ? cropPriceInfo.trendTextHi : cropPriceInfo.trendTextEn;
 
   const bankAccount = currentFarmer?.bankAccount
     ? currentFarmer.bankAccount.slice(-4)
@@ -408,92 +558,142 @@ export default function FarmerDashboard() {
     ? currentFarmer.bankDetails.accountNumber.slice(-4)
     : '5678';
   const rawBankName = currentFarmer?.bankName || currentFarmer?.bankDetails?.bankName || 'State Bank of India';
-  const bankName = isHi && (rawBankName.includes('State Bank') || rawBankName.includes('SBI'))
+  const bankName = isOr && (rawBankName.includes('State Bank') || rawBankName.includes('SBI'))
+    ? 'ଷ୍ଟେଟ୍ ବ୍ୟାଙ୍କ ଅଫ୍ ଇଣ୍ଡିଆ'
+    : isHi && (rawBankName.includes('State Bank') || rawBankName.includes('SBI'))
     ? 'भारतीय स्टेट बैंक'
     : rawBankName;
 
   // Active token details
   const tokenNumber = activeTx?.tokenNumber || 42;
   const tokenCrop = activeTx?.crop
-    ? isHi && activeTx.crop.toLowerCase().includes('paddy')
+    ? isOr
+      ? cropPriceInfo.nameOr
+      : isHi && activeTx.crop.toLowerCase().includes('paddy')
       ? 'धान'
       : isHi && activeTx.crop.toLowerCase().includes('wheat')
       ? 'गेहूं'
       : isHi
       ? cropPriceInfo.nameHi
       : activeTx.crop
+    : isOr
+    ? cropPriceInfo.nameOr
     : isHi
     ? cropPriceInfo.nameHi
     : cropPriceInfo.nameEn;
   const tokenQuantity = activeTx?.expectedQuantity || 20;
   const tokenMandi = activeTx?.centreName
-    ? (isHi ? 'डेमो कृषि उपज मंडी, भोपाल' : activeTx.centreName)
-    : (isHi ? 'डेमो कृषि उपज मंडी, भोपाल' : 'Demo Krishi Upaj Mandi, Bhopal');
-  const tokenSlot = isHi ? 'सुबह (8:00 - 12:00)' : (activeTx?.slotLabel || 'Morning (8:00 - 12:00)');
+    ? (isOr ? 'ଡେମୋ କୃଷି ଉପଜ ମଣ୍ଡି' : isHi ? 'डेमो कृषि उपज मंडी, भोपाल' : activeTx.centreName)
+    : (isOr ? 'ଡେମୋ କୃଷି ଉପଜ ମଣ୍ଡି' : isHi ? 'डेमो कृषि उपज मंडी, भोपाल' : 'Demo Krishi Upaj Mandi, Bhopal');
+  const tokenSlot = isOr ? 'ସକାଳ (୮:୦୦ - ୧୨:୦୦)' : isHi ? 'सुबह (8:00 - 12:00)' : (activeTx?.slotLabel || 'Morning (8:00 - 12:00)');
 
   return (
-    <View style={styles.screenWrapper}>
-      <StatusBar barStyle="light-content" backgroundColor="#143F23" />
+    <View style={[styles.screenWrapper, isHighContrast && styles.screenWrapperHighContrast]}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={isHighContrast ? '#000000' : '#143F23'}
+      />
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* TOP FOREST GREEN BANNER AREA */}
-        <View style={[styles.forestGreenHeader, { paddingTop: Math.max(insets.top, 16) + 8 }]}>
+        {/* TOP FOREST GREEN / HIGH-CONTRAST BANNER AREA */}
+        <View
+          style={[
+            styles.forestGreenHeader,
+            isHighContrast && styles.forestGreenHeaderHighContrast,
+            { paddingTop: Math.max(insets.top, 16) + 8 },
+          ]}
+        >
           {/* Subtle decorative leaf watermarks in header corner */}
-          <Ionicons
-            name="leaf"
-            size={110}
-            color="#FFFFFF"
-            style={styles.leafDecor1}
-          />
-          <Ionicons
-            name="leaf"
-            size={70}
-            color="#FFFFFF"
-            style={styles.leafDecor2}
-          />
+          {!isHighContrast && (
+            <>
+              <Ionicons
+                name="leaf"
+                size={110}
+                color="#FFFFFF"
+                style={styles.leafDecor1}
+              />
+              <Ionicons
+                name="leaf"
+                size={70}
+                color="#FFFFFF"
+                style={styles.leafDecor2}
+              />
+            </>
+          )}
 
-          {/* Top Row: Kisan Mitra Title + Language Pill Toggle (Hindi / English) */}
+          {/* Top Row: Brand Title + 3-Language Toggle Pill (Hindi / Odia / English) */}
           <View style={styles.headerTopRow}>
             <View style={styles.brandRow}>
               <Text style={styles.wheatIcon}>🌾</Text>
-              <Text style={styles.brandTitle}>{t.brand}</Text>
+              <Text style={[styles.brandTitle, isHighContrast && styles.brandTitleHighContrast]}>
+                {t.brand}
+              </Text>
             </View>
 
-            {/* Language Switcher Pill: Hindi or English */}
-            <View style={styles.langPill}>
+            {/* Language Switcher Pill: Hindi / Odia / English */}
+            <View style={[styles.langPill, isHighContrast && styles.langPillHighContrast]}>
               <TouchableOpacity
                 style={[styles.langOption, isHi && styles.langOptionActive]}
                 onPress={() => setLanguage('hi')}
                 activeOpacity={0.8}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel="हिंदी भाषा चुनें"
               >
                 <Text style={[styles.langText, isHi && styles.langTextActive]}>
                   हिंदी
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.langOption, !isHi && styles.langOptionActive]}
+                style={[styles.langOption, isOr && styles.langOptionActive]}
+                onPress={() => setLanguage('or')}
+                activeOpacity={0.8}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel="ଓଡ଼ିଆ ଭାଷା ବାଛନ୍ତୁ"
+              >
+                <Text style={[styles.langText, isOr && styles.langTextActive]}>
+                  ଓଡ଼ିଆ
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.langOption, !isHi && !isOr && styles.langOptionActive]}
                 onPress={() => setLanguage('en')}
                 activeOpacity={0.8}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel="Select English"
               >
-                <Text style={[styles.langText, !isHi && styles.langTextActive]}>
+                <Text style={[styles.langText, !isHi && !isOr && styles.langTextActive]}>
                   English
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
 
+          {/* Accessibility & Usability Toolbar: Text Size Scaler (A-, A, A+) & High Contrast Mode */}
+          <AccessibilityToolbar
+            lang={currentLang}
+            textScale={textScale}
+            onChangeTextScale={setTextScale}
+            isHighContrast={isHighContrast}
+            onToggleHighContrast={() => setIsHighContrast((prev) => !prev)}
+          />
+
           {/* Live Connected Status Pill */}
-          <View style={styles.liveStatusPill}>
-            <Ionicons name="pulse" size={14} color="#6EE7B7" />
-            <Text style={styles.liveStatusText}>{t.liveConnected}</Text>
+          <View style={[styles.liveStatusPill, isHighContrast && styles.liveStatusPillHighContrast]}>
+            <Ionicons name="pulse" size={14} color={isHighContrast ? '#FFE500' : '#6EE7B7'} />
+            <Text style={[styles.liveStatusText, isHighContrast && styles.liveStatusTextHighContrast]}>
+              {t.liveConnected}
+            </Text>
           </View>
 
           {/* ACTIVE TOKEN CARD (MATCHING REFERENCE UI) */}
-          <View style={styles.activeTokenCard}>
+          <View style={[styles.activeTokenCard, isHighContrast && styles.activeTokenCardHighContrast]}>
             {/* Top Ribbon Row */}
             <View style={styles.tokenRibbonRow}>
               <View style={styles.goldRibbon}>
@@ -503,8 +703,27 @@ export default function FarmerDashboard() {
                 </Text>
               </View>
 
-              <View style={styles.bookedBadge}>
-                <Text style={styles.bookedBadgeText}>{t.booked}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <SpeakerButton
+                  cardId="token-card"
+                  getText={() => {
+                    if (isOr) {
+                      return `ଆପଣଙ୍କ ସକ୍ରିୟ ଟୋକନ୍ ନମ୍ବର ${tokenNumber}। ସ୍ଥିତି ବୁକ୍ ହୋଇଛି। ୩ ଜଣ ଚାଷୀ ଆଗରେ ଅଛନ୍ତି। ଆନୁମାନିକ ଅପେକ୍ଷା ସମୟ ୨୫ ମିନିଟ୍। ପହଞ୍ଚିବା ସମୟ ସକାଳ ୧୦:୧୫।`;
+                    }
+                    if (isHi) {
+                      return `आपका सक्रिय टोकन नंबर ${tokenNumber}। स्थिति बुक्ड है। तीन किसान आगे हैं। अनुमानित प्रतीक्षा पच्चीस मिनट। पहुंचने का समय सुबह सवा दस बजे।`;
+                    }
+                    return `Your active token number ${tokenNumber}. Status is Booked. 3 farmers ahead. Estimated wait 25 minutes. Arrive by 10:15 AM.`;
+                  }}
+                  lang={currentLang}
+                  size={15}
+                  bgColor="rgba(255, 255, 255, 0.15)"
+                  color="#E6F4EA"
+                  isHighContrast={isHighContrast}
+                />
+                <View style={styles.bookedBadge}>
+                  <Text style={styles.bookedBadgeText}>{t.booked}</Text>
+                </View>
               </View>
             </View>
 
@@ -582,7 +801,10 @@ export default function FarmerDashboard() {
           {/* Urgent Agro-Met Weather Alert Banner */}
           {alertBannerVisible && (
             <TouchableOpacity
-              style={styles.weatherAlertBanner}
+              style={[
+                styles.weatherAlertBanner,
+                isHighContrast && styles.bannerHighContrast,
+              ]}
               onPress={() => setShowWeatherModal(true)}
               activeOpacity={0.9}
             >
@@ -590,14 +812,33 @@ export default function FarmerDashboard() {
                 <Ionicons name="warning" size={18} color="#FFFFFF" />
               </View>
               <View style={styles.weatherAlertTextBox}>
-                <Text style={styles.weatherAlertTitle} numberOfLines={1}>
+                <Text style={[styles.weatherAlertTitle, isHighContrast && styles.textHighContrast]} numberOfLines={1}>
                   {t.urgentAlertTitle}
                 </Text>
-                <Text style={styles.weatherAlertSub} numberOfLines={1}>
+                <Text style={[styles.weatherAlertSub, isHighContrast && styles.textSubHighContrast]} numberOfLines={1}>
                   {t.urgentAlertSub}
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color="#92400E" />
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <SpeakerButton
+                  cardId="urgent-weather-alert"
+                  getText={() => {
+                    if (isOr) {
+                      return `କୃଷି-ପାଣିପାଗ ସତର୍କତା: ଆଗାମୀ ୨୪ ରୁ ୪୮ ଘଣ୍ଟା ମଧ୍ୟରେ ୭୫ ପ୍ରତିଶତ ଅସାମୟିକ ବର୍ଷା ଏବଂ ୩୨ କିଲୋମିଟର ବେଗରେ ପ୍ରବଳ ପବନ ହେବାର ସମ୍ଭାବନା ରହିଛି। ସୁରକ୍ଷା ପାଇଁ ପରାମର୍ଶ ଦେଖନ୍ତୁ।`;
+                    }
+                    if (isHi) {
+                      return `मौसम चेतावनी: अगले चौबीस से अड़तालीस घंटे में पिचहत्तर प्रतिशत बेमौसम बारिश और बत्तीस किलोमीटर प्रति घंटा तेज हवा की आशंका है। सुरक्षा उपाय देखें।`;
+                    }
+                    return `Agro-Met Weather Alert: Unseasonal rain at 75 percent and gusty winds up to 32 kilometers per hour expected in next 24 to 48 hours. Tap to view advisory.`;
+                  }}
+                  lang={currentLang}
+                  size={15}
+                  bgColor="#FEF3C7"
+                  color="#B45309"
+                  isHighContrast={isHighContrast}
+                />
+                <Ionicons name="chevron-forward" size={18} color={isHighContrast ? '#FFE500' : '#92400E'} />
+              </View>
             </TouchableOpacity>
           )}
 
@@ -702,15 +943,34 @@ export default function FarmerDashboard() {
 
           <View style={styles.environmentRow}>
             {/* Market Price Card: Aligned dynamically with farmer's primary crop + MSP comparison */}
-            <View style={styles.environmentCard}>
-              <Text style={styles.envCardTitle}>{t.marketPrice}</Text>
-              <Text style={styles.envCardSub} numberOfLines={1}>{cropMarketSubtitle}</Text>
+            <View style={[styles.environmentCard, isHighContrast && styles.cardHighContrast]}>
+              <View style={styles.envCardHeaderRow}>
+                <Text style={[styles.envCardTitle, isHighContrast && styles.textHighContrast]}>{t.marketPrice}</Text>
+                <SpeakerButton
+                  cardId="market-price-card"
+                  getText={() => {
+                    if (isOr) {
+                      return `${primaryCrop}ର ମଣ୍ଡି ଦର। ବର୍ତ୍ତମାନ ମଣ୍ଡି ଦର ${cropMarketPrice} ପ୍ରତି କ୍ୱିଣ୍ଟାଲ। ସରକାରୀ ନିମ୍ନତମ ସହାୟକ ମୂଲ୍ୟ ଏମଏସପି ${cropPriceInfo.mspDisplay} ପ୍ରତି କ୍ୱିଣ୍ଟାଲ।`;
+                    }
+                    if (isHi) {
+                      return `${primaryCrop} का मंडी भाव। ताज़ा मंडी भाव ${cropMarketPrice} प्रति क्विंटल। न्यूनतम समर्थन मूल्य MSP ${cropPriceInfo.mspDisplay} प्रति क्विंटल।`;
+                    }
+                    return `Market price for ${primaryCrop}. Current mandi price is ${cropMarketPrice} per quintal. Minimum Support Price MSP is ${cropPriceInfo.mspDisplay} per quintal.`;
+                  }}
+                  lang={currentLang}
+                  size={14}
+                  isHighContrast={isHighContrast}
+                />
+              </View>
+              <Text style={[styles.envCardSub, isHighContrast && styles.textSubHighContrast]} numberOfLines={1}>
+                {cropMarketSubtitle}
+              </Text>
 
               {/* Main Price Row with /q */}
               <View style={styles.priceRow}>
-                <Text style={styles.envPriceBig}>
+                <Text style={[styles.envPriceBig, isHighContrast && styles.priceHighContrast]}>
                   {cropMarketPrice}
-                  <Text style={styles.priceUnitSlash}>/q</Text>
+                  <Text style={[styles.priceUnitSlash, isHighContrast && styles.textSubHighContrast]}>/q</Text>
                 </Text>
                 <View style={styles.arrowUpPill}>
                   <Ionicons name="arrow-up" size={12} color="#2E7D32" />
@@ -718,11 +978,11 @@ export default function FarmerDashboard() {
               </View>
 
               {/* Explicit unit below the market price */}
-              <Text style={styles.unitSubText}>{t.unitBelowPrice}</Text>
+              <Text style={[styles.unitSubText, isHighContrast && styles.textSubHighContrast]}>{t.unitBelowPrice}</Text>
 
               {/* MSP Comparison display */}
-              <View style={styles.mspCompareBox}>
-                <Text style={styles.mspCompareText}>
+              <View style={[styles.mspCompareBox, isHighContrast && styles.mspCompareBoxHighContrast]}>
+                <Text style={[styles.mspCompareText, isHighContrast && styles.textHighContrast]}>
                   {t.mandiPrefix} {cropMarketPrice}/q / {t.mspPrefix} {cropPriceInfo.mspDisplay}/q
                 </Text>
                 <View style={styles.mspBenefitTag}>
@@ -733,18 +993,35 @@ export default function FarmerDashboard() {
 
             {/* Actionable Weather Insights (Agro-met Advisory) Card */}
             <TouchableOpacity
-              style={styles.environmentCard}
+              style={[styles.environmentCard, isHighContrast && styles.cardHighContrast]}
               onPress={() => setShowWeatherModal(true)}
               activeOpacity={0.85}
             >
               <View style={styles.agroHeaderRow}>
-                <Text style={styles.envCardTitle}>{t.agroMetTitle}</Text>
-                <View style={styles.alertMiniPill}>
-                  <Ionicons name="warning" size={10} color="#D97706" />
-                  <Text style={styles.alertMiniPillText}>{t.alertTag}</Text>
+                <Text style={[styles.envCardTitle, isHighContrast && styles.textHighContrast]}>{t.agroMetTitle}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <SpeakerButton
+                    cardId="agro-met-card"
+                    getText={() => {
+                      if (isOr) {
+                        return `କୃଷି-ପାଣିପାଗ ପରାମର୍ଶ। ତାପମାତ୍ରା ୩୨ ଡିଗ୍ରୀ, ପବନ ୧୮ କିମି ପ୍ରତି ଘଣ୍ଟା। ବର୍ଷା ସମ୍ଭାବନା: ୨୪ ଘଣ୍ଟାରେ ୨୦ ପ୍ରତିଶତ, ୪୮ ଘଣ୍ଟାରେ ୭୫ ପ୍ରତିଶତ। ଜରୁରୀ ପରାମର୍ଶ: କଟା ଫସଲକୁ ତାରପୋଲିନରେ ଘୋଡ଼ାନ୍ତୁ ଏବଂ କୀଟନାଶକ ସ୍ପ୍ରେ ବନ୍ଦ ରଖନ୍ତୁ।`;
+                      }
+                      if (isHi) {
+                        return `कृषि-मौसम सलाह। तापमान बत्तीस डिग्री, हवा अठारह किलोमीटर प्रति घंटा। बारिश की संभावना: चौबीस घंटे में बीस प्रतिशत, अड़तालीस घंटे में पिचहत्तर प्रतिशत। जरूरी सलाह: कटी फसल को ढकें, कीटनाशक छिड़काव रोकें।`;
+                      }
+                      return `Agro-met Advisory. Temperature 32 degrees, wind speed 18 kilometers per hour. Rain probability: 20 percent in 24 hours, 75 percent in 48 hours. Advisory: Cover harvested produce and pause spray.`;
+                    }}
+                    lang={currentLang}
+                    size={14}
+                    isHighContrast={isHighContrast}
+                  />
+                  <View style={styles.alertMiniPill}>
+                    <Ionicons name="warning" size={10} color="#D97706" />
+                    <Text style={styles.alertMiniPillText}>{t.alertTag}</Text>
+                  </View>
                 </View>
               </View>
-              <Text style={styles.envCardSub} numberOfLines={1}>
+              <Text style={[styles.envCardSub, isHighContrast && styles.textSubHighContrast]} numberOfLines={1}>
                 {mandiLocation} • {t.agroMetDuration}
               </Text>
 
@@ -752,7 +1029,7 @@ export default function FarmerDashboard() {
               <View style={styles.agroMetricsRow}>
                 <View style={styles.weatherRow}>
                   <Text style={styles.weatherEmoji}>⛅</Text>
-                  <Text style={styles.weatherTempBig}>32°C</Text>
+                  <Text style={[styles.weatherTempBig, isHighContrast && styles.textHighContrast]}>32°C</Text>
                 </View>
                 <View style={styles.windSpeedBadge}>
                   <Ionicons name="speedometer-outline" size={11} color="#1E3A8A" />
@@ -761,8 +1038,8 @@ export default function FarmerDashboard() {
               </View>
 
               {/* Rain Probability for next 24-48 Hours */}
-              <View style={styles.rainProbBox}>
-                <Text style={styles.rainProbTitle}>🌧️ {t.rainProbLabel}</Text>
+              <View style={[styles.rainProbBox, isHighContrast && styles.rainProbBoxHighContrast]}>
+                <Text style={[styles.rainProbTitle, isHighContrast && styles.textHighContrast]}>🌧️ {t.rainProbLabel}</Text>
                 <View style={styles.rainProbItemsRow}>
                   <Text style={styles.rainProb24}>24h: 20%</Text>
                   <Text style={styles.rainProbDivider}>|</Text>
@@ -776,7 +1053,7 @@ export default function FarmerDashboard() {
                   ⚠️ {t.advisorySnippet}
                 </Text>
               </View>
-              <Text style={styles.viewAdvisoryLink}>{t.tapForAdvisory}</Text>
+              <Text style={[styles.viewAdvisoryLink, isHighContrast && styles.textHighlightHighContrast]}>{t.tapForAdvisory}</Text>
             </TouchableOpacity>
           </View>
 
@@ -881,16 +1158,49 @@ export default function FarmerDashboard() {
             <View style={styles.modalHeaderRow}>
               <View style={styles.modalTitleBadge}>
                 <Ionicons name="warning" size={18} color="#D97706" />
-                <Text style={styles.modalHeaderTitle} numberOfLines={1}>
+                <Text style={[styles.modalHeaderTitle, isHighContrast && styles.textHighContrast]} numberOfLines={1}>
                   {t.modalTitle}
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={() => setShowWeatherModal(false)}
-                style={styles.modalCloseBtn}
-              >
-                <Ionicons name="close" size={22} color="#64748B" />
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <SpeakerButton
+                  cardId="modal-weather-advisory"
+                  getText={() => {
+                    if (activeWeatherTab === 'rain') {
+                      return isOr
+                        ? `ଅସାମୟିକ ବର୍ଷା ସତର୍କତା: ୪୮ ଘଣ୍ଟାରେ ୭୫ ପ୍ରତିଶତ ବର୍ଷା ସମ୍ଭାବନା। ପଦକ୍ଷେପ ଏକ: କଟା ଫସଲକୁ ତାରପୋଲିନ ଦ୍ୱାରା ଘୋଡ଼ାନ୍ତୁ। ପଦକ୍ଷେପ ଦୁଇ: ୪୮ ଘଣ୍ଟା ଯାଏଁ ସାର ଓ କୀଟନାଶକ ପ୍ରୟୋଗ ବନ୍ଦ ରଖନ୍ତୁ। ପଦକ୍ଷେପ ତିନି: କ୍ଷେତରେ ନାଳୀ ସଫା କରି ଜଳ ନିଷ୍କାସନ ବ୍ୟବସ୍ଥା କରନ୍ତୁ। କିଷାନ କଲ୍ ସେଣ୍ଟର: ୧୮୦୦-୧୮୦-୧୫୫୧।`
+                        : isHi
+                        ? `बेमौसम बारिश सलाह: अड़तालीस घंटे में पिचहत्तर प्रतिशत बारिश। कदम एक: कटी फसल को तिरपाल से ढकें। कदम दो: अड़तालीस घंटे तक कीटनाशक छिड़काव रोकें। कदम तीन: जलनिकासी नालियां साफ रखें। किसान कॉल सेंटर: 1800-180-1551।`
+                        : `Unseasonal Rain Advisory: 75 percent rain probability in 48 hours. Step 1: Cover harvested crops with tarpaulin. Step 2: Postpone chemical spraying and irrigation for 48 hours. Step 3: Clear drainage furrows. Kisan Call Centre toll free: 1800-180-1551.`;
+                    }
+                    if (activeWeatherTab === 'frost') {
+                      return isOr
+                        ? `କାକର ଓ ଶୀତଲହରୀ ପରାମର୍ଶ। ପଦକ୍ଷେପ ଏକ: ସନ୍ଧ୍ୟାରେ ହାଲୁକା ପାଣି ମଡ଼ାନ୍ତୁ। ପଦକ୍ଷେପ ଦୁଇ: କ୍ଷେତର ଉତ୍ତର-ପଶ୍ଚିମ ସୀମାରେ ଧୂଆଁ ସୃଷ୍ଟି କରନ୍ତୁ। ପଦକ୍ଷେପ ତିନି: ପନିପରିବା ନର୍ସରୀକୁ ନଡ଼ା କିମ୍ବା ପଲିଥିନରେ ଢାଙ୍କନ୍ତୁ।`
+                        : isHi
+                        ? `पाला और शीतलहर सलाह। कदम एक: शाम के समय हल्की सिंचाई करें। कदम दो: उत्तर पश्चिम मेड़ों पर जैविक कचरे का धुआं करें। कदम तीन: नर्सरी और सब्जियों को पुआल से ढकें।`
+                        : `Frost and cold wave advisory. Step 1: Apply light evening irrigation. Step 2: Create light smoke on north-west border. Step 3: Cover nurseries and vegetable plants with straw or plastic.`;
+                    }
+                    return isOr
+                      ? `ପ୍ରଚଣ୍ଡ ଖରା ଓ ଲୁ ପରାମର୍ଶ। ପଦକ୍ଷେପ ଏକ: କେବଳ ସକାଳେ କିମ୍ବା ସନ୍ଧ୍ୟାରେ ଜଳସେଚନ କରନ୍ତୁ। ପଦକ୍ଷେପ ଦୁଇ: ନଡ଼ାର ମଲଚିଂ ବ୍ୟବହାର କରନ୍ତୁ। ପଦକ୍ଷେପ ତିନି: ଗୃହପାଳିତ ପଶୁଙ୍କୁ ଛାଇରେ ରଖନ୍ତୁ ଓ ପ୍ରଚୁର ଥଣ୍ଡା ପାଣି ଦିଅନ୍ତୁ।`
+                      : isHi
+                      ? `लू और प्रचंड गर्मी सलाह। कदम एक: केवल सुबह या देर शाम हल्की सिंचाई करें। कदम दो: पुआल की मल्चिंग बिछाएं। कदम तीन: पशुओं को छायादार जगह में रखें और भरपूर ठंडा पानी दें।`
+                      : `Heatwave advisory. Step 1: Irrigate strictly during early morning or late evening. Step 2: Apply organic mulch to conserve moisture. Step 3: Keep cattle in shaded shelters with plenty of clean water.`;
+                  }}
+                  lang={currentLang}
+                  size={15}
+                  showLabel={true}
+                  isHighContrast={isHighContrast}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowWeatherModal(false)}
+                  style={styles.modalCloseBtn}
+                  accessible={true}
+                  accessibilityRole="button"
+                  accessibilityLabel="Close weather modal"
+                >
+                  <Ionicons name="close" size={22} color="#64748B" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             <Text style={styles.modalSubHeader}>
@@ -1150,22 +1460,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
   },
+  langPillHighContrast: {
+    backgroundColor: '#000000',
+    borderColor: '#FFE500',
+    borderWidth: 2,
+  },
   langOption: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 16,
   },
   langOptionActive: {
     backgroundColor: '#2A6F42',
   },
   langText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#B0D8BC',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   langTextActive: {
     color: '#FFFFFF',
-    fontWeight: '800',
+    fontWeight: '900',
   },
   liveStatusPill: {
     flexDirection: 'row',
@@ -1970,5 +2285,72 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1A202C',
     textAlign: 'center',
+  },
+
+  /* HEADER & ENVIRONMENT FLEX HELPERS */
+  envCardHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  /* HIGH CONTRAST OUTDOOR ACCESSIBILITY THEME */
+  screenWrapperHighContrast: {
+    backgroundColor: '#000000',
+  },
+  forestGreenHeaderHighContrast: {
+    backgroundColor: '#000000',
+    borderBottomWidth: 3,
+    borderBottomColor: '#FFE500',
+  },
+  brandTitleHighContrast: {
+    color: '#FFE500',
+  },
+  liveStatusPillHighContrast: {
+    backgroundColor: '#1C1C1E',
+    borderColor: '#FFE500',
+    borderWidth: 1,
+  },
+  liveStatusTextHighContrast: {
+    color: '#FFE500',
+    fontWeight: '800',
+  },
+  activeTokenCardHighContrast: {
+    backgroundColor: '#000000',
+    borderColor: '#FFE500',
+    borderWidth: 2,
+  },
+  cardHighContrast: {
+    backgroundColor: '#000000',
+    borderColor: '#FFE500',
+    borderWidth: 2,
+  },
+  bannerHighContrast: {
+    backgroundColor: '#000000',
+    borderColor: '#FFE500',
+    borderWidth: 2,
+  },
+  textHighContrast: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  textSubHighContrast: {
+    color: '#E2E8F0',
+    fontWeight: '700',
+  },
+  textHighlightHighContrast: {
+    color: '#FFE500',
+    fontWeight: '900',
+  },
+  priceHighContrast: {
+    color: '#00FF66',
+  },
+  mspCompareBoxHighContrast: {
+    backgroundColor: '#111111',
+    borderColor: '#FFFFFF',
+  },
+  rainProbBoxHighContrast: {
+    backgroundColor: '#111111',
+    borderColor: '#FFFFFF',
   },
 });

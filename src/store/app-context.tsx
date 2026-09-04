@@ -11,7 +11,7 @@ interface AppState {
   currentUserId: string;
   currentUserName?: string;
   currentFarmer: Farmer | null;
-  language: 'hi' | 'en';
+  language: 'hi' | 'en' | 'or';
   centres: Centre[];
   farmers: Farmer[];
   transactions: ProcurementTransaction[];
@@ -23,7 +23,7 @@ interface AppState {
 type AppAction =
   | { type: 'SET_ROLE'; payload: { role: UserRole; userId: string; userName?: string } }
   | { type: 'SET_CURRENT_FARMER'; payload: Farmer }
-  | { type: 'SET_LANGUAGE'; payload: 'hi' | 'en' }
+  | { type: 'SET_LANGUAGE'; payload: 'hi' | 'en' | 'or' }
   | { type: 'LOAD_MOCK_DATA' }
   | { type: 'SET_CENTRES'; payload: Centre[] }
   | { type: 'SET_TRANSACTIONS'; payload: ProcurementTransaction[] }
@@ -51,7 +51,7 @@ const initialState: AppState = {
 interface AppContextValue {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
-  setLanguage: (lang: 'hi' | 'en') => Promise<void>;
+  setLanguage: (lang: 'hi' | 'en' | 'or') => Promise<void>;
   createTransaction: (tx: Partial<ProcurementTransaction>) => Promise<ProcurementTransaction>;
   updateTransaction: (tx: ProcurementTransaction) => Promise<void>;
   updateTransactionStatus: (id: string, status: TransactionStatus, notes?: string) => Promise<void>;
@@ -263,14 +263,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   useEffect(() => {
-    StorageService.getItem<'hi' | 'en'>('app_language').then((saved) => {
-      if (saved === 'hi' || saved === 'en') {
+    StorageService.getItem<'hi' | 'en' | 'or'>('app_language').then((saved) => {
+      if (saved === 'hi' || saved === 'en' || saved === 'or') {
         dispatch({ type: 'SET_LANGUAGE', payload: saved });
       }
     });
   }, []);
 
-  const setLanguage = async (lang: 'hi' | 'en') => {
+  const setLanguage = async (lang: 'hi' | 'en' | 'or') => {
     dispatch({ type: 'SET_LANGUAGE', payload: lang });
     await StorageService.setItem('app_language', lang);
   };

@@ -13,16 +13,31 @@ import {
   KisanButton,
 } from '../../../src/components/common';
 import { MOCK_TRANSACTIONS } from '../../../src/services/mock-data.service';
+import { useAppContext } from '../../../src/store/app-context';
 
 export default function FarmerBookingsScreen() {
   const router = useRouter();
+  const { state } = useAppContext();
+  const lang = state.language || 'hi';
   const bookings = MOCK_TRANSACTIONS.filter((t) => t.farmerId === 'F-001');
+
+  const text = {
+    title: lang === 'or' ? 'ସକ୍ରିୟ ବୁକିଂ' : lang === 'hi' ? 'सक्रिय बुकिंग' : 'Active Bookings',
+    subtitle: lang === 'or' ? 'ଆପଣଙ୍କ ମଣ୍ଡି ସ୍ଲଟ୍ ଟ୍ରାକ୍ ଓ ପରିଚାଳନା କରନ୍ତୁ' : lang === 'hi' ? 'अपनी आगामी मंडी स्लॉट ट्रैक और प्रबंधित करें' : 'Track and manage your upcoming mandi slots',
+    qty: lang === 'or' ? 'ପରିମାଣ' : lang === 'hi' ? 'मात्रा' : 'Quantity',
+    token: lang === 'or' ? 'ଟୋକନ୍' : lang === 'hi' ? 'टोकन' : 'Token',
+    slotDate: lang === 'or' ? 'ସ୍ଲଟ୍ ତାରିଖ' : lang === 'hi' ? 'स्लॉट तिथि' : 'Slot Date',
+    quintals: lang === 'or' ? 'କ୍ୱିଣ୍ଟାଲ' : lang === 'hi' ? 'क्विंटल' : 'Quintals',
+    checklist: lang === 'or' ? 'ଚେକଲିଷ୍ଟ' : lang === 'hi' ? 'चेकलिस्ट' : 'Checklist',
+    trackQueue: lang === 'or' ? 'ଧାଡ଼ି ଦେଖନ୍ତୁ' : lang === 'hi' ? 'कतार देखें' : 'Track Queue',
+    bookNew: lang === 'or' ? '+ ନୂତନ ସ୍ଲଟ୍ ବୁକ୍ କରନ୍ତୁ' : lang === 'hi' ? '+ नया खरीद स्लॉट बुक करें' : '+ Book New Procurement Slot',
+  };
 
   return (
     <ScreenContainer scrollable style={styles.container}>
       <SectionHeader
-        title="Active Bookings"
-        subtitle="Track and manage your upcoming mandi slots"
+        title={text.title}
+        subtitle={text.subtitle}
       />
 
       {bookings.map((booking) => (
@@ -37,15 +52,15 @@ export default function FarmerBookingsScreen() {
 
           <View style={styles.infoGrid}>
             <View style={styles.infoCol}>
-              <Text style={styles.label}>Quantity</Text>
-              <Text style={styles.value}>{booking.expectedQuantity} Quintals</Text>
+              <Text style={styles.label}>{text.qty}</Text>
+              <Text style={styles.value}>{booking.expectedQuantity} {text.quintals}</Text>
             </View>
             <View style={styles.infoCol}>
-              <Text style={styles.label}>Token</Text>
+              <Text style={styles.label}>{text.token}</Text>
               <Text style={styles.tokenValue}>#{booking.tokenNumber}</Text>
             </View>
             <View style={styles.infoCol}>
-              <Text style={styles.label}>Slot Date</Text>
+              <Text style={styles.label}>{text.slotDate}</Text>
               <Text style={styles.value}>{booking.bookingDate}</Text>
             </View>
           </View>
@@ -61,7 +76,7 @@ export default function FarmerBookingsScreen() {
               onPress={() => router.push(`/(farmer)/booking/checklist` as any)}
             >
               <Ionicons name="list-outline" size={16} color={colors.primary} />
-              <Text style={styles.secondaryBtnText}>Checklist</Text>
+              <Text style={styles.secondaryBtnText}>{text.checklist}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -69,7 +84,7 @@ export default function FarmerBookingsScreen() {
               onPress={() => router.push(`/(farmer)/queue/${booking.id}` as any)}
             >
               <Ionicons name="timer-outline" size={16} color="#FFFFFF" />
-              <Text style={styles.primaryBtnText}>Track Queue</Text>
+              <Text style={styles.primaryBtnText}>{text.trackQueue}</Text>
             </TouchableOpacity>
           </View>
         </KisanCard>
@@ -77,7 +92,7 @@ export default function FarmerBookingsScreen() {
 
       <View style={styles.newBookingSection}>
         <KisanButton
-          title="+ Book New Procurement Slot"
+          title={text.bookNew}
           onPress={() => router.push('/(farmer)/booking/crop')}
           variant="primary"
         />

@@ -5,7 +5,17 @@ import { useAppContext } from '../../../src/store/app-context';
 
 export default function FarmerTabsLayout() {
   const { state } = useAppContext();
-  const isHi = state.language === 'hi';
+  const lang = state.language || 'hi';
+
+  const tabTitles = {
+    home: lang === 'or' ? 'ମୂଳପୃଷ୍ଠା' : lang === 'hi' ? 'होम' : 'Home',
+    bookings: lang === 'or' ? 'ମୋ ବୁକିଂ' : lang === 'hi' ? 'मेरी बुकिंग' : 'Bookings',
+    myBookingsHeader: lang === 'or' ? 'ମୋ ବୁକିଂ ତାଲିକା' : lang === 'hi' ? 'मेरी बुकिंग' : 'My Bookings',
+    history: lang === 'or' ? 'ଇତିହାସ' : lang === 'hi' ? 'इतिहास' : 'History',
+    historyHeader: lang === 'or' ? 'କ୍ରୟ ଇତିହାସ' : lang === 'hi' ? 'खरीद इतिहास' : 'Procurement History',
+    profile: lang === 'or' ? 'ପ୍ରୋଫାଇଲ୍' : lang === 'hi' ? 'प्रोफ़ाइल' : 'Profile',
+    profileHeader: lang === 'or' ? 'ଚାଷୀ ପ୍ରୋଫାଇଲ୍' : lang === 'hi' ? 'किसान प्रोफ़ाइल' : 'Farmer Profile',
+  };
 
   return (
     <Tabs
@@ -32,7 +42,7 @@ export default function FarmerTabsLayout() {
         name="index"
         options={{
           headerShown: false,
-          title: isHi ? 'होम' : 'Home',
+          title: tabTitles.home,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -41,8 +51,8 @@ export default function FarmerTabsLayout() {
       <Tabs.Screen
         name="bookings"
         options={{
-          title: isHi ? 'मेरी बुकिंग' : 'Bookings',
-          headerTitle: isHi ? 'मेरी बुकिंग' : 'My Bookings',
+          title: tabTitles.bookings,
+          headerTitle: tabTitles.myBookingsHeader,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar-outline" size={size} color={color} />
           ),
@@ -51,8 +61,8 @@ export default function FarmerTabsLayout() {
       <Tabs.Screen
         name="history"
         options={{
-          title: isHi ? 'इतिहास' : 'History',
-          headerTitle: isHi ? 'खरीद इतिहास' : 'Procurement History',
+          title: tabTitles.history,
+          headerTitle: tabTitles.historyHeader,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="time-outline" size={size} color={color} />
           ),
@@ -61,8 +71,8 @@ export default function FarmerTabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: isHi ? 'प्रोफ़ाइल' : 'Profile',
-          headerTitle: isHi ? 'किसान प्रोफ़ाइल' : 'Farmer Profile',
+          title: tabTitles.profile,
+          headerTitle: tabTitles.profileHeader,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size} color={color} />
           ),

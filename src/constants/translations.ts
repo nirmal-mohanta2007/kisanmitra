@@ -86,7 +86,37 @@ export const hi: Translations = {
   demo_mode: 'डेमो मोड',
 };
 
+export const or: Translations = {
+  app_name: 'କିଷାନ ମିତ୍ର',
+  select_centre: 'କ୍ରୟ କେନ୍ଦ୍ର (ମଣ୍ଡି) ବାଛନ୍ତୁ',
+  select_crop: 'ଫସଲ ବାଛନ୍ତୁ',
+  enter_quantity: 'ଆନୁମାନିକ ପରିମାଣ ଲେଖନ୍ତୁ',
+  book_visit: 'ସ୍ଲଟ୍ ବୁକ୍ କରନ୍ତୁ',
+  your_token: 'ଆପଣଙ୍କ ଟୋକନ୍',
+  queue_position: 'ଧାଡ଼ିରେ ସ୍ଥିତି',
+  farmers_ahead: 'ଆଗରେ ଚାଷୀ',
+  estimated_wait: 'ଆନୁମାନିକ ଅପେକ୍ଷା ସମୟ',
+  recommended_arrival: 'ପହଞ୍ଚିବାର ସମୟ',
+  check_in: 'ଚେକ୍ ଇନ୍',
+  weight_recorded: 'ଓଜନ ଦର୍ଜ ହେଲା',
+  quality_check: 'ଗୁଣବତ୍ତା ଯାଞ୍ଚ',
+  procurement_complete: 'କ୍ରୟ ସମ୍ପୂର୍ଣ୍ଣ',
+  receipt: 'ରସିଦ',
+  payment_status: 'ଦେୟ ସ୍ଥିତି',
+  my_bookings: 'ମୋ ବୁକିଂ',
+  no_bookings: 'କୌଣସି ବୁକିଂ ନାହିଁ',
+  book_new: 'ନୂତନ ସ୍ଲଟ୍ ବୁକ୍ କରନ୍ତୁ',
+  view_details: 'ବିବରଣୀ ଦେଖନ୍ତୁ',
+  minutes: 'ମିନିଟ୍',
+  quintals: 'କ୍ୱିଣ୍ଟାଲ',
+  token_number: 'ଟୋକନ୍ ନମ୍ବର',
+  action_required: 'ପଦକ୍ଷେପ ଆବଶ୍ୟକ',
+  next_step: 'ପରବର୍ତ୍ତୀ ପଦକ୍ଷେପ',
+  demo_mode: 'ଡେମୋ ମୋଡ୍',
+};
+
 /** Simple translation helper */
-export function t(key: TranslationKey, lang: 'en' | 'hi' = 'en'): string {
+export function t(key: TranslationKey, lang: 'en' | 'hi' | 'or' = 'en'): string {
+  if (lang === 'or') return or[key] || en[key];
   return lang === 'hi' ? hi[key] : en[key];
 }
