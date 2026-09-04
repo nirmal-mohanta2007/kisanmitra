@@ -8,13 +8,13 @@ import {
   Image,
   StatusBar,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { MOCK_TRANSACTIONS, MOCK_CENTRES } from '../../../src/services/mock-data.service';
 import { useAppContext } from '../../../src/store/app-context';
-import { WeatherAlertBanner } from '../../../src/components/common';
 
 // Translation dictionary for Simple Hindi and English
 const TRANSLATIONS = {
@@ -63,14 +63,32 @@ const TRANSLATIONS = {
     unitBelowPrice: '/प्रति क्विंटल (100 किग्रा)',
     mandiPrefix: 'मंडी:',
     mspPrefix: 'MSP:',
-    weatherCondition: 'धूप और हल्के बादल',
-    humidity: 'नमी',
-    rain: 'बारिश',
-    agrometTitle: 'कृषि-मौसम सलाह',
-    agrometRainProb: 'बारिश: 75% (24-48 घंटे)',
-    agrometWind: 'हवा: 26 किमी/घं',
-    agrometAdvisory: 'कटी फसल तुरंत शेड में रखें; कीटनाशक छिड़काव स्थगित रखें।',
-    humidityText: 'नमी: 65%',
+    urgentAlertTitle: '🚨 मौसम चेतावनी (अगले 24-48 घंटे)',
+    urgentAlertSub: 'बेमौसम बारिश (75%) व तेज हवा (32 km/h) की आशंका! सुरक्षा उपाय देखें →',
+    agroMetTitle: 'कृषि-मौसम सलाह',
+    alertTag: 'चेतावनी',
+    agroMetDuration: '24-48 घंटे',
+    rainProbLabel: 'बारिश संभावना:',
+    windSpeedText: 'हवा: 18 km/h',
+    advisorySnippet: 'कटी फसल को ढकें, छिड़काव रोकें',
+    tapForAdvisory: 'पूरी सलाह और उपाय देखें ›',
+    modalTitle: '🚨 कृषि-मौसम चेतावनी (Agro-Met Alert)',
+    modalSub: 'भारत मौसम विज्ञान विभाग (IMD) एवं कृषि विज्ञान केंद्र',
+    tabRain: '🌧️ बेमौसम बारिश',
+    tabFrost: '❄️ पाला / शीतलहर',
+    tabHeat: '☀️ लू / प्रचंड गर्मी',
+    precautionsTitle: 'फसल सुरक्षा के जरूरी कदम (किसान सलाह):',
+    rainStep1: 'कटी हुई फसल व अनाज को तुरंत सुरक्षित गोदाम में रखें या तिरपाल (प्लास्टिक शीट) से अच्छी तरह ढकें।',
+    rainStep2: 'अगले 48 घंटों तक खेतों में किसी भी कीटनाशक, उर्वरक या अतिरिक्त सिंचाई का छिड़काव न करें।',
+    rainStep3: 'खेतों में जलनिकासी की नालियां साफ रखें ताकि गेहूं व सब्जी की फसलों में जलभराव से नुकसान न हो।',
+    frostStep1: 'पाला पड़ने की आशंका पर खेत में शाम के समय हल्की सिंचाई करें ताकि जमीन का तापमान न गिरे।',
+    frostStep2: 'खेत की उत्तर-पश्चिम मेड़ों पर शाम के समय जैविक कचरा जलाकर धुआं करें।',
+    frostStep3: 'सब्जियों और नर्सरी को पुआल, घास-फूस या प्लास्टिक शीट से ढककर बचाएं।',
+    heatStep1: 'फसलों को लू से बचाने के लिए केवल सुबह या देर शाम के समय ही हल्की सिंचाई करें।',
+    heatStep2: 'जमीन में नमी संजोने के लिए पुआल की मल्चिंग (Mulching) बिछाएं।',
+    heatStep3: 'पशुओं को दोपहर 12 से 4 बजे तक छायादार जगह में रखें और भरपूर ठंडा पानी दें।',
+    kisanCallCenter: 'किसान कॉल सेंटर टोल-फ्री: 1800-180-1551 (मुफ्त वैज्ञानिक सलाह)',
+    dismissBtn: 'समझ गया / सावधानी बरती जाएगी',
   },
   en: {
     brand: 'Kisan Mitra',
@@ -102,8 +120,6 @@ const TRANSLATIONS = {
     marketPrice: 'Market Price',
     marketCropLocation: '(Paddy, Bhopal)',
     currentPriceUp: 'Current Price ↑',
-    weatherTitle: 'Agro-met Advisory',
-    bhopal: '(Bhopal)',
     quickActions: 'Quick Actions',
     seedData: 'Seed Firestore Data',
     bookVisit: 'Book Visit',
@@ -117,14 +133,32 @@ const TRANSLATIONS = {
     unitBelowPrice: '/quintal (100 kg)',
     mandiPrefix: 'mandi:',
     mspPrefix: 'MSP:',
-    weatherCondition: 'Partly Sunny',
-    humidity: 'Humidity',
-    rain: 'Rain',
-    agrometTitle: 'Agro-met Advisory',
-    agrometRainProb: 'Rain: 75% (24-48h)',
-    agrometWind: 'Wind: 26 km/h',
-    agrometAdvisory: 'Cover harvested grains immediately; postpone pesticide spraying.',
-    humidityText: 'Humidity: 65%',
+    urgentAlertTitle: '🚨 Agro-Met Weather Alert (Next 24-48h)',
+    urgentAlertSub: 'Unseasonal rain (75%) & gusty winds (32 km/h) expected! Tap for advisory →',
+    agroMetTitle: 'Agro-met Advisory',
+    alertTag: 'WARNING',
+    agroMetDuration: '24-48h',
+    rainProbLabel: 'Rain Probability:',
+    windSpeedText: 'Wind: 18 km/h',
+    advisorySnippet: 'Cover harvested produce, pause spray',
+    tapForAdvisory: 'View Full Advisory & Actions ›',
+    modalTitle: '🚨 Critical Agro-Met Advisory',
+    modalSub: 'India Meteorological Dept (IMD) & Agri Science Centre (KVK)',
+    tabRain: '🌧️ Unseasonal Rain',
+    tabFrost: '❄️ Frost / Cold Wave',
+    tabHeat: '☀️ Heatwave Alert',
+    precautionsTitle: 'Crucial Crop Protection Steps (Farmer Action Plan):',
+    rainStep1: 'Move harvested grain to sheds immediately or cover heaps tightly with waterproof tarpaulins.',
+    rainStep2: 'Postpone all chemical spraying, fertilizer application & irrigation for the next 48 hours.',
+    rainStep3: 'Clear drainage furrows in standing crops to prevent root waterlogging and lodging.',
+    frostStep1: 'Apply light irrigation in evening hours to buffer ground temperature against freezing.',
+    frostStep2: 'Create light smoke on the north-west border of fields during early night hours.',
+    frostStep3: 'Cover nurseries and young vegetable plants with straw or plastic sheets.',
+    heatStep1: 'Irrigate fields strictly during early morning or late evening hours to reduce heat stress.',
+    heatStep2: 'Apply organic mulch or crop residue to conserve root moisture and cool the soil.',
+    heatStep3: 'Keep dairy cattle in well-ventilated shaded shelters with plenty of clean drinking water.',
+    kisanCallCenter: 'Kisan Call Centre Toll-Free: 1800-180-1551 (Agri Expert Advisory)',
+    dismissBtn: 'Acknowledge / I Will Take Precautions',
   },
 };
 
@@ -301,6 +335,9 @@ export default function FarmerDashboard() {
 
   const [isSeeding, setIsSeeding] = useState(false);
   const [seedMessage, setSeedMessage] = useState<string | null>(null);
+  const [showWeatherModal, setShowWeatherModal] = useState(false);
+  const [activeWeatherTab, setActiveWeatherTab] = useState<'rain' | 'frost' | 'heat'>('rain');
+  const [alertBannerVisible, setAlertBannerVisible] = useState(true);
 
   // Active transaction and centre
   const activeTx = state.transactions?.find((t) => t.farmerId === currentFarmer?.id) || MOCK_TRANSACTIONS[0];
@@ -542,6 +579,28 @@ export default function FarmerDashboard() {
 
         {/* MAIN BODY AREA */}
         <View style={styles.mainBodyContainer}>
+          {/* Urgent Agro-Met Weather Alert Banner */}
+          {alertBannerVisible && (
+            <TouchableOpacity
+              style={styles.weatherAlertBanner}
+              onPress={() => setShowWeatherModal(true)}
+              activeOpacity={0.9}
+            >
+              <View style={styles.weatherAlertIconBox}>
+                <Ionicons name="warning" size={18} color="#FFFFFF" />
+              </View>
+              <View style={styles.weatherAlertTextBox}>
+                <Text style={styles.weatherAlertTitle} numberOfLines={1}>
+                  {t.urgentAlertTitle}
+                </Text>
+                <Text style={styles.weatherAlertSub} numberOfLines={1}>
+                  {t.urgentAlertSub}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#92400E" />
+            </TouchableOpacity>
+          )}
+
           {/* VERIFIED FARMER IDENTITY CARD */}
           <View style={styles.farmerCard}>
             {/* Dark green decorative top-left arch */}
@@ -638,9 +697,6 @@ export default function FarmerDashboard() {
             </TouchableOpacity>
           </View>
 
-          {/* WEATHER ALERTS BANNER (SITE & APP NOTIFICATION WARNING) */}
-          <WeatherAlertBanner defaultType="unseasonal_rain" />
-
           {/* SECTION: NEW ADDED & ENVIRONMENT */}
           <Text style={styles.sectionHeaderTitle}>{t.envSection}</Text>
 
@@ -675,39 +731,53 @@ export default function FarmerDashboard() {
               </View>
             </View>
 
-            {/* Actionable Agro-met Advisory Card (Replacing generic weather forecast) */}
-            <View style={styles.environmentCard}>
-              <View style={styles.agrometHeaderRow}>
-                <Text style={styles.envCardTitle}>{t.agrometTitle}</Text>
-                <View style={styles.liveRadarDot} />
+            {/* Actionable Weather Insights (Agro-met Advisory) Card */}
+            <TouchableOpacity
+              style={styles.environmentCard}
+              onPress={() => setShowWeatherModal(true)}
+              activeOpacity={0.85}
+            >
+              <View style={styles.agroHeaderRow}>
+                <Text style={styles.envCardTitle}>{t.agroMetTitle}</Text>
+                <View style={styles.alertMiniPill}>
+                  <Ionicons name="warning" size={10} color="#D97706" />
+                  <Text style={styles.alertMiniPillText}>{t.alertTag}</Text>
+                </View>
               </View>
-              <Text style={styles.envCardSub} numberOfLines={1}>({mandiLocation})</Text>
+              <Text style={styles.envCardSub} numberOfLines={1}>
+                {mandiLocation} • {t.agroMetDuration}
+              </Text>
 
-              {/* Temperature & Rain Probability (24-48h) */}
-              <View style={styles.agrometTempRow}>
-                <Text style={styles.weatherEmoji}>⛅</Text>
-                <Text style={styles.weatherTempBig}>32°C</Text>
-              </View>
-              
-              <View style={styles.rainProbBadge}>
-                <Ionicons name="rainy" size={12} color="#0284C7" />
-                <Text style={styles.rainProbText}>{t.agrometRainProb}</Text>
-              </View>
-
-              {/* Wind Speed & Humidity Specs */}
-              <View style={styles.windSpeedRow}>
-                <Ionicons name="speedometer-outline" size={11} color="#475569" />
-                <Text style={styles.windSpeedText} numberOfLines={1}>{t.agrometWind} • {t.humidityText}</Text>
+              {/* Temp & Wind Speed Row */}
+              <View style={styles.agroMetricsRow}>
+                <View style={styles.weatherRow}>
+                  <Text style={styles.weatherEmoji}>⛅</Text>
+                  <Text style={styles.weatherTempBig}>32°C</Text>
+                </View>
+                <View style={styles.windSpeedBadge}>
+                  <Ionicons name="speedometer-outline" size={11} color="#1E3A8A" />
+                  <Text style={styles.windSpeedText}>{t.windSpeedText}</Text>
+                </View>
               </View>
 
-              {/* Actionable Advisory Box */}
-              <View style={styles.actionAdvisoryBox}>
-                <Text style={styles.actionAdvisoryLabel}>{isHi ? '⚠️ सलाह:' : '⚠️ Advisory:'}</Text>
-                <Text style={styles.actionAdvisoryText} numberOfLines={2}>
-                  {t.agrometAdvisory}
+              {/* Rain Probability for next 24-48 Hours */}
+              <View style={styles.rainProbBox}>
+                <Text style={styles.rainProbTitle}>🌧️ {t.rainProbLabel}</Text>
+                <View style={styles.rainProbItemsRow}>
+                  <Text style={styles.rainProb24}>24h: 20%</Text>
+                  <Text style={styles.rainProbDivider}>|</Text>
+                  <Text style={styles.rainProb48}>48h: 75% ⚠️</Text>
+                </View>
+              </View>
+
+              {/* Actionable Advisory CTA */}
+              <View style={styles.agroSnippetBox}>
+                <Text style={styles.agroSnippetText} numberOfLines={1}>
+                  ⚠️ {t.advisorySnippet}
                 </Text>
               </View>
-            </View>
+              <Text style={styles.viewAdvisoryLink}>{t.tapForAdvisory}</Text>
+            </TouchableOpacity>
           </View>
 
           {/* SECTION: QUICK ACTIONS */}
@@ -797,6 +867,223 @@ export default function FarmerDashboard() {
           </View>
         </View>
       </ScrollView>
+
+      {/* AGRO-MET WEATHER WARNING & PRECAUTION POP-UP MODAL */}
+      <Modal
+        visible={showWeatherModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowWeatherModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContentCard}>
+            {/* Modal Header */}
+            <View style={styles.modalHeaderRow}>
+              <View style={styles.modalTitleBadge}>
+                <Ionicons name="warning" size={18} color="#D97706" />
+                <Text style={styles.modalHeaderTitle} numberOfLines={1}>
+                  {t.modalTitle}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowWeatherModal(false)}
+                style={styles.modalCloseBtn}
+              >
+                <Ionicons name="close" size={22} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalSubHeader}>
+              {t.modalSub} • {mandiLocation}
+            </Text>
+
+            {/* Advisory Type Tabs: Unseasonal Rain, Frost, Heatwave */}
+            <View style={styles.warningTabsRow}>
+              <TouchableOpacity
+                style={[
+                  styles.warningTab,
+                  activeWeatherTab === 'rain' && styles.warningTabActiveRain,
+                ]}
+                onPress={() => setActiveWeatherTab('rain')}
+              >
+                <Text
+                  style={[
+                    styles.warningTabText,
+                    activeWeatherTab === 'rain' && styles.warningTabTextActive,
+                  ]}
+                >
+                  {t.tabRain}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.warningTab,
+                  activeWeatherTab === 'frost' && styles.warningTabActiveFrost,
+                ]}
+                onPress={() => setActiveWeatherTab('frost')}
+              >
+                <Text
+                  style={[
+                    styles.warningTabText,
+                    activeWeatherTab === 'frost' && styles.warningTabTextActive,
+                  ]}
+                >
+                  {t.tabFrost}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.warningTab,
+                  activeWeatherTab === 'heat' && styles.warningTabActiveHeat,
+                ]}
+                onPress={() => setActiveWeatherTab('heat')}
+              >
+                <Text
+                  style={[
+                    styles.warningTabText,
+                    activeWeatherTab === 'heat' && styles.warningTabTextActive,
+                  ]}
+                >
+                  {t.tabHeat}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Key Metrics Strip based on selected tab */}
+            <View style={styles.modalMetricsBox}>
+              {activeWeatherTab === 'rain' && (
+                <>
+                  <View style={styles.modalMetricItem}>
+                    <Text style={styles.modalMetricLabel}>Rain Prob (24h)</Text>
+                    <Text style={styles.modalMetricVal}>20% (Light)</Text>
+                  </View>
+                  <View style={styles.modalMetricDivider} />
+                  <View style={styles.modalMetricItem}>
+                    <Text style={styles.modalMetricLabel}>Rain Prob (48h)</Text>
+                    <Text style={[styles.modalMetricVal, { color: '#DC2626' }]}>75% (Heavy ⚠️)</Text>
+                  </View>
+                  <View style={styles.modalMetricDivider} />
+                  <View style={styles.modalMetricItem}>
+                    <Text style={styles.modalMetricLabel}>Wind Gusts</Text>
+                    <Text style={styles.modalMetricVal}>32 km/h</Text>
+                  </View>
+                </>
+              )}
+
+              {activeWeatherTab === 'frost' && (
+                <>
+                  <View style={styles.modalMetricItem}>
+                    <Text style={styles.modalMetricLabel}>Min Temp</Text>
+                    <Text style={[styles.modalMetricVal, { color: '#2563EB' }]}>3.5°C ❄️</Text>
+                  </View>
+                  <View style={styles.modalMetricDivider} />
+                  <View style={styles.modalMetricItem}>
+                    <Text style={styles.modalMetricLabel}>Ground Temp</Text>
+                    <Text style={styles.modalMetricVal}>1.8°C</Text>
+                  </View>
+                  <View style={styles.modalMetricDivider} />
+                  <View style={styles.modalMetricItem}>
+                    <Text style={styles.modalMetricLabel}>Risk Window</Text>
+                    <Text style={styles.modalMetricVal}>2:00 - 6:00 AM</Text>
+                  </View>
+                </>
+              )}
+
+              {activeWeatherTab === 'heat' && (
+                <>
+                  <View style={styles.modalMetricItem}>
+                    <Text style={styles.modalMetricLabel}>Max Temp</Text>
+                    <Text style={[styles.modalMetricVal, { color: '#EA580C' }]}>43.2°C ☀️</Text>
+                  </View>
+                  <View style={styles.modalMetricDivider} />
+                  <View style={styles.modalMetricItem}>
+                    <Text style={styles.modalMetricLabel}>Heat Index</Text>
+                    <Text style={styles.modalMetricVal}>Extreme</Text>
+                  </View>
+                  <View style={styles.modalMetricDivider} />
+                  <View style={styles.modalMetricItem}>
+                    <Text style={styles.modalMetricLabel}>Peak Hours</Text>
+                    <Text style={styles.modalMetricVal}>12:00 - 4:00 PM</Text>
+                  </View>
+                </>
+              )}
+            </View>
+
+            {/* Actionable Steps for Farmer */}
+            <Text style={styles.checklistHeading}>{t.precautionsTitle}</Text>
+
+            <View style={styles.modalStepList}>
+              {activeWeatherTab === 'rain' && (
+                <>
+                  <View style={styles.stepItemRow}>
+                    <View style={styles.stepNumberBadge}><Text style={styles.stepNumberText}>1</Text></View>
+                    <Text style={styles.stepText}>{t.rainStep1}</Text>
+                  </View>
+                  <View style={styles.stepItemRow}>
+                    <View style={styles.stepNumberBadge}><Text style={styles.stepNumberText}>2</Text></View>
+                    <Text style={styles.stepText}>{t.rainStep2}</Text>
+                  </View>
+                  <View style={styles.stepItemRow}>
+                    <View style={styles.stepNumberBadge}><Text style={styles.stepNumberText}>3</Text></View>
+                    <Text style={styles.stepText}>{t.rainStep3}</Text>
+                  </View>
+                </>
+              )}
+
+              {activeWeatherTab === 'frost' && (
+                <>
+                  <View style={styles.stepItemRow}>
+                    <View style={styles.stepNumberBadge}><Text style={styles.stepNumberText}>1</Text></View>
+                    <Text style={styles.stepText}>{t.frostStep1}</Text>
+                  </View>
+                  <View style={styles.stepItemRow}>
+                    <View style={styles.stepNumberBadge}><Text style={styles.stepNumberText}>2</Text></View>
+                    <Text style={styles.stepText}>{t.frostStep2}</Text>
+                  </View>
+                  <View style={styles.stepItemRow}>
+                    <View style={styles.stepNumberBadge}><Text style={styles.stepNumberText}>3</Text></View>
+                    <Text style={styles.stepText}>{t.frostStep3}</Text>
+                  </View>
+                </>
+              )}
+
+              {activeWeatherTab === 'heat' && (
+                <>
+                  <View style={styles.stepItemRow}>
+                    <View style={styles.stepNumberBadge}><Text style={styles.stepNumberText}>1</Text></View>
+                    <Text style={styles.stepText}>{t.heatStep1}</Text>
+                  </View>
+                  <View style={styles.stepItemRow}>
+                    <View style={styles.stepNumberBadge}><Text style={styles.stepNumberText}>2</Text></View>
+                    <Text style={styles.stepText}>{t.heatStep2}</Text>
+                  </View>
+                  <View style={styles.stepItemRow}>
+                    <View style={styles.stepNumberBadge}><Text style={styles.stepNumberText}>3</Text></View>
+                    <Text style={styles.stepText}>{t.heatStep3}</Text>
+                  </View>
+                </>
+              )}
+            </View>
+
+            {/* Kisan Call Center Helpline Info */}
+            <View style={styles.kisanHelpBox}>
+              <Ionicons name="call" size={14} color="#15803D" />
+              <Text style={styles.kisanHelpText}>{t.kisanCallCenter}</Text>
+            </View>
+
+            {/* Acknowledge CTA Button */}
+            <TouchableOpacity
+              style={styles.modalDismissBtn}
+              onPress={() => setShowWeatherModal(false)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.modalDismissBtnText}>{t.dismissBtn}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -1319,77 +1606,322 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#2E7D32',
   },
-  agrometHeaderRow: {
+  /* AGRO-MET & WEATHER ALERT STYLES */
+  weatherAlertBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    borderWidth: 1.5,
+    borderColor: '#F59E0B',
+  },
+  weatherAlertIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#D97706',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  weatherAlertTextBox: {
+    flex: 1,
+  },
+  weatherAlertTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#92400E',
+  },
+  weatherAlertSub: {
+    fontSize: 10,
+    color: '#B45309',
+    marginTop: 1,
+  },
+
+  agroHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  alertMiniPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    borderRadius: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  alertMiniPillText: {
+    fontSize: 8,
+    fontWeight: '800',
+    color: '#B45309',
+    marginLeft: 2,
+  },
+  agroMetricsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  liveRadarDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#0284C7',
-  },
-  agrometTempRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginTop: 4,
   },
-  rainProbBadge: {
+  windSpeedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E0F2FE',
-    paddingVertical: 2,
-    paddingHorizontal: 6,
+    backgroundColor: '#DBEAFE',
     borderRadius: 6,
-    marginTop: 3,
-    alignSelf: 'flex-start',
-  },
-  rainProbText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#0369A1',
-    marginLeft: 3,
-  },
-  windSpeedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
   windSpeedText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#475569',
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#1E3A8A',
     marginLeft: 3,
   },
-  actionAdvisoryBox: {
-    backgroundColor: '#FFFBEB',
-    borderRadius: 6,
-    paddingVertical: 4,
-    paddingHorizontal: 6,
+  rainProbBox: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingVertical: 5,
+    paddingHorizontal: 7,
     borderWidth: 1,
-    borderColor: '#FDE68A',
-    marginTop: 5,
+    borderColor: '#EFE5D0',
+    marginTop: 4,
   },
-  actionAdvisoryLabel: {
+  rainProbTitle: {
     fontSize: 9,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  rainProbItemsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 2,
+  },
+  rainProb24: {
+    fontSize: 10,
+    color: '#475569',
+    fontWeight: '700',
+  },
+  rainProbDivider: {
+    fontSize: 10,
+    color: '#CBD5E1',
+    marginHorizontal: 3,
+  },
+  rainProb48: {
+    fontSize: 10,
+    color: '#DC2626',
     fontWeight: '900',
+  },
+  agroSnippetBox: {
+    marginTop: 4,
+  },
+  agroSnippetText: {
+    fontSize: 9,
+    fontWeight: '700',
     color: '#B45309',
   },
-  actionAdvisoryText: {
+  viewAdvisoryLink: {
     fontSize: 9,
-    color: '#78350F',
-    lineHeight: 12,
-    marginTop: 1,
+    fontWeight: '800',
+    color: '#1E5631',
+    marginTop: 4,
+    textDecorationLine: 'underline',
+  },
+
+  weatherRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   weatherEmoji: {
-    fontSize: 24,
-    marginRight: 6,
+    fontSize: 20,
+    marginRight: 4,
   },
   weatherTempBig: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '900',
     color: '#1A202C',
+  },
+
+  /* MODAL STYLES */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalContentCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 18,
+    width: '100%',
+    maxWidth: 420,
+    maxHeight: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  modalTitleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  modalHeaderTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#92400E',
+    marginLeft: 6,
+  },
+  modalCloseBtn: {
+    padding: 4,
+  },
+  modalSubHeader: {
+    fontSize: 10,
+    color: '#64748B',
+    marginBottom: 12,
+  },
+  warningTabsRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 10,
+  },
+  warningTab: {
+    flex: 1,
+    paddingVertical: 7,
+    paddingHorizontal: 2,
+    borderRadius: 8,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+  },
+  warningTabActiveRain: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#3B82F6',
+  },
+  warningTabActiveFrost: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#10B981',
+  },
+  warningTabActiveHeat: {
+    backgroundColor: '#FFF7ED',
+    borderColor: '#F97316',
+  },
+  warningTabText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  warningTabTextActive: {
+    color: '#0F172A',
+    fontWeight: '900',
+  },
+  modalMetricsBox: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#FEF3C7',
+    borderRadius: 10,
+    padding: 8,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  modalMetricItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  modalMetricLabel: {
+    fontSize: 9,
+    color: '#78350F',
+    fontWeight: '600',
+  },
+  modalMetricVal: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#92400E',
+    marginTop: 2,
+  },
+  modalMetricDivider: {
+    width: 1,
+    height: '80%',
+    backgroundColor: '#FCD34D',
+    alignSelf: 'center',
+  },
+  checklistHeading: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#1E293B',
+    marginBottom: 8,
+  },
+  modalStepList: {
+    marginBottom: 10,
+    gap: 6,
+  },
+  stepItemRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  stepNumberBadge: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#166534',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+    marginTop: 1,
+  },
+  stepNumberText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  stepText: {
+    flex: 1,
+    fontSize: 11,
+    color: '#334155',
+    lineHeight: 15,
+  },
+  kisanHelpBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    borderRadius: 8,
+    padding: 7,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+  },
+  kisanHelpText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#166534',
+    marginLeft: 6,
+    flex: 1,
+  },
+  modalDismissBtn: {
+    backgroundColor: '#15803D',
+    borderRadius: 10,
+    paddingVertical: 11,
+    alignItems: 'center',
+  },
+  modalDismissBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
   },
 
   /* QUICK ACTIONS */
