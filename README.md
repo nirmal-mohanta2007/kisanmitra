@@ -1,6 +1,6 @@
 # Kisan Mitra
 
-Kisan Mitra is a farmer-centric procurement coordination platform designed to streamline the agricultural supply chain. Built with Expo SDK 57, Expo Router, and React Native, it aims to eliminate long waiting times at Mandis and ensure transparent and timely payments.
+Kisan Mitra is a farmer-centric procurement coordination platform designed to streamline the agricultural supply chain. Built with Expo SDK 54, Expo Router, and React Native, it aims to eliminate long waiting times at Mandis and ensure transparent and timely payments.
 
 ## Key Features
 - **Smart Queue Management**: Dynamic queue generation and ETA prediction.
@@ -8,7 +8,7 @@ Kisan Mitra is a farmer-centric procurement coordination platform designed to st
 - **Robust State Machine**: Ensures transactions follow strict, reliable paths.
 
 ## Tech Stack
-- React Native & Expo SDK 57
+- React Native & Expo SDK 54 (Expo Go 54.0.8 compatible)
 - Expo Router
 - TypeScript (Strict Mode)
 

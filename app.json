@@ -4,6 +4,7 @@
     "name": "Kisan Mitra",
     "slug": "kisan-mitra-app",
     "version": "1.0.0",
+    "sdkVersion": "54.0.0",
     "experiments": {
       "baseUrl": "/kisanmitra"
     },
