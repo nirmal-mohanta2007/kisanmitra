@@ -1,8 +1,12 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../../src/theme/colors';
+import { useAppContext } from '../../../src/store/app-context';
 
 export default function FarmerTabsLayout() {
+  const { state } = useAppContext();
+  const isHi = state.language === 'hi';
+
   return (
     <Tabs
       screenOptions={{
@@ -28,7 +32,7 @@ export default function FarmerTabsLayout() {
         name="index"
         options={{
           headerShown: false,
-          title: 'Home',
+          title: isHi ? 'होम' : 'Home',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -37,8 +41,8 @@ export default function FarmerTabsLayout() {
       <Tabs.Screen
         name="bookings"
         options={{
-          title: 'Bookings',
-          headerTitle: 'My Bookings',
+          title: isHi ? 'मेरी बुकिंग' : 'Bookings',
+          headerTitle: isHi ? 'मेरी बुकिंग' : 'My Bookings',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar-outline" size={size} color={color} />
           ),
@@ -47,8 +51,8 @@ export default function FarmerTabsLayout() {
       <Tabs.Screen
         name="history"
         options={{
-          title: 'History',
-          headerTitle: 'Procurement History',
+          title: isHi ? 'इतिहास' : 'History',
+          headerTitle: isHi ? 'खरीद इतिहास' : 'Procurement History',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="time-outline" size={size} color={color} />
           ),
@@ -57,8 +61,8 @@ export default function FarmerTabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
-          headerTitle: 'Farmer Profile',
+          title: isHi ? 'प्रोफ़ाइल' : 'Profile',
+          headerTitle: isHi ? 'किसान प्रोफ़ाइल' : 'Farmer Profile',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size} color={color} />
           ),

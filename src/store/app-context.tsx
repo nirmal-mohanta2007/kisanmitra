@@ -11,6 +11,7 @@ interface AppState {
   currentUserId: string;
   currentUserName?: string;
   currentFarmer: Farmer | null;
+  language: 'hi' | 'en';
   centres: Centre[];
   farmers: Farmer[];
   transactions: ProcurementTransaction[];
@@ -22,6 +23,7 @@ interface AppState {
 type AppAction =
   | { type: 'SET_ROLE'; payload: { role: UserRole; userId: string; userName?: string } }
   | { type: 'SET_CURRENT_FARMER'; payload: Farmer }
+  | { type: 'SET_LANGUAGE'; payload: 'hi' | 'en' }
   | { type: 'LOAD_MOCK_DATA' }
   | { type: 'SET_CENTRES'; payload: Centre[] }
   | { type: 'SET_TRANSACTIONS'; payload: ProcurementTransaction[] }
@@ -37,6 +39,7 @@ const initialState: AppState = {
   currentUserId: 'F-001',
   currentUserName: undefined,
   currentFarmer: null,
+  language: 'hi',
   centres: [],
   farmers: [],
   transactions: [],
@@ -48,6 +51,7 @@ const initialState: AppState = {
 interface AppContextValue {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
+  setLanguage: (lang: 'hi' | 'en') => Promise<void>;
   createTransaction: (tx: Partial<ProcurementTransaction>) => Promise<ProcurementTransaction>;
   updateTransaction: (tx: ProcurementTransaction) => Promise<void>;
   updateTransactionStatus: (id: string, status: TransactionStatus, notes?: string) => Promise<void>;
@@ -76,6 +80,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
           action.payload,
           ...state.farmers.filter((f) => f.id !== action.payload.id),
         ],
+      };
+    case 'SET_LANGUAGE':
+      return {
+        ...state,
+        language: action.payload,
       };
     case 'LOAD_MOCK_DATA':
       return {
@@ -253,6 +262,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  useEffect(() => {
+    StorageService.getItem<'hi' | 'en'>('app_language').then((saved) => {
+      if (saved === 'hi' || saved === 'en') {
+        dispatch({ type: 'SET_LANGUAGE', payload: saved });
+      }
+    });
+  }, []);
+
+  const setLanguage = async (lang: 'hi' | 'en') => {
+    dispatch({ type: 'SET_LANGUAGE', payload: lang });
+    await StorageService.setItem('app_language', lang);
+  };
+
   const seedFirebaseDatabase = async (force = false) => {
     dispatch({ type: 'SET_SYNCING', payload: true });
     try {
@@ -272,6 +294,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       value={{
         state,
         dispatch,
+        setLanguage,
         createTransaction,
         updateTransaction,
         updateTransactionStatus,

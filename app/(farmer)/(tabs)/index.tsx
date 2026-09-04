@@ -12,17 +12,109 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../../src/theme/colors';
 import { MOCK_TRANSACTIONS, MOCK_CENTRES } from '../../../src/services/mock-data.service';
 import { useAppContext } from '../../../src/store/app-context';
+
+// Translation dictionary for Simple Hindi and English
+const TRANSLATIONS = {
+  hi: {
+    brand: 'किसान मित्र',
+    liveConnected: 'ऑनलाइन चालू',
+    tokenHeader: (num: number | string) => `आपका सक्रिय टोकन #${num}`,
+    booked: 'बुक्ड',
+    ahead: '3 किसान आगे',
+    estWait: 'अनुमानित समय',
+    waitMins: '~25 मिनट',
+    arriveBy: 'पहुंचने का समय',
+    arriveTime: 'सुबह 10:15',
+    cropLabel: 'फसल: ',
+    mandiLabel: 'मंडी: ',
+    slotLabel: 'समय: ',
+    quintal: 'क्विंटल',
+    trackStatus: 'लाइव स्थिति देखें',
+    farmerId: (id: string) => `किसान आईडी: ${id}`,
+    defaultLocation: 'ग्राम पंचायत, भोपाल, मध्य प्रदेश',
+    landHolding: 'जमीन (भूमि)',
+    acres: 'एकड़',
+    primaryCrop: 'मुख्य फसल',
+    cropDefault: 'गेहूं (Wheat)',
+    aadhaar: 'आधार कार्ड',
+    verified: 'सत्यापित ✓',
+    dbtBank: 'डीबीटी बैंक',
+    bankDefault: 'भारतीय स्टेट बैंक, 5678',
+    viewProfile: 'विस्तृत प्रोफ़ाइल और जमीन रिकॉर्ड देखें →',
+    envSection: 'ताज़ा जानकारी और मौसम',
+    marketPrice: 'मंडी भाव',
+    marketCropLocation: '(धान, भोपाल)',
+    currentPriceUp: 'ताज़ा भाव ↑',
+    weatherTitle: 'मौसम का हाल',
+    bhopal: '(भोपाल)',
+    quickActions: 'त्वरित सेवाएं',
+    seedData: 'डेटा सिंक करें',
+    bookVisit: 'नया टोकन बुक',
+    trackQueue: 'कतार देखें',
+    procurement: 'खरीद प्रक्रिया',
+    payment: 'भुगतान स्थिति',
+    mandis: 'मंडी केंद्र',
+    support: 'किसान सहायता',
+    dataSynced: 'डेटा सफलतापूर्वक सिंक हो गया!',
+    syncError: 'सिंक में त्रुटि हुई',
+  },
+  en: {
+    brand: 'Kisan Mitra',
+    liveConnected: 'Live Connected',
+    tokenHeader: (num: number | string) => `YOUR ACTIVE TOKEN #${num}`,
+    booked: 'BOOKED',
+    ahead: '3 AHEAD',
+    estWait: 'EST. WAIT',
+    waitMins: '~25 MINS',
+    arriveBy: 'ARRIVE BY',
+    arriveTime: '10:15 AM',
+    cropLabel: 'CROP: ',
+    mandiLabel: 'MANDI: ',
+    slotLabel: 'SLOT: ',
+    quintal: 'Qu',
+    trackStatus: 'Track Live Status',
+    farmerId: (id: string) => `Farmer ID: ${id}`,
+    defaultLocation: 'Gram Panchayat, Madhya, Bhopal',
+    landHolding: 'Land Holding',
+    acres: 'Acres',
+    primaryCrop: 'Primary Crop',
+    cropDefault: 'Wheat',
+    aadhaar: 'Aadhaar',
+    verified: 'Verified',
+    dbtBank: 'DBT Bank',
+    bankDefault: 'State Bank of India, 5678',
+    viewProfile: 'View Detailed Profile & Land Records →',
+    envSection: 'New Added & Environment',
+    marketPrice: 'Market Price',
+    marketCropLocation: '(Paddy, Bhopal)',
+    currentPriceUp: 'Current Price ↑',
+    weatherTitle: 'Weather Forecast',
+    bhopal: '(Bhopal)',
+    quickActions: 'Quick Actions',
+    seedData: 'Seed Firestore Data',
+    bookVisit: 'Book Visit',
+    trackQueue: 'Track Queue',
+    procurement: 'Procurement',
+    payment: 'Payment',
+    mandis: 'Mandis',
+    support: 'Support',
+    dataSynced: 'Data synced successfully!',
+    syncError: 'Sync error',
+  },
+};
 
 export default function FarmerDashboard() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { state, seedFirebaseDatabase } = useAppContext();
+  const { state, setLanguage, seedFirebaseDatabase } = useAppContext();
   const currentFarmer = state.currentFarmer;
 
-  const [selectedLang, setSelectedLang] = useState<'hi' | 'en'>('hi');
+  const currentLang = state.language || 'hi';
+  const isHi = currentLang === 'hi';
+  const t = TRANSLATIONS[currentLang];
+
   const [isSeeding, setIsSeeding] = useState(false);
   const [seedMessage, setSeedMessage] = useState<string | null>(null);
 
@@ -37,10 +129,10 @@ export default function FarmerDashboard() {
     setSeedMessage(null);
     try {
       const res = await seedFirebaseDatabase(true);
-      setSeedMessage(res.message || 'Data synced!');
+      setSeedMessage(res.message || t.dataSynced);
       setTimeout(() => setSeedMessage(null), 3500);
     } catch (e: any) {
-      setSeedMessage(e?.message || 'Sync error');
+      setSeedMessage(e?.message || t.syncError);
       setTimeout(() => setSeedMessage(null), 3500);
     } finally {
       setIsSeeding(false);
@@ -48,7 +140,7 @@ export default function FarmerDashboard() {
   };
 
   // Farmer dynamic values with fallback matching reference screenshot
-  const farmerName = currentFarmer?.name || 'Farmer 7888';
+  const farmerName = currentFarmer?.name || (isHi ? 'किसान 7888' : 'Farmer 7888');
   const farmerId = currentFarmer?.id || 'F-523';
   const farmerPhone = currentFarmer?.phone
     ? currentFarmer.phone.startsWith('+')
@@ -56,23 +148,43 @@ export default function FarmerDashboard() {
       : `+91 ${currentFarmer.phone}`
     : '+11234567888';
   const farmerLocation = currentFarmer?.village
-    ? `${currentFarmer.village}, ${currentFarmer.district || 'Madhya'}, ${currentFarmer.state || 'Bhopal'}`
-    : 'Gram Panchayat, Madhya, Bhopal';
+    ? `${currentFarmer.village}, ${currentFarmer.district || 'Bhopal'}, ${currentFarmer.state || 'MP'}`
+    : t.defaultLocation;
   const landArea = currentFarmer?.landArea || currentFarmer?.landAreaHectares || '4.5';
-  const primaryCrop = currentFarmer?.primaryCrop || 'Wheat';
+  
+  // Crop name display
+  const primaryCrop = currentFarmer?.primaryCrop
+    ? isHi && currentFarmer.primaryCrop.toLowerCase().includes('wheat')
+      ? 'गेहूं (Wheat)'
+      : isHi && currentFarmer.primaryCrop.toLowerCase().includes('paddy')
+      ? 'धान (Paddy)'
+      : currentFarmer.primaryCrop
+    : t.cropDefault;
+
   const bankAccount = currentFarmer?.bankAccount
     ? currentFarmer.bankAccount.slice(-4)
     : currentFarmer?.bankDetails?.accountNumber
     ? currentFarmer.bankDetails.accountNumber.slice(-4)
     : '5678';
-  const bankName = currentFarmer?.bankName || currentFarmer?.bankDetails?.bankName || 'State Bank of India';
+  const rawBankName = currentFarmer?.bankName || currentFarmer?.bankDetails?.bankName || 'State Bank of India';
+  const bankName = isHi && (rawBankName.includes('State Bank') || rawBankName.includes('SBI'))
+    ? 'भारतीय स्टेट बैंक'
+    : rawBankName;
 
   // Active token details
   const tokenNumber = activeTx?.tokenNumber || 42;
-  const tokenCrop = activeTx?.crop || 'Paddy';
+  const tokenCrop = activeTx?.crop
+    ? isHi && activeTx.crop.toLowerCase().includes('paddy')
+      ? 'धान'
+      : isHi && activeTx.crop.toLowerCase().includes('wheat')
+      ? 'गेहूं'
+      : activeTx.crop
+    : isHi ? 'धान' : 'Paddy';
   const tokenQuantity = activeTx?.expectedQuantity || 20;
-  const tokenMandi = activeTx?.centreName || 'Demo Krishi Upaj Mandi, Bhopal';
-  const tokenSlot = activeTx?.slotLabel || 'Morning (8:00 - 12:00)';
+  const tokenMandi = activeTx?.centreName
+    ? (isHi ? 'डेमो कृषि उपज मंडी, भोपाल' : activeTx.centreName)
+    : (isHi ? 'डेमो कृषि उपज मंडी, भोपाल' : 'Demo Krishi Upaj Mandi, Bhopal');
+  const tokenSlot = isHi ? 'सुबह (8:00 - 12:00)' : (activeTx?.slotLabel || 'Morning (8:00 - 12:00)');
 
   return (
     <View style={styles.screenWrapper}>
@@ -99,30 +211,30 @@ export default function FarmerDashboard() {
             style={styles.leafDecor2}
           />
 
-          {/* Top Row: Kisan Mitra Title + Language Pill Toggle */}
+          {/* Top Row: Kisan Mitra Title + Language Pill Toggle (Hindi / English) */}
           <View style={styles.headerTopRow}>
             <View style={styles.brandRow}>
               <Text style={styles.wheatIcon}>🌾</Text>
-              <Text style={styles.brandTitle}>Kisan Mitra</Text>
+              <Text style={styles.brandTitle}>{t.brand}</Text>
             </View>
 
             {/* Language Switcher Pill: Hindi or English */}
             <View style={styles.langPill}>
               <TouchableOpacity
-                style={[styles.langOption, selectedLang === 'hi' && styles.langOptionActive]}
-                onPress={() => setSelectedLang('hi')}
+                style={[styles.langOption, isHi && styles.langOptionActive]}
+                onPress={() => setLanguage('hi')}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.langText, selectedLang === 'hi' && styles.langTextActive]}>
+                <Text style={[styles.langText, isHi && styles.langTextActive]}>
                   हिंदी
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.langOption, selectedLang === 'en' && styles.langOptionActive]}
-                onPress={() => setSelectedLang('en')}
+                style={[styles.langOption, !isHi && styles.langOptionActive]}
+                onPress={() => setLanguage('en')}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.langText, selectedLang === 'en' && styles.langTextActive]}>
+                <Text style={[styles.langText, !isHi && styles.langTextActive]}>
                   English
                 </Text>
               </TouchableOpacity>
@@ -132,7 +244,7 @@ export default function FarmerDashboard() {
           {/* Live Connected Status Pill */}
           <View style={styles.liveStatusPill}>
             <Ionicons name="pulse" size={14} color="#6EE7B7" />
-            <Text style={styles.liveStatusText}>Live Connected</Text>
+            <Text style={styles.liveStatusText}>{t.liveConnected}</Text>
           </View>
 
           {/* ACTIVE TOKEN CARD (MATCHING REFERENCE UI) */}
@@ -141,11 +253,13 @@ export default function FarmerDashboard() {
             <View style={styles.tokenRibbonRow}>
               <View style={styles.goldRibbon}>
                 <Ionicons name="ribbon-outline" size={20} color="#382506" />
-                <Text style={styles.goldRibbonText}>YOUR ACTIVE TOKEN #{tokenNumber}</Text>
+                <Text style={styles.goldRibbonText}>
+                  {t.tokenHeader(tokenNumber)}
+                </Text>
               </View>
 
               <View style={styles.bookedBadge}>
-                <Text style={styles.bookedBadgeText}>BOOKED</Text>
+                <Text style={styles.bookedBadgeText}>{t.booked}</Text>
               </View>
             </View>
 
@@ -155,7 +269,7 @@ export default function FarmerDashboard() {
               <View style={styles.queueMetricBox}>
                 <View style={styles.metricLabelRow}>
                   <Ionicons name="people" size={14} color="#184D2B" />
-                  <Text style={styles.metricTitle}>3 AHEAD</Text>
+                  <Text style={styles.metricTitle}>{t.ahead}</Text>
                 </View>
                 <View style={styles.aheadBarTrack}>
                   <View style={styles.aheadBarFill} />
@@ -168,9 +282,9 @@ export default function FarmerDashboard() {
               <View style={styles.queueMetricBox}>
                 <View style={styles.metricLabelRow}>
                   <Ionicons name="time-outline" size={15} color="#184D2B" />
-                  <Text style={styles.metricTitle}>EST. WAIT</Text>
+                  <Text style={styles.metricTitle}>{t.estWait}</Text>
                 </View>
-                <Text style={styles.metricBigValue}>~25 MINS</Text>
+                <Text style={styles.metricBigValue}>{t.waitMins}</Text>
               </View>
 
               <Text style={styles.queueDottedDivider}>····</Text>
@@ -179,21 +293,21 @@ export default function FarmerDashboard() {
               <View style={styles.queueMetricBox}>
                 <View style={styles.metricLabelRow}>
                   <Ionicons name="location-outline" size={15} color="#184D2B" />
-                  <Text style={styles.metricTitle}>ARRIVE BY</Text>
+                  <Text style={styles.metricTitle}>{t.arriveBy}</Text>
                 </View>
-                <Text style={styles.metricBigValue}>10:15 AM</Text>
+                <Text style={styles.metricBigValue}>{t.arriveTime}</Text>
               </View>
             </View>
 
             {/* Crop, Mandi & Slot Detail Strip */}
             <View style={styles.tokenMetaStrip}>
               <Text style={styles.tokenMetaText}>
-                <Text style={styles.tokenMetaBold}>CROP: </Text>
-                {tokenCrop} ({tokenQuantity} Qu) |{' '}
-                <Text style={styles.tokenMetaBold}>MANDI: </Text>
+                <Text style={styles.tokenMetaBold}>{t.cropLabel}</Text>
+                {tokenCrop} ({tokenQuantity} {t.quintal}) |{' '}
+                <Text style={styles.tokenMetaBold}>{t.mandiLabel}</Text>
                 {tokenMandi}{' '}
                 <Text>🗓️ </Text>
-                <Text style={styles.tokenMetaBold}>SLOT: </Text>
+                <Text style={styles.tokenMetaBold}>{t.slotLabel}</Text>
                 {tokenSlot}
               </Text>
             </View>
@@ -204,7 +318,7 @@ export default function FarmerDashboard() {
               onPress={() => router.push(`/(farmer)/queue/${activeTx?.id || 'tx-001'}` as any)}
               activeOpacity={0.85}
             >
-              <Text style={styles.trackStatusBtnText}>Track Live Status</Text>
+              <Text style={styles.trackStatusBtnText}>{t.trackStatus}</Text>
               <Ionicons name="arrow-forward" size={16} color="#FFFFFF" style={{ marginLeft: 6 }} />
             </TouchableOpacity>
           </View>
@@ -243,7 +357,7 @@ export default function FarmerDashboard() {
                 <Text style={styles.farmerCardName} numberOfLines={1}>
                   {farmerName}
                 </Text>
-                <Text style={styles.farmerCardId}>Farmer ID: {farmerId}</Text>
+                <Text style={styles.farmerCardId}>{t.farmerId(farmerId)}</Text>
                 <Text style={styles.farmerCardPhone} numberOfLines={1}>
                   📞 {farmerPhone}
                 </Text>
@@ -261,8 +375,8 @@ export default function FarmerDashboard() {
                   <Ionicons name="grid-outline" size={20} color="#2E7D32" />
                 </View>
                 <View style={styles.holdingTextCol}>
-                  <Text style={styles.holdingLabel}>Land Holding</Text>
-                  <Text style={styles.holdingValue}>{landArea} Acres</Text>
+                  <Text style={styles.holdingLabel}>{t.landHolding}</Text>
+                  <Text style={styles.holdingValue}>{landArea} {t.acres}</Text>
                 </View>
               </View>
 
@@ -272,7 +386,7 @@ export default function FarmerDashboard() {
                   <Text style={{ fontSize: 18 }}>🌾</Text>
                 </View>
                 <View style={styles.holdingTextCol}>
-                  <Text style={styles.holdingLabel}>Primary Crop</Text>
+                  <Text style={styles.holdingLabel}>{t.primaryCrop}</Text>
                   <Text style={styles.holdingValue}>{primaryCrop}</Text>
                 </View>
               </View>
@@ -284,8 +398,8 @@ export default function FarmerDashboard() {
               <View style={styles.verifyItem}>
                 <Ionicons name="checkmark-circle" size={18} color="#2E7D32" />
                 <View style={styles.verifyTextCol}>
-                  <Text style={styles.verifyTitle}>Aadhaar</Text>
-                  <Text style={styles.verifySub}>Verified</Text>
+                  <Text style={styles.verifyTitle}>{t.aadhaar}</Text>
+                  <Text style={styles.verifySub}>{t.verified}</Text>
                 </View>
               </View>
 
@@ -296,7 +410,7 @@ export default function FarmerDashboard() {
                   <Text style={styles.sbiBadgeText}>SBI</Text>
                 </View>
                 <View style={styles.verifyTextCol}>
-                  <Text style={styles.verifyTitle}>DBT Bank</Text>
+                  <Text style={styles.verifyTitle}>{t.dbtBank}</Text>
                   <Text style={styles.verifySub} numberOfLines={1}>
                     {bankName}, {bankAccount}
                   </Text>
@@ -311,32 +425,32 @@ export default function FarmerDashboard() {
               activeOpacity={0.7}
             >
               <Text style={styles.viewDetailedProfileText}>
-                View Detailed Profile &amp; Land Records →
+                {t.viewProfile}
               </Text>
             </TouchableOpacity>
           </View>
 
           {/* SECTION: NEW ADDED & ENVIRONMENT */}
-          <Text style={styles.sectionHeaderTitle}>New Added &amp; Environment</Text>
+          <Text style={styles.sectionHeaderTitle}>{t.envSection}</Text>
 
           <View style={styles.environmentRow}>
             {/* Market Price Card */}
             <View style={styles.environmentCard}>
-              <Text style={styles.envCardTitle}>Market Price</Text>
-              <Text style={styles.envCardSub}>(Paddy, Bhopal)</Text>
+              <Text style={styles.envCardTitle}>{t.marketPrice}</Text>
+              <Text style={styles.envCardSub}>{t.marketCropLocation}</Text>
               <View style={styles.priceRow}>
                 <Text style={styles.envPriceBig}>₹2,9000</Text>
                 <View style={styles.arrowUpPill}>
                   <Ionicons name="arrow-up" size={13} color="#2E7D32" />
                 </View>
               </View>
-              <Text style={styles.envTrendText}>Current Price ↑</Text>
+              <Text style={styles.envTrendText}>{t.currentPriceUp}</Text>
             </View>
 
             {/* Weather Forecast Card */}
             <View style={styles.environmentCard}>
-              <Text style={styles.envCardTitle}>Weather Forecast</Text>
-              <Text style={styles.envCardSub}>(Bhopal)</Text>
+              <Text style={styles.envCardTitle}>{t.weatherTitle}</Text>
+              <Text style={styles.envCardSub}>{t.bhopal}</Text>
               <View style={styles.weatherRow}>
                 <Text style={styles.weatherEmoji}>⛅</Text>
                 <Text style={styles.weatherTempBig}>32°C</Text>
@@ -346,7 +460,7 @@ export default function FarmerDashboard() {
 
           {/* SECTION: QUICK ACTIONS */}
           <View style={styles.quickActionsHeaderRow}>
-            <Text style={styles.sectionHeaderTitleNoMargin}>Quick Actions</Text>
+            <Text style={styles.sectionHeaderTitleNoMargin}>{t.quickActions}</Text>
             <TouchableOpacity
               onPress={handleSeed}
               disabled={isSeeding}
@@ -356,7 +470,7 @@ export default function FarmerDashboard() {
               {isSeeding ? (
                 <ActivityIndicator size="small" color="#184D2B" />
               ) : (
-                <Text style={styles.seedLinkText}>Seed Firestore Data</Text>
+                <Text style={styles.seedLinkText}>{t.seedData}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -371,7 +485,7 @@ export default function FarmerDashboard() {
               <View style={[styles.actionIconBox, { backgroundColor: '#E8F5E9' }]}>
                 <Ionicons name="add-circle" size={24} color="#2E7D32" />
               </View>
-              <Text style={styles.actionLabel}>Book Visit</Text>
+              <Text style={styles.actionLabel}>{t.bookVisit}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -382,7 +496,7 @@ export default function FarmerDashboard() {
               <View style={[styles.actionIconBox, { backgroundColor: '#FFF3E0' }]}>
                 <Ionicons name="timer" size={24} color="#F57C00" />
               </View>
-              <Text style={styles.actionLabel}>Track Queue</Text>
+              <Text style={styles.actionLabel}>{t.trackQueue}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -393,7 +507,7 @@ export default function FarmerDashboard() {
               <View style={[styles.actionIconBox, { backgroundColor: '#E3F2FD' }]}>
                 <Ionicons name="git-branch" size={24} color="#1976D2" />
               </View>
-              <Text style={styles.actionLabel}>Procurement</Text>
+              <Text style={styles.actionLabel}>{t.procurement}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -404,7 +518,7 @@ export default function FarmerDashboard() {
               <View style={[styles.actionIconBox, { backgroundColor: '#F3E5F5' }]}>
                 <Ionicons name="cash" size={24} color="#7B1FA2" />
               </View>
-              <Text style={styles.actionLabel}>Payment</Text>
+              <Text style={styles.actionLabel}>{t.payment}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -415,7 +529,7 @@ export default function FarmerDashboard() {
               <View style={[styles.actionIconBox, { backgroundColor: '#E0F2F1' }]}>
                 <Ionicons name="business" size={24} color="#00796B" />
               </View>
-              <Text style={styles.actionLabel}>Mandis</Text>
+              <Text style={styles.actionLabel}>{t.mandis}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -426,7 +540,7 @@ export default function FarmerDashboard() {
               <View style={[styles.actionIconBox, { backgroundColor: '#FFEBEE' }]}>
                 <Ionicons name="help-buoy" size={24} color="#D32F2F" />
               </View>
-              <Text style={styles.actionLabel}>Support</Text>
+              <Text style={styles.actionLabel}>{t.support}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -498,8 +612,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.25)',
   },
   langOption: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     borderRadius: 16,
   },
   langOptionActive: {
