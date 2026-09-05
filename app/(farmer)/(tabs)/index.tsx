@@ -37,7 +37,7 @@ const TRANSLATIONS = {
     quintal: 'क्विंटल',
     trackStatus: 'लाइव स्थिति देखें',
     farmerId: (id: string) => `किसान आईडी: ${id}`,
-    defaultLocation: 'ग्राम पंचायत, भोपाल, मध्य प्रदेश',
+    defaultLocation: 'सिलीपाड़ा, पाटना, केन्दुझर, ओडिशा - 758045',
     landHolding: 'जमीन (भूमि)',
     acres: 'एकड़',
     primaryCrop: 'मुख्य फसल',
@@ -109,7 +109,7 @@ const TRANSLATIONS = {
     quintal: 'କ୍ୱିଣ୍ଟାଲ',
     trackStatus: 'ଲାଇଭ୍ ସ୍ଥିତି ଦେଖନ୍ତୁ',
     farmerId: (id: string) => `ଚାଷୀ ଆଇଡି: ${id}`,
-    defaultLocation: 'ଗ୍ରାମ ପଞ୍ଚାୟତ, ଭୁବନେଶ୍ୱର / ଭୋପାଲ',
+    defaultLocation: 'ସିଲିପଦା, ପାଟଣା, କେନ୍ଦୁଝର, ଓଡ଼ିଶା - ୭୫୮୦୪୫',
     landHolding: 'ଜମି (ଭୂମି)',
     acres: 'ଏକର',
     primaryCrop: 'ପ୍ରମୁଖ ଫସଲ',
@@ -181,7 +181,7 @@ const TRANSLATIONS = {
     quintal: 'Qu',
     trackStatus: 'Track Live Status',
     farmerId: (id: string) => `Farmer ID: ${id}`,
-    defaultLocation: 'Gram Panchayat, Madhya, Bhopal',
+    defaultLocation: 'Silipada, Patana, Kendujhar, Odisha - 758045',
     landHolding: 'Land Holding',
     acres: 'Acres',
     primaryCrop: 'Primary Crop',
@@ -553,21 +553,21 @@ export default function FarmerDashboard() {
     }
   };
 
-  // Farmer dynamic values with fallback matching reference screenshot
-  const farmerName = currentFarmer?.name || (isOr ? 'ଚାଷୀ ୭୮୮୮' : isHi ? 'किसान 7888' : 'Farmer 7888');
-  const farmerId = currentFarmer?.id || 'F-523';
+  // Farmer dynamic values with fallback matching verified registered farmer from Aadhaar card
+  const farmerName = currentFarmer?.name || (isOr ? 'ନିର୍ମଳ କୁମାର ମହାନ୍ତ' : isHi ? 'निर्मल कुमार मोहंत' : 'Nirmal Kumar Mohanta');
+  const farmerId = currentFarmer?.id || 'OD-KEN-7888';
   const farmerPhone = currentFarmer?.phone
     ? currentFarmer.phone.startsWith('+')
       ? currentFarmer.phone
       : `+91 ${currentFarmer.phone}`
-    : '+11234567888';
+    : '+91 9777173473';
   const farmerLocation = currentFarmer?.village
-    ? `${currentFarmer.village}, ${currentFarmer.district || (isOr ? 'ଭୁବନେଶ୍ୱର' : 'Bhopal')}, ${currentFarmer.state || (isOr ? 'ଓଡ଼ିଶା' : 'MP')}`
+    ? `${currentFarmer.village}, ${currentFarmer.district || (isOr ? 'କେନ୍ଦୁଝର' : 'Kendujhar')}, ${currentFarmer.state || (isOr ? 'ଓଡ଼ିଶା' : 'Odisha')}${currentFarmer.pinCode ? ` - ${currentFarmer.pinCode}` : ''}`
     : t.defaultLocation;
   const landArea = currentFarmer?.landArea || currentFarmer?.landAreaHectares || '4.5';
   
   // Crop name display & dynamic alignment with Market Price
-  const rawFarmerCrop = currentFarmer?.primaryCrop || 'Wheat';
+  const rawFarmerCrop = currentFarmer?.primaryCrop || 'Paddy';
   const cropPriceInfo = getCropPriceInfo(rawFarmerCrop);
 
   const primaryCrop = currentFarmer?.primaryCrop
@@ -583,13 +583,11 @@ export default function FarmerDashboard() {
     : t.cropDefault;
 
   // Mandi district/city location
-  const mandiLocationRaw = currentFarmer?.district || activeMandi?.district || 'Bhopal';
-  const mandiLocation = isOr && (mandiLocationRaw.toLowerCase() === 'bhopal' || mandiLocationRaw.toLowerCase() === 'mp')
-    ? 'ଭୋପାଲ / ଭୁବନେଶ୍ୱର'
-    : isHi && (mandiLocationRaw.toLowerCase() === 'bhopal' || mandiLocationRaw.toLowerCase() === 'mp')
-    ? 'भोपाल'
-    : isHi && mandiLocationRaw.toLowerCase() === 'sehore'
-    ? 'सीहोर'
+  const mandiLocationRaw = currentFarmer?.district || activeMandi?.district || 'Kendujhar';
+  const mandiLocation = isOr && (mandiLocationRaw.toLowerCase().includes('kendujhar') || mandiLocationRaw.toLowerCase().includes('keonjhar'))
+    ? 'କେନ୍ଦୁଝର'
+    : isHi && (mandiLocationRaw.toLowerCase().includes('kendujhar') || mandiLocationRaw.toLowerCase().includes('keonjhar'))
+    ? 'केन्दुझर'
     : mandiLocationRaw;
 
   // Market price card data derived directly from farmer's primary crop

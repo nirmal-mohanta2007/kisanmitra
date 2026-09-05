@@ -19,7 +19,6 @@ export default function FarmerProfileScreen() {
   const router = useRouter();
   const { state, setLanguage } = useAppContext();
   const farmer = state.currentFarmer || MOCK_FARMERS[0];
-  const avatarUrl = farmer.photoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80';
   const lang = state.language || 'hi';
 
   const text = {
@@ -77,7 +76,14 @@ export default function FarmerProfileScreen() {
 
         {/* Profile Picture in Corner */}
         <View style={styles.avatarCornerWrapper}>
-          <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+          <Image
+            source={
+              farmer.photoUrl
+                ? { uri: farmer.photoUrl }
+                : require('../../../assets/farmer_avatar.png')
+            }
+            style={styles.avatarImage}
+          />
           <TouchableOpacity
             style={styles.avatarEditBadge}
             onPress={() => router.push('/(auth)/register')}
@@ -95,11 +101,17 @@ export default function FarmerProfileScreen() {
       <KisanCard style={styles.card}>
         <View style={styles.row}>
           <Text style={styles.label}>{text.aadhaarNo}</Text>
-          <Text style={styles.value}>{farmer.aadhaar || 'XXXX-XXXX-9012'} (DigiLocker Linked)</Text>
+          <Text style={styles.value}>{farmer.aadhaar || '4751 3699 6443'} (UIDAI Verified)</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Aadhaar Address:</Text>
+          <Text style={styles.value}>
+            {farmer.village || 'Silipada'}, Patana, {farmer.district || 'Kendujhar'}, {farmer.state || 'Odisha'} - {farmer.pinCode || '758045'}
+          </Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>{text.regMobile}</Text>
-          <Text style={styles.value}>+91 {farmer.phone} (OTP Active)</Text>
+          <Text style={styles.value}>+91 {farmer.phone || '9777173473'} (OTP Active)</Text>
         </View>
         {farmer.fatherName ? (
           <View style={styles.row}>

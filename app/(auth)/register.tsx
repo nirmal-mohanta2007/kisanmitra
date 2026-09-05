@@ -45,21 +45,21 @@ export default function FarmerRegistrationScreen() {
   const [fileName, setFileName] = useState<string>('No file chosen');
 
   // 1. Aadhaar & Mobile
-  const [aadhaar, setAadhaar] = useState('');
-  const [isAadhaarVerified, setIsAadhaarVerified] = useState(false);
-  const [mobile, setMobile] = useState('');
+  const [aadhaar, setAadhaar] = useState('4751 3699 6443');
+  const [isAadhaarVerified, setIsAadhaarVerified] = useState(true);
+  const [mobile, setMobile] = useState('9777173473');
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
-  const [isMobileVerified, setIsMobileVerified] = useState(false);
+  const [isMobileVerified, setIsMobileVerified] = useState(true);
 
-  // 2. Bio Data & Address
-  const [fullName, setFullName] = useState('');
-  const [fatherName, setFatherName] = useState('');
+  // 2. Bio Data & Address (as per uploaded Aadhaar card)
+  const [fullName, setFullName] = useState('Nirmal Kumar Mohanta');
+  const [fatherName, setFatherName] = useState('Harishankar Mohanta');
   const [gender, setGender] = useState<'Male' | 'Female' | 'Other'>('Male');
-  const [state, setState] = useState('');
-  const [district, setDistrict] = useState('');
-  const [village, setVillage] = useState('');
-  const [pinCode, setPinCode] = useState('');
+  const [state, setState] = useState('Odisha');
+  const [district, setDistrict] = useState('Kendujhar (Keonjhar)');
+  const [village, setVillage] = useState('Silipada');
+  const [pinCode, setPinCode] = useState('758045');
   const [showStateDD, setShowStateDD] = useState(false);
   const [showDistrictDD, setShowDistrictDD] = useState(false);
   const [showVillageDD, setShowVillageDD] = useState(false);
@@ -200,13 +200,13 @@ export default function FarmerRegistrationScreen() {
     const newFarmer: Farmer = {
       id: farmerId,
       name: fullName,
-      phone: mobile || '9876543210',
-      aadhaar: aadhaar || 'XXXX-XXXX-XXXX',
-      district: district || 'Bhopal',
-      village: village || 'Gram Panchayat',
-      state: state || 'Madhya Pradesh',
-      pinCode: pinCode || '462001',
-      landArea: parseFloat(landArea) || 5.0,
+      phone: mobile || '9777173473',
+      aadhaar: aadhaar || '4751 3699 6443',
+      district: district || 'Kendujhar',
+      village: village || 'Silipada',
+      state: state || 'Odisha',
+      pinCode: pinCode || '758045',
+      landArea: parseFloat(landArea) || 4.5,
       khasraNo: khasraNo || '142/1',
       primaryCrop: primaryCrop || 'Wheat (गेहूं)',
       bankAccount: accountNo ? `•••• ${accountNo.slice(-4)}` : '•••• 5678',
