@@ -3,7 +3,7 @@ import { mockFarmers } from './farmers';
 import { mockMandis } from './mandis';
 
 export const mockTransactions: ProcurementTransaction[] = [
-  // Hero transaction: Ramesh Nayak, Token #42, Paddy 20 Quintals, Bhopal Mandi, Status BOOKED
+  // Hero transaction: Ramesh Nayak, Token #42, Wheat 20 Quintals, Bhopal Mandi, Status BOOKED
   {
     id: 'txn_001',
     bookingId: 'book_001',
@@ -13,7 +13,7 @@ export const mockTransactions: ProcurementTransaction[] = [
     centreId: mockMandis[0].id,
     centreName: mockMandis[0].name,
     mandiId: mockMandis[0].id,
-    crop: CropType.PADDY,
+    crop: CropType.WHEAT,
     tokenNumber: 42,
     expectedQuantity: 20,
     estimatedQuantity: 20,

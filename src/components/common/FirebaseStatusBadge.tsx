@@ -3,7 +3,11 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'rea
 import { useAppContext } from '../../store/app-context';
 import { colors } from '../../theme/colors';
 
-export const FirebaseStatusBadge: React.FC = () => {
+export interface FirebaseStatusBadgeProps {
+  showSeedButton?: boolean;
+}
+
+export const FirebaseStatusBadge: React.FC<FirebaseStatusBadgeProps> = ({ showSeedButton = false }) => {
   const { state, seedFirebaseDatabase } = useAppContext();
   const [isSeeding, setIsSeeding] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'info' | 'error'; message: string } | null>(null);
@@ -45,7 +49,7 @@ export const FirebaseStatusBadge: React.FC = () => {
           )}
         </View>
 
-        {state.isFirebaseConnected && (
+        {showSeedButton && state.isFirebaseConnected && (
           <TouchableOpacity
             style={styles.seedButton}
             onPress={handleSeed}

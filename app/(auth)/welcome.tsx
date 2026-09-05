@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { FirebaseStatusBadge } from '../../src/components/common/FirebaseStatusBadge';
+import { TopVoiceLanguageBar } from '../../src/components/TopVoiceLanguageBar';
 import { colors } from '../../src/theme/colors';
 import { radius } from '../../src/theme/radius';
 import { spacing } from '../../src/theme/spacing';
@@ -35,6 +35,9 @@ export default function WelcomeScreen() {
           <Text style={styles.govStripText}>🇮🇳  Government of India · Department of Consumer Affairs (DoCA)</Text>
         </View>
 
+        {/* Top Voice Assistance & Language Switcher Bar */}
+        <TopVoiceLanguageBar variant="transparent" title="Kisan Mitra" />
+
         {/* Center content */}
         <View style={styles.centerContent}>
           {/* Logo & Brand */}
@@ -51,11 +54,6 @@ export default function WelcomeScreen() {
 
           {/* Glass card */}
           <View style={styles.glassCard}>
-            {/* Firebase status */}
-            <View style={styles.badgeRow}>
-              <FirebaseStatusBadge />
-            </View>
-
             {/* Sign In button -> Mobile Number Login */}
             <TouchableOpacity
               style={styles.primaryBtn}

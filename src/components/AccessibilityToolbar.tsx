@@ -2,24 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { speechService, SpeechLanguage } from '../services/speech.service';
+import { useAppContext, TextScale } from '../store/app-context';
 
-export type TextScale = 1.0 | 1.15 | 1.3;
+export type { TextScale };
 
 interface AccessibilityToolbarProps {
-  lang: SpeechLanguage;
-  textScale: TextScale;
-  onChangeTextScale: (scale: TextScale) => void;
-  isHighContrast: boolean;
-  onToggleHighContrast: () => void;
+  lang?: SpeechLanguage;
+  textScale?: TextScale;
+  onChangeTextScale?: (scale: TextScale) => void;
+  isHighContrast?: boolean;
+  onToggleHighContrast?: () => void;
 }
 
 export const AccessibilityToolbar: React.FC<AccessibilityToolbarProps> = ({
-  lang,
-  textScale,
+  lang = 'hi',
+  textScale: propTextScale,
   onChangeTextScale,
-  isHighContrast,
+  isHighContrast = false,
   onToggleHighContrast,
 }) => {
+  const { state, setTextScale } = useAppContext();
+  const textScale = propTextScale ?? state?.textScale ?? 1.0;
+
+  const handleScaleChange = (scale: TextScale) => {
+    setTextScale(scale);
+    onChangeTextScale?.(scale);
+  };
   const [isSpeaking, setIsSpeaking] = useState(speechService.isSpeaking());
 
   useEffect(() => {
@@ -81,7 +89,7 @@ export const AccessibilityToolbar: React.FC<AccessibilityToolbarProps> = ({
             isHighContrast && styles.scaleBtnHighContrast,
             isHighContrast && textScale === 1.0 && styles.scaleBtnActiveHighContrast,
           ]}
-          onPress={() => onChangeTextScale(1.0)}
+          onPress={() => handleScaleChange(1.0)}
           accessible={true}
           accessibilityRole="button"
           accessibilityLabel="Normal text size"
@@ -105,7 +113,7 @@ export const AccessibilityToolbar: React.FC<AccessibilityToolbarProps> = ({
             isHighContrast && styles.scaleBtnHighContrast,
             isHighContrast && textScale === 1.15 && styles.scaleBtnActiveHighContrast,
           ]}
-          onPress={() => onChangeTextScale(1.15)}
+          onPress={() => handleScaleChange(1.15)}
           accessible={true}
           accessibilityRole="button"
           accessibilityLabel="Large text size"
@@ -129,7 +137,7 @@ export const AccessibilityToolbar: React.FC<AccessibilityToolbarProps> = ({
             isHighContrast && styles.scaleBtnHighContrast,
             isHighContrast && textScale === 1.3 && styles.scaleBtnActiveHighContrast,
           ]}
-          onPress={() => onChangeTextScale(1.3)}
+          onPress={() => handleScaleChange(1.3)}
           accessible={true}
           accessibilityRole="button"
           accessibilityLabel="Extra large text size"

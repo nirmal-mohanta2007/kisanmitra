@@ -60,7 +60,7 @@ export default function BookingConfirmationScreen() {
           </View>
           <View style={styles.passRow}>
             <Text style={styles.passLabel}>Procurement Centre:</Text>
-            <Text style={styles.passValue}>Demo Krishi Upaj Mandi, Bhopal</Text>
+            <Text style={styles.passValue}>Krishi Upaj Mandi, Karond Bypass Road, Bhopal</Text>
           </View>
           <View style={styles.passRow}>
             <Text style={styles.passLabel}>Arrival Date & Slot:</Text>

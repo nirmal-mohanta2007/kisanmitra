@@ -1,10 +1,11 @@
 import React from 'react';
-import { Text, TextProps, TextStyle } from 'react-native';
+import { TextStyle } from 'react-native';
 import { colors, FontSizes } from '../../theme';
+import { AppText, AppTextProps } from './AppText';
 
 type TextVariant = keyof typeof FontSizes;
 
-interface KisanTextProps extends TextProps {
+interface KisanTextProps extends AppTextProps {
   variant?: TextVariant;
   color?: string;
   align?: 'auto' | 'left' | 'right' | 'center' | 'justify';
@@ -29,8 +30,8 @@ export const KisanText: React.FC<KisanTextProps> = ({
   };
 
   return (
-    <Text style={[textStyle, style]} {...rest}>
+    <AppText style={[textStyle, style]} {...rest}>
       {children}
-    </Text>
+    </AppText>
   );
 };

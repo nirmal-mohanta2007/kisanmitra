@@ -317,7 +317,7 @@ export const FirestoreService = {
       farmerName: tx.farmerName || 'Kisan Kumar',
       farmerPhone: tx.farmerPhone || '9876543210',
       centreId: tx.centreId || 'C-001',
-      centreName: tx.centreName || 'Demo Krishi Upaj Mandi, Bhopal',
+      centreName: tx.centreName || 'Krishi Upaj Mandi, Bhopal',
       crop: tx.crop || ('' as any),
       expectedQuantity: tx.expectedQuantity || 10,
       bookingDate: tx.bookingDate || now.split('T')[0],

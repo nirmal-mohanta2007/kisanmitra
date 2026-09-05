@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../../src/theme/colors';
@@ -11,6 +11,7 @@ import {
   StatusBadge,
   SectionHeader,
   KisanButton,
+  AppText as Text,
 } from '../../../src/components/common';
 import { MOCK_TRANSACTIONS } from '../../../src/services/mock-data.service';
 import { useAppContext } from '../../../src/store/app-context';
@@ -115,12 +116,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   bookingId: {
-    fontSize: 12,
+    fontSize: 15,
     color: colors.textSecondary,
     fontWeight: '500',
   },
   cropTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: colors.textPrimary,
   },
@@ -136,17 +137,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   label: {
-    fontSize: 11,
+    fontSize: 17,
     color: colors.textSecondary,
-    marginBottom: 2,
+    marginBottom: 3,
   },
   value: {
-    fontSize: 13,
+    fontSize: 17.5,
     fontWeight: '600',
     color: colors.textPrimary,
   },
   tokenValue: {
-    fontSize: 15,
+    fontSize: 18.5,
     fontWeight: 'bold',
     color: colors.primary,
   },
@@ -156,7 +157,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   mandiText: {
-    fontSize: 13,
+    fontSize: 17,
     color: colors.textSecondary,
     marginLeft: 6,
   },
@@ -170,14 +171,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderRadius: radius.sm,
     borderWidth: 1,
     borderColor: colors.primary,
     backgroundColor: '#E8F5E9',
   },
   secondaryBtnText: {
-    fontSize: 13,
+    fontSize: 17,
     fontWeight: '600',
     color: colors.primary,
     marginLeft: 4,
@@ -187,12 +188,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderRadius: radius.sm,
     backgroundColor: colors.primary,
   },
   primaryBtnText: {
-    fontSize: 13,
+    fontSize: 17,
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginLeft: 4,

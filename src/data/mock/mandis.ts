@@ -3,8 +3,8 @@ import type { Mandi } from '../../types';
 export const mockMandis: Mandi[] = [
   {
     id: 'mandi_001',
-    name: 'Bhopal Krishi Upaj Mandi',
-    location: 'Karond, Bhopal',
+    name: 'Krishi Upaj Mandi, Bhopal',
+    location: 'Karond Bypass Road, APMC Yard, Bhopal',
     district: 'Bhopal',
     state: 'Madhya Pradesh',
     capacityPerDay: 80,

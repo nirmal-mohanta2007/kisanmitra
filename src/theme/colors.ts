@@ -13,11 +13,11 @@ export const colors = {
   surface: '#FFFFFF',
   surfaceVariant: '#E8F5E9',
   textPrimary: '#212121',
-  textSecondary: '#757575',
+  textSecondary: '#333333',
   textLight: '#FFFFFF',
   text: {
     primary: '#212121',
-    secondary: '#757575',
+    secondary: '#333333',
     inverse: '#FFFFFF',
   },
   status: {

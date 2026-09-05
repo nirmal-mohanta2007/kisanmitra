@@ -4,9 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { KisanText } from './KisanText';
+import { TopVoiceLanguageBar } from '../TopVoiceLanguageBar';
 
 export interface ScreenContainerProps {
   title?: string;
+  voiceText?: string;
+  hideTopBar?: boolean;
   scrollable?: boolean;
   children: React.ReactNode;
   backgroundColor?: string;
@@ -16,6 +19,8 @@ export interface ScreenContainerProps {
 
 export const ScreenContainer: React.FC<ScreenContainerProps> = ({
   title,
+  voiceText,
+  hideTopBar = false,
   scrollable = true,
   children,
   backgroundColor = colors.background,
@@ -34,7 +39,10 @@ export const ScreenContainer: React.FC<ScreenContainerProps> = ({
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor }]} edges={['top', 'left', 'right']}>
+      {!hideTopBar && (
+        <TopVoiceLanguageBar title={title} voiceText={voiceText} />
+      )}
       {scrollable ? (
         <ScrollView contentContainerStyle={[styles.scrollContent, contentContainerStyle]}>
           {content}

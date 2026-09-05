@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,12 +10,15 @@ import {
   Platform,
   Alert,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../src/theme/colors';
 import { spacing } from '../../src/theme/spacing';
 import { radius } from '../../src/theme/radius';
+import { TopVoiceLanguageBar } from '../../src/components/TopVoiceLanguageBar';
+import { checkUserRegistration, UserLookupResult } from '../../src/services/auth-lookup.service';
 
 // Farming background image
 const BG_IMAGE = 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200&auto=format&fit=crop&q=80';
@@ -23,20 +26,98 @@ const BG_IMAGE = 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w
 export default function LoginScreen() {
   const router = useRouter();
   const [phone, setPhone] = useState('');
+  const [isChecking, setIsChecking] = useState(false);
+  const [lookupResult, setLookupResult] = useState<UserLookupResult | null>(null);
 
-  const handleSendOtp = () => {
-    const cleaned = phone.replace(/\D/g, '');
+  // Auto-detect whether number is registered as soon as 10 digits are entered
+  useEffect(() => {
+    const cleaned = phone.replace(/\D/g, '').slice(-10);
+    if (cleaned.length === 10) {
+      let active = true;
+      checkUserRegistration(cleaned).then((res) => {
+        if (active) {
+          setLookupResult(res);
+        }
+      });
+      return () => {
+        active = false;
+      };
+    } else {
+      setLookupResult(null);
+    }
+  }, [phone]);
+
+  const handleSendOtp = async () => {
+    const cleaned = phone.replace(/\D/g, '').slice(-10);
     if (cleaned.length !== 10) {
-      Alert.alert('Invalid Mobile Number', 'Please enter a valid 10-digit mobile number.');
+      Alert.alert(
+        'Invalid Mobile Number / अमान्य मोबाइल नंबर',
+        'Please enter a valid 10-digit mobile number.'
+      );
       return;
     }
 
-    router.push({
-      pathname: '/(auth)/otp',
-      params: {
-        phone: cleaned,
-      },
-    });
+    setIsChecking(true);
+    try {
+      const result = await checkUserRegistration(cleaned);
+
+      if (result.isRegistered) {
+        // Registered user -> Send OTP to verify and proceed
+        Alert.alert(
+          'OTP Sent / ओटीपी भेजा गया',
+          `Registered account found (${result.name || 'Verified User'}).\n\nA verification code has been sent to +91 ${cleaned}.\n(Demo OTP: 1234)`,
+          [
+            {
+              text: 'Verify & Proceed / आगे बढ़ें',
+              onPress: () => {
+                router.push({
+                  pathname: '/(auth)/otp',
+                  params: {
+                    phone: cleaned,
+                    name: result.name || '',
+                    role: result.userType || 'farmer',
+                  },
+                });
+              },
+            },
+          ],
+          { cancelable: false }
+        );
+      } else {
+        // First-time user (new registration) -> Directly ask them to create an account
+        Alert.alert(
+          'Account Not Found / खाता नहीं मिला',
+          `Mobile number +91 ${cleaned} is not registered in the system.\n\nWould you like to register a new Kisan Mitra account now?`,
+          [
+            {
+              text: 'Cancel / रद्द करें',
+              style: 'cancel',
+            },
+            {
+              text: 'Create New Account / नया खाता बनाएं',
+              onPress: () => {
+                router.push({
+                  pathname: '/(auth)/register',
+                  params: {
+                    phone: cleaned,
+                    isNew: 'true',
+                  },
+                });
+              },
+            },
+          ],
+          { cancelable: true }
+        );
+      }
+    } catch (e) {
+      console.warn('Registration lookup notice:', e);
+      router.push({
+        pathname: '/(auth)/otp',
+        params: { phone: cleaned },
+      });
+    } finally {
+      setIsChecking(false);
+    }
   };
 
   return (
@@ -50,6 +131,12 @@ export default function LoginScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.screen}>
+          {/* Top Voice Assistance & Language Switcher Bar */}
+          <TopVoiceLanguageBar
+            variant="transparent"
+            title="Login"
+            voiceText="किसान मित्र लॉगिन पृष्ठ। यदि आप पहले से पंजीकृत हैं तो ओटीपी सत्यापन होगा, नए किसान सीधे पंजीकरण पृष्ठ पर जा सकते हैं।"
+          />
           {/* Top branding */}
           <View style={styles.brandRow}>
             <Image
@@ -65,7 +152,7 @@ export default function LoginScreen() {
           <View style={styles.glassCard}>
             <Text style={styles.title}>Secure Login</Text>
             <Text style={styles.subtitle}>
-              Enter your 10-digit mobile number to receive an OTP verification code.
+              Enter your 10-digit mobile number. Registered users receive an OTP; new farmers proceed directly to registration.
             </Text>
 
             {/* Mobile number input */}
@@ -81,15 +168,89 @@ export default function LoginScreen() {
                 value={phone}
                 onChangeText={setPhone}
               />
-              {phone.length === 10 && (
-                <Ionicons name="checkmark-circle" size={18} color="#69F0AE" />
+              {phone.replace(/\D/g, '').length === 10 && (
+                <Ionicons
+                  name={lookupResult?.isRegistered ? 'checkmark-circle' : 'person-add'}
+                  size={18}
+                  color={lookupResult?.isRegistered ? '#69F0AE' : '#FFD54F'}
+                />
               )}
             </View>
 
-            {/* Get OTP button */}
-            <TouchableOpacity style={styles.loginBtn} onPress={handleSendOtp} activeOpacity={0.85}>
-              <Ionicons name="key-outline" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-              <Text style={styles.loginBtnText}>Get OTP / ओटीपी प्राप्त करें</Text>
+            {/* If registered farmer found */}
+            {phone.replace(/\D/g, '').length === 10 && lookupResult && lookupResult.isRegistered && (
+              <View style={[styles.statusPill, styles.statusPillRegistered]}>
+                <Ionicons name="checkmark-circle" size={16} color="#69F0AE" />
+                <Text style={[styles.statusPillText, { color: '#E8F5E9' }]} numberOfLines={2}>
+                  Registered Farmer: {lookupResult.name || 'Verified User'} · OTP Verification
+                </Text>
+              </View>
+            )}
+
+            {/* If first-time user: Directly ask to create an account */}
+            {phone.replace(/\D/g, '').length === 10 && lookupResult && !lookupResult.isRegistered && (
+              <View style={styles.firstTimePromptCard}>
+                <View style={styles.firstTimeHeader}>
+                  <Ionicons name="person-add" size={18} color="#FBBF24" />
+                  <Text style={styles.firstTimeTitle}>New Registration / नया किसान पंजीकरण</Text>
+                </View>
+                <Text style={styles.firstTimeSub}>
+                  No account exists for +91 {phone.replace(/\D/g, '').slice(-10)}. Create a new account to access mandi procurement and DBT services.
+                </Text>
+                <TouchableOpacity
+                  style={styles.firstTimeDirectBtn}
+                  onPress={() => {
+                    const cleaned = phone.replace(/\D/g, '').slice(-10);
+                    router.push({
+                      pathname: '/(auth)/register',
+                      params: { phone: cleaned, isNew: 'true' },
+                    });
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.firstTimeDirectBtnText}>
+                    ✨ Create New Account / नया खाता बनाएं →
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Action button */}
+            <TouchableOpacity
+              style={[
+                styles.loginBtn,
+                lookupResult && !lookupResult.isRegistered && styles.registerPrimaryBtn,
+                isChecking && { opacity: 0.8 },
+              ]}
+              onPress={handleSendOtp}
+              disabled={isChecking}
+              activeOpacity={0.85}
+            >
+              {isChecking ? (
+                <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 8 }} />
+              ) : (
+                <Ionicons
+                  name={
+                    lookupResult
+                      ? lookupResult.isRegistered
+                        ? 'key-outline'
+                        : 'person-add-outline'
+                      : 'arrow-forward-outline'
+                  }
+                  size={18}
+                  color="#FFFFFF"
+                  style={{ marginRight: 8 }}
+                />
+              )}
+              <Text style={styles.loginBtnText}>
+                {isChecking
+                  ? 'Checking / जाँच रहे हैं...'
+                  : lookupResult
+                  ? lookupResult.isRegistered
+                    ? 'Get OTP & Verify / ओटीपी प्राप्त करें'
+                    : 'Create New Account / नया खाता बनाएं'
+                  : 'Continue / आगे बढ़ें'}
+              </Text>
             </TouchableOpacity>
 
             {/* Divider */}
@@ -234,6 +395,71 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#FFFFFF',
+  },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderRadius: radius.sm,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+  },
+  statusPillRegistered: {
+    backgroundColor: 'rgba(21, 128, 61, 0.35)',
+    borderColor: '#86EFAC',
+  },
+  statusPillNew: {
+    backgroundColor: 'rgba(217, 119, 6, 0.35)',
+    borderColor: '#FDE68A',
+  },
+  statusPillText: {
+    fontSize: 12.5,
+    fontWeight: '600',
+    flex: 1,
+    lineHeight: 17,
+  },
+  firstTimePromptCard: {
+    backgroundColor: 'rgba(217, 119, 6, 0.25)',
+    borderWidth: 1,
+    borderColor: '#FBBF24',
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  firstTimeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  firstTimeTitle: {
+    fontSize: 13.5,
+    fontWeight: 'bold',
+    color: '#FDE68A',
+  },
+  firstTimeSub: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.85)',
+    lineHeight: 16,
+    marginBottom: 10,
+  },
+  firstTimeDirectBtn: {
+    backgroundColor: '#059669',
+    borderRadius: radius.sm,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+  },
+  firstTimeDirectBtnText: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  registerPrimaryBtn: {
+    backgroundColor: '#059669',
+    shadowColor: '#059669',
   },
   loginBtn: {
     flexDirection: 'row',

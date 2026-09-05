@@ -52,7 +52,7 @@ export default function DigitalReceiptScreen() {
           </View>
           <View style={styles.row}>
             <Text style={styles.lbl}>Procurement Centre:</Text>
-            <Text style={styles.val}>Demo Krishi Upaj Mandi, Bhopal</Text>
+            <Text style={styles.val}>Krishi Upaj Mandi, Karond Bypass Road, Bhopal</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.lbl}>Weighbridge Operator:</Text>

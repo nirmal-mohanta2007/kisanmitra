@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../../src/theme/colors';
@@ -10,6 +10,7 @@ import {
   KisanCard,
   StatusBadge,
   SectionHeader,
+  AppText as Text,
 } from '../../../src/components/common';
 import { MOCK_TRANSACTIONS } from '../../../src/services/mock-data.service';
 import { TransactionStatus } from '../../../src/types/enums';
@@ -129,11 +130,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   txId: {
-    fontSize: 12,
+    fontSize: 15,
     color: colors.textSecondary,
   },
   cropTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: colors.textPrimary,
   },
@@ -149,17 +150,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   label: {
-    fontSize: 11,
+    fontSize: 17,
     color: colors.textSecondary,
-    marginBottom: 2,
+    marginBottom: 3,
   },
   value: {
-    fontSize: 13,
+    fontSize: 17.5,
     fontWeight: '600',
     color: colors.textPrimary,
   },
   amountValue: {
-    fontSize: 14,
+    fontSize: 18.5,
     fontWeight: 'bold',
     color: colors.primary,
   },
@@ -169,11 +170,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   mandiName: {
-    fontSize: 12,
+    fontSize: 17,
     color: colors.textSecondary,
   },
   dateText: {
-    fontSize: 12,
+    fontSize: 17,
     color: colors.textSecondary,
   },
   actionButtonsRow: {
@@ -185,14 +186,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: radius.sm,
     borderWidth: 1,
     borderColor: colors.primary,
     backgroundColor: '#E8F5E9',
   },
   receiptBtnText: {
-    fontSize: 12,
+    fontSize: 17,
     fontWeight: 'bold',
     color: colors.primary,
     marginLeft: 4,
@@ -202,14 +203,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: radius.sm,
     borderWidth: 1,
     borderColor: colors.secondary,
     backgroundColor: '#E3F2FD',
   },
   paymentBtnText: {
-    fontSize: 12,
+    fontSize: 17,
     fontWeight: 'bold',
     color: colors.secondary,
     marginLeft: 4,
@@ -220,13 +221,13 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: 21,
     fontWeight: 'bold',
     color: colors.textPrimary,
     marginTop: spacing.md,
   },
   emptySub: {
-    fontSize: 13,
+    fontSize: 17,
     color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 4,

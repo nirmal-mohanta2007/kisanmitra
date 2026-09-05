@@ -17,12 +17,12 @@ import { transitionStatus } from './transaction.service';
 export const MOCK_CENTRES: Centre[] = [
   {
     id: 'C-001',
-    name: 'Demo Krishi Upaj Mandi, Bhopal',
+    name: 'Krishi Upaj Mandi, Bhopal',
     supportedCrops: [CropType.WHEAT, CropType.PADDY, CropType.SOYBEAN, CropType.JOWAR, CropType.MAIZE],
     capacity: 80,
     averageServiceTime: 8,
     currentDelay: 10,
-    address: 'Karond Bypass Road, Bhopal',
+    address: 'Karond Bypass Road, APMC Yard, Bhopal, MP - 462038',
     district: 'Bhopal',
     state: 'Madhya Pradesh',
     operatingHours: { open: '08:00', close: '17:00' },
@@ -59,23 +59,13 @@ export const MOCK_CENTRES: Centre[] = [
 export const MOCK_FARMERS: Farmer[] = [
   {
     id: 'F-001',
-    name: 'Nirmal Kumar Mohanta',
-    phone: '9777173473',
-    village: 'Silipada',
-    district: 'Kendujhar',
-    state: 'Odisha',
-    pinCode: '758045',
-    aadhaar: '4751 3699 6443',
-    gender: 'Male',
-    fatherName: 'Harishankar Mohanta',
-    khasraNo: '142/1, 142/2',
-    landArea: 4.5,
-    primaryCrop: 'Paddy (ଧାନ / धान)',
-    bankAccount: '•••• 5678',
-    ifsc: 'SBIN0001234',
-    bankName: 'State Bank of India',
-    branchName: 'Kendujhar Main Branch',
+    name: 'Ramesh Nayak',
+    phone: '9876543210',
+    village: 'Sehore',
+    district: 'Sehore',
+    state: 'Madhya Pradesh',
     profileComplete: true,
+    primaryCrop: 'Wheat (गेहूं)',
   },
   {
     id: 'F-002',
@@ -264,7 +254,7 @@ export function generateMockTransactions(): ProcurementTransaction[] {
   };
 
   // Hero Transaction
-  transactions.push(createTx(MOCK_FARMERS[0], 'C-001', CropType.PADDY, TransactionStatus.BOOKED, 20, 42, true));
+  transactions.push(createTx(MOCK_FARMERS[0], 'C-001', CropType.WHEAT, TransactionStatus.BOOKED, 20, 42, true));
 
   // 4 more BOOKED
   transactions.push(createTx(MOCK_FARMERS[1], 'C-001', CropType.WHEAT, TransactionStatus.BOOKED, 15, 43));

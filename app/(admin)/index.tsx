@@ -22,7 +22,7 @@ export default function AdminDashboard() {
 
   return (
     <ScreenContainer scrollable style={styles.container}>
-      <FirebaseStatusBadge />
+      <FirebaseStatusBadge showSeedButton={true} />
 
       {/* Admin Title Banner */}
       <View style={styles.adminBanner}>

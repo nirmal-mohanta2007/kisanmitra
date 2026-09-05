@@ -1,15 +1,15 @@
 export const FontSizes = {
-  caption: 12,
-  small: 14,
-  body: 16,
-  subtitle: 18,
-  subheading: 18,
-  title: 20,
-  heading: 24,
-  largeHeading: 28,
-  hero: 32,
-  header: 20,
-  button: 16,
+  caption: 14,
+  small: 16,
+  body: 17.5,
+  subtitle: 19,
+  subheading: 19,
+  title: 21,
+  heading: 25,
+  largeHeading: 29,
+  hero: 34,
+  header: 22,
+  button: 17.5,
 };
 
 export const typography = {

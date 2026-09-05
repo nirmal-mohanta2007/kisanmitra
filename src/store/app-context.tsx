@@ -6,12 +6,15 @@ import { isFirebaseConfigured } from '../services/firebase/firebase.config';
 import { FirestoreService } from '../services/firebase/firestore.service';
 import { StorageService } from '../services/storage/storage.service';
 
+export type TextScale = 1.0 | 1.15 | 1.3;
+
 interface AppState {
   currentRole: UserRole;
   currentUserId: string;
   currentUserName?: string;
   currentFarmer: Farmer | null;
   language: 'hi' | 'en' | 'or';
+  textScale: TextScale;
   centres: Centre[];
   farmers: Farmer[];
   transactions: ProcurementTransaction[];
@@ -24,6 +27,7 @@ type AppAction =
   | { type: 'SET_ROLE'; payload: { role: UserRole; userId: string; userName?: string } }
   | { type: 'SET_CURRENT_FARMER'; payload: Farmer }
   | { type: 'SET_LANGUAGE'; payload: 'hi' | 'en' | 'or' }
+  | { type: 'SET_TEXT_SCALE'; payload: TextScale }
   | { type: 'LOAD_MOCK_DATA' }
   | { type: 'SET_CENTRES'; payload: Centre[] }
   | { type: 'SET_TRANSACTIONS'; payload: ProcurementTransaction[] }
@@ -40,6 +44,7 @@ const initialState: AppState = {
   currentUserName: undefined,
   currentFarmer: null,
   language: 'hi',
+  textScale: 1.0,
   centres: [],
   farmers: [],
   transactions: [],
@@ -52,6 +57,7 @@ interface AppContextValue {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
   setLanguage: (lang: 'hi' | 'en' | 'or') => Promise<void>;
+  setTextScale: (scale: TextScale) => Promise<void>;
   createTransaction: (tx: Partial<ProcurementTransaction>) => Promise<ProcurementTransaction>;
   updateTransaction: (tx: ProcurementTransaction) => Promise<void>;
   updateTransactionStatus: (id: string, status: TransactionStatus, notes?: string) => Promise<void>;
@@ -85,6 +91,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         language: action.payload,
+      };
+    case 'SET_TEXT_SCALE':
+      return {
+        ...state,
+        textScale: action.payload,
       };
     case 'LOAD_MOCK_DATA':
       return {
@@ -210,7 +221,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         farmerName: state.currentFarmer?.name || 'Kisan Kumar',
         farmerPhone: state.currentFarmer?.phone || '9876543210',
         centreId: tx.centreId || 'C-001',
-        centreName: tx.centreName || 'Demo Krishi Upaj Mandi, Bhopal',
+        centreName: tx.centreName || 'Krishi Upaj Mandi, Bhopal',
         crop: tx.crop || ('' as any),
         expectedQuantity: tx.expectedQuantity || 10,
         bookingDate: tx.bookingDate || now.split('T')[0],
@@ -268,11 +279,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         dispatch({ type: 'SET_LANGUAGE', payload: saved });
       }
     });
+
+    StorageService.getItem<TextScale>('kisan_user_text_scale').then((saved) => {
+      if (saved === 1.0 || saved === 1.15 || saved === 1.3) {
+        dispatch({ type: 'SET_TEXT_SCALE', payload: saved });
+      }
+    });
   }, []);
 
   const setLanguage = async (lang: 'hi' | 'en' | 'or') => {
     dispatch({ type: 'SET_LANGUAGE', payload: lang });
     await StorageService.setItem('app_language', lang);
+  };
+
+  const setTextScale = async (scale: TextScale) => {
+    dispatch({ type: 'SET_TEXT_SCALE', payload: scale });
+    await StorageService.setItem('kisan_user_text_scale', scale);
   };
 
   const seedFirebaseDatabase = async (force = false) => {
@@ -295,6 +317,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         state,
         dispatch,
         setLanguage,
+        setTextScale,
         createTransaction,
         updateTransaction,
         updateTransactionStatus,
@@ -428,5 +451,13 @@ export function useCentreStats(centreId: string): CentreStats | null {
     delayedCases,
     exceptions,
     lastUpdated: new Date().toISOString(),
+  };
+}
+
+export function useTextScale() {
+  const { state, setTextScale } = useAppContext();
+  return {
+    textScale: state.textScale,
+    setTextScale,
   };
 }

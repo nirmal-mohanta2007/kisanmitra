@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -9,7 +8,9 @@ import {
   StatusBar,
   ActivityIndicator,
   Modal,
+  Share,
 } from 'react-native';
+import { AppText as Text } from '../../../src/components/common/AppText';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -37,7 +38,7 @@ const TRANSLATIONS = {
     quintal: 'क्विंटल',
     trackStatus: 'लाइव स्थिति देखें',
     farmerId: (id: string) => `किसान आईडी: ${id}`,
-    defaultLocation: 'सिलीपाड़ा, पाटना, केन्दुझर, ओडिशा - 758045',
+    defaultLocation: 'ग्राम पंचायत, भोपाल, मध्य प्रदेश',
     landHolding: 'जमीन (भूमि)',
     acres: 'एकड़',
     primaryCrop: 'मुख्य फसल',
@@ -92,6 +93,16 @@ const TRANSLATIONS = {
     heatStep3: 'पशुओं को दोपहर 12 से 4 बजे तक छायादार जगह में रखें और भरपूर ठंडा पानी दें।',
     kisanCallCenter: 'किसान कॉल सेंटर टोल-फ्री: 1800-180-1551 (मुफ्त वैज्ञानिक सलाह)',
     dismissBtn: 'समझ गया / सावधानी बरती जाएगी',
+    qualityPassed: 'क्वालिटी जांच पास • ग्रेड A',
+    payoutTitle: 'अनुमानित भुगतान विवरण (Payout Breakdown)',
+    netWeight: 'शुद्ध वजन',
+    mspRateLabel: 'एमएसपी दर',
+    totalPayoutLabel: 'कुल भुगतान',
+    qtlShort: 'क्विंटल',
+    dbtCreditNote: 'डीबीटी द्वारा बैंक खाते में सीधा भुगतान',
+    downloadJForm: 'बिक्री रसीद / J-फॉर्म डाउनलोड करें',
+    jFormSub: 'स्थानीय रिकॉर्ड हेतु हस्ताक्षरित वजन एवं भुगतान पर्ची',
+    viewDigitalReceipt: 'पूरी डिजिटल वजन पर्ची व रसीद देखें →',
   },
   or: {
     brand: 'କିଷାନ ମିତ୍ର',
@@ -109,7 +120,7 @@ const TRANSLATIONS = {
     quintal: 'କ୍ୱିଣ୍ଟାଲ',
     trackStatus: 'ଲାଇଭ୍ ସ୍ଥିତି ଦେଖନ୍ତୁ',
     farmerId: (id: string) => `ଚାଷୀ ଆଇଡି: ${id}`,
-    defaultLocation: 'ସିଲିପଦା, ପାଟଣା, କେନ୍ଦୁଝର, ଓଡ଼ିଶା - ୭୫୮୦୪୫',
+    defaultLocation: 'ଗ୍ରାମ ପଞ୍ଚାୟତ, ଭୁବନେଶ୍ୱର / ଭୋପାଲ',
     landHolding: 'ଜମି (ଭୂମି)',
     acres: 'ଏକର',
     primaryCrop: 'ପ୍ରମୁଖ ଫସଲ',
@@ -164,6 +175,16 @@ const TRANSLATIONS = {
     heatStep3: 'ଗୃହପାଳିତ ପଶୁମାନଙ୍କୁ ମଧ୍ୟାହ୍ନ ୧୨ ରୁ ୪ ଟା ପର୍ଯ୍ୟନ୍ତ ଛାଇରେ ରଖନ୍ତୁ ଏବଂ ପର୍ଯ୍ୟାପ୍ତ ଥଣ୍ଡା ପିଇବା ପାଣି ଦିଅନ୍ତୁ।',
     kisanCallCenter: 'କିଷାନ କଲ୍ ସେଣ୍ଟର୍ ଟୋଲ୍-ଫ୍ରି: ୧୮୦୦-୧୮୦-୧୫୫୧ (ବିଶେଷଜ୍ଞ କୃଷି ପରାମର୍ଶ)',
     dismissBtn: 'ବୁଝିଲି / ଆବଶ୍ୟକ ସତର୍କତା ଅବଲମ୍ବନ କରିବି',
+    qualityPassed: 'ଗୁଣବତ୍ତା ଯାଞ୍ଚ ସଫଳ • ଗ୍ରେଡ୍ A',
+    payoutTitle: 'ଆନୁମାନିକ ପାଉଣା ହିସାବ (Payout Breakdown)',
+    netWeight: 'ନିଟ୍ ଓଜନ',
+    mspRateLabel: 'MSP ଦର',
+    totalPayoutLabel: 'ସମୁଦାୟ ପାଉଣା',
+    qtlShort: 'କ୍ୱିଣ୍ଟାଲ',
+    dbtCreditNote: 'ଡିବିଟି ଦ୍ୱାରା ବ୍ୟାଙ୍କ ଖାତାକୁ ସିଧାସଳଖ ଦେୟ',
+    downloadJForm: 'ବିକ୍ରି ରସିଦ / J-ଫର୍ମ ଡାଉନଲୋଡ୍ କରନ୍ତୁ',
+    jFormSub: 'ସ୍ଥାନୀୟ ରେକର୍ଡ ପାଇଁ ହସ୍ତାକ୍ଷରିତ ଓଜନ ଓ ଦେୟ ରସିଦ',
+    viewDigitalReceipt: 'ସମ୍ପୂର୍ଣ୍ଣ ଡିଜିଟାଲ୍ ଓଜନ ପର୍ଚି ଦେଖନ୍ତୁ →',
   },
   en: {
     brand: 'Kisan Mitra',
@@ -181,7 +202,7 @@ const TRANSLATIONS = {
     quintal: 'Qu',
     trackStatus: 'Track Live Status',
     farmerId: (id: string) => `Farmer ID: ${id}`,
-    defaultLocation: 'Silipada, Patana, Kendujhar, Odisha - 758045',
+    defaultLocation: 'Gram Panchayat, Madhya, Bhopal',
     landHolding: 'Land Holding',
     acres: 'Acres',
     primaryCrop: 'Primary Crop',
@@ -234,6 +255,16 @@ const TRANSLATIONS = {
     heatStep3: 'Keep dairy cattle in well-ventilated shaded shelters with plenty of clean drinking water.',
     kisanCallCenter: 'Kisan Call Centre Toll-Free: 1800-180-1551 (Agri Expert Advisory)',
     dismissBtn: 'Acknowledge / I Will Take Precautions',
+    qualityPassed: 'Quality Check Passed • Grade A',
+    payoutTitle: 'Estimated Payout Breakdown',
+    netWeight: 'Net Weight',
+    mspRateLabel: 'MSP Rate',
+    totalPayoutLabel: 'Total Payout',
+    qtlShort: 'Qtl',
+    dbtCreditNote: 'Direct DBT settlement to bank account',
+    downloadJForm: 'Download Sale Receipt / J-Form',
+    jFormSub: 'Signed weight and payment slip for local records',
+    viewDigitalReceipt: 'View Full Digital Weight Slip & Receipt →',
   },
 };
 
@@ -464,10 +495,179 @@ function getCropPriceInfo(rawCrop?: string): CropPriceInfo {
   };
 }
 
+interface CropMandiInfo {
+  mandiName: string;
+  mandiAddress: string;
+  fullDisplay: string;
+}
+
+function getCropMandiInfo(rawCrop: string | undefined, isOr: boolean, isHi: boolean): CropMandiInfo {
+  const c = (rawCrop || 'wheat').toLowerCase();
+
+  // 1. Paddy / Dhan / Rice
+  if (c.includes('paddy') || c.includes('धान') || c.includes('ଧାନ') || c.includes('rice')) {
+    if (isOr) {
+      return {
+        mandiName: 'ଆରଏମସି କ୍ରୟ କେନ୍ଦ୍ର, ଭୁବନେଶ୍ୱର',
+        mandiAddress: 'NH-୧୬, କ୍ରୟ ମଣ୍ଡି, ଭୁବନେଶ୍ୱର',
+        fullDisplay: 'ଆରଏମସି ମଣ୍ଡି, NH-୧୬, ଭୁବନେଶ୍ୱର (ଓଡ଼ିଶା)',
+      };
+    }
+    if (isHi) {
+      return {
+        mandiName: 'राज्य क्रय केंद्र (धान मंडी), जबलपुर',
+        mandiAddress: 'राइट टाउन, मंडी यार्ड, जबलपुर, म.प्र.',
+        fullDisplay: 'राज्य क्रय केंद्र, राइट टाउन, जबलपुर (म.प्र.)',
+      };
+    }
+    return {
+      mandiName: 'Rajya Kray Kendra, Jabalpur',
+      mandiAddress: 'Wright Town, APMC Yard, Jabalpur, MP',
+      fullDisplay: 'Rajya Kray Kendra, Wright Town, Jabalpur (MP)',
+    };
+  }
+
+  // 2. Soybean
+  if (c.includes('soybean') || c.includes('सोयाबीन') || c.includes('ସୋୟାବିନ୍')) {
+    if (isOr) {
+      return {
+        mandiName: 'କିଷାନ ସେବା କେନ୍ଦ୍ର, ଇନ୍ଦୋର',
+        mandiAddress: 'ମହୁ ରୋଡ୍, ମଣ୍ଡି ପରିସର, ଇନ୍ଦୋର',
+        fullDisplay: 'କିଷାନ ସେବା କେନ୍ଦ୍ର, ମହୁ ରୋଡ୍, ଇନ୍ଦୋର (ମ.ପ୍ର.)',
+      };
+    }
+    if (isHi) {
+      return {
+        mandiName: 'किसान सेवा केंद्र, इंदौर',
+        mandiAddress: 'महू रोड, मंडी परिसर, इंदौर, म.प्र.',
+        fullDisplay: 'किसान सेवा केंद्र, महू रोड, इंदौर (म.प्र.)',
+      };
+    }
+    return {
+      mandiName: 'Kisan Seva Kendra, Indore',
+      mandiAddress: 'Mhow Road, Mandi Parisar, Indore, MP',
+      fullDisplay: 'Kisan Seva Kendra, Mhow Road, Indore (MP)',
+    };
+  }
+
+  // 3. Mustard / Sarson
+  if (c.includes('mustard') || c.includes('सरसों') || c.includes('ସୋରିଷ')) {
+    if (isOr) {
+      return {
+        mandiName: 'କୃଷି ଉପଜ ମଣ୍ଡି, ମୋରେନା',
+        mandiAddress: 'ଏବି ରୋଡ୍, ମଣ୍ଡି ୟାର୍ଡ, ମୋରେନା',
+        fullDisplay: 'କୃଷି ଉପଜ ମଣ୍ଡି, ଏବି ରୋଡ୍, ମୋରେନା (ମ.ପ୍ର.)',
+      };
+    }
+    if (isHi) {
+      return {
+        mandiName: 'कृषि उपज मंडी (तिलहन केंद्र), मुरैना',
+        mandiAddress: 'एबी रोड, कृषि मंडी यार्ड, मुरैना, म.प्र.',
+        fullDisplay: 'कृषि उपज मंडी, एबी रोड, मुरैना (म.प्र.)',
+      };
+    }
+    return {
+      mandiName: 'Krishi Upaj Mandi, Morena',
+      mandiAddress: 'AB Road, APMC Yard, Morena, MP',
+      fullDisplay: 'Krishi Upaj Mandi, AB Road, Morena (MP)',
+    };
+  }
+
+  // 4. Maize / Makka
+  if (c.includes('maize') || c.includes('मक्का') || c.includes('ମକା')) {
+    if (isOr) {
+      return {
+        mandiName: 'କୃଷି ଉପଜ ମଣ୍ଡି, ଛିନ୍ଦୱାଡ଼ା',
+        mandiAddress: 'ନାଗପୁର ରୋଡ୍, ଛିନ୍ଦୱାଡ଼ା',
+        fullDisplay: 'କୃଷି ଉପଜ ମଣ୍ଡି, ନାଗପୁର ରୋଡ୍, ଛିନ୍ଦୱାଡ଼ା',
+      };
+    }
+    if (isHi) {
+      return {
+        mandiName: 'कृषि उपज मंडी, छिंदवाड़ा',
+        mandiAddress: 'नागपुर रोड, मंडी परिसर, छिंदवाड़ा, म.प्र.',
+        fullDisplay: 'कृषि उपज मंडी, नागपुर रोड, छिंदवाड़ा (म.प्र.)',
+      };
+    }
+    return {
+      mandiName: 'Krishi Upaj Mandi, Chhindwara',
+      mandiAddress: 'Nagpur Road, Mandi Complex, Chhindwara, MP',
+      fullDisplay: 'Krishi Upaj Mandi, Nagpur Road, Chhindwara (MP)',
+    };
+  }
+
+  // 5. Cotton / Kapas
+  if (c.includes('cotton') || c.includes('कपास') || c.includes('କପା')) {
+    if (isOr) {
+      return {
+        mandiName: 'ସିସିଆଇ କପା କ୍ରୟ କେନ୍ଦ୍ର, ଖାରଗୋନ୍',
+        mandiAddress: 'ସନାୱଦ ରୋଡ୍, ଖାରଗୋନ୍',
+        fullDisplay: 'ସିସିଆଇ କପା କ୍ରୟ କେନ୍ଦ୍ର, ସନାୱଦ ରୋଡ୍, ଖାରଗୋନ୍',
+      };
+    }
+    if (isHi) {
+      return {
+        mandiName: 'सीसीआई कपास खरीद केंद्र, खरगोन',
+        mandiAddress: 'सनावद रोड, कपास मंडी यार्ड, खरगोन, म.प्र.',
+        fullDisplay: 'सीसीआई कपास खरीद केंद्र, सनावद रोड, खरगोन (म.प्र.)',
+      };
+    }
+    return {
+      mandiName: 'CCI Cotton Procurement Centre, Khargone',
+      mandiAddress: 'Sanawad Road, Cotton Yard, Khargone, MP',
+      fullDisplay: 'CCI Cotton Procurement Centre, Sanawad Road, Khargone (MP)',
+    };
+  }
+
+  // 6. Gram / Chana
+  if (c.includes('gram') || c.includes('chana') || c.includes('चना') || c.includes('ଚଣା') || c.includes('ବୁଟ')) {
+    if (isOr) {
+      return {
+        mandiName: 'କୃଷି ଉପଜ ମଣ୍ଡି, ଉଜ୍ଜୈନ',
+        mandiAddress: 'ଦେୱାସ ରୋଡ୍, ଉଜ୍ଜୈନ',
+        fullDisplay: 'କୃଷି ଉପଜ ମଣ୍ଡି, ଦେୱାସ ରୋଡ୍, ଉଜ୍ଜୈନ',
+      };
+    }
+    if (isHi) {
+      return {
+        mandiName: 'कृषि उपज मंडी (दलहन केंद्र), उज्जैन',
+        mandiAddress: 'देवास रोड, मंडी प्रांगण, उज्जैन, म.प्र.',
+        fullDisplay: 'कृषि उपज मंडी, देवास रोड, उज्जैन (म.प्र.)',
+      };
+    }
+    return {
+      mandiName: 'Krishi Upaj Mandi, Ujjain',
+      mandiAddress: 'Dewas Road, APMC Yard, Ujjain, MP',
+      fullDisplay: 'Krishi Upaj Mandi, Dewas Road, Ujjain (MP)',
+    };
+  }
+
+  // Default Wheat (Krishi Upaj Mandi, Karond, Bhopal / Sehore Division)
+  if (isOr) {
+    return {
+      mandiName: 'କୃଷି ଉପଜ ମଣ୍ଡି, ଭୋପାଲ',
+      mandiAddress: 'କରୋନ୍ଦ ବାଇପାସ୍ ରୋଡ୍, ଭୋପାଲ',
+      fullDisplay: 'କୃଷି ଉପଜ ମଣ୍ଡି, କରୋନ୍ଦ ବାଇପାସ୍ ରୋଡ୍, ଭୋପାଲ',
+    };
+  }
+  if (isHi) {
+    return {
+      mandiName: 'कृषि उपज मंडी, करोंद, भोपाल',
+      mandiAddress: 'करोंद बायपास रोड, मंडी प्रांगण, भोपाल, म.प्र.',
+      fullDisplay: 'कृषि उपज मंडी, करोंद बायपास रोड, भोपाल',
+    };
+  }
+  return {
+    mandiName: 'Krishi Upaj Mandi, Bhopal',
+    mandiAddress: 'Karond Bypass Road, APMC Yard, Bhopal, MP',
+    fullDisplay: 'Krishi Upaj Mandi, Karond Bypass Road, Bhopal',
+  };
+}
+
 export default function FarmerDashboard() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { state, setLanguage, seedFirebaseDatabase } = useAppContext();
+  const { state, setLanguage, setTextScale } = useAppContext();
   const currentFarmer = state.currentFarmer;
 
   const currentLang = (state.language || 'hi') as 'hi' | 'en' | 'or';
@@ -475,14 +675,13 @@ export default function FarmerDashboard() {
   const isOr = currentLang === 'or';
   const t = TRANSLATIONS[currentLang] || TRANSLATIONS.hi;
 
-  const [textScale, setTextScale] = useState<TextScale>(1.0);
+  const textScale = state.textScale || 1.0;
   const [isHighContrast, setIsHighContrast] = useState(false);
 
-  const [isSeeding, setIsSeeding] = useState(false);
-  const [seedMessage, setSeedMessage] = useState<string | null>(null);
   const [showWeatherModal, setShowWeatherModal] = useState(false);
   const [activeWeatherTab, setActiveWeatherTab] = useState<'rain' | 'frost' | 'heat'>('rain');
   const [alertBannerVisible, setAlertBannerVisible] = useState(true);
+  const [jFormDownloaded, setJFormDownloaded] = useState(false);
 
   // Real-time location-based weather state
   const [weather, setWeather] = useState<RealTimeWeather | null>(null);
@@ -536,38 +735,21 @@ export default function FarmerDashboard() {
   const activeTx = state.transactions?.find((t) => t.farmerId === currentFarmer?.id) || MOCK_TRANSACTIONS[0];
   const activeMandi = state.centres?.[0] || MOCK_CENTRES[0];
 
-  // Seed handler for quick action link
-  const handleSeed = async () => {
-    if (isSeeding) return;
-    setIsSeeding(true);
-    setSeedMessage(null);
-    try {
-      const res = await seedFirebaseDatabase(true);
-      setSeedMessage(res.message || t.dataSynced);
-      setTimeout(() => setSeedMessage(null), 3500);
-    } catch (e: any) {
-      setSeedMessage(e?.message || t.syncError);
-      setTimeout(() => setSeedMessage(null), 3500);
-    } finally {
-      setIsSeeding(false);
-    }
-  };
-
-  // Farmer dynamic values with fallback matching verified registered farmer from Aadhaar card
-  const farmerName = currentFarmer?.name || (isOr ? 'ନିର୍ମଳ କୁମାର ମହାନ୍ତ' : isHi ? 'निर्मल कुमार मोहंत' : 'Nirmal Kumar Mohanta');
-  const farmerId = currentFarmer?.id || 'OD-KEN-7888';
+  // Farmer dynamic values with fallback matching reference screenshot
+  const farmerName = currentFarmer?.name || (isOr ? 'ଚାଷୀ ୭୮୮୮' : isHi ? 'किसान 7888' : 'Farmer 7888');
+  const farmerId = currentFarmer?.id || 'F-523';
   const farmerPhone = currentFarmer?.phone
     ? currentFarmer.phone.startsWith('+')
       ? currentFarmer.phone
       : `+91 ${currentFarmer.phone}`
-    : '+91 9777173473';
+    : '+11234567888';
   const farmerLocation = currentFarmer?.village
-    ? `${currentFarmer.village}, ${currentFarmer.district || (isOr ? 'କେନ୍ଦୁଝର' : 'Kendujhar')}, ${currentFarmer.state || (isOr ? 'ଓଡ଼ିଶା' : 'Odisha')}${currentFarmer.pinCode ? ` - ${currentFarmer.pinCode}` : ''}`
+    ? `${currentFarmer.village}, ${currentFarmer.district || (isOr ? 'ଭୁବନେଶ୍ୱର' : 'Bhopal')}, ${currentFarmer.state || (isOr ? 'ଓଡ଼ିଶା' : 'MP')}`
     : t.defaultLocation;
   const landArea = currentFarmer?.landArea || currentFarmer?.landAreaHectares || '4.5';
   
   // Crop name display & dynamic alignment with Market Price
-  const rawFarmerCrop = currentFarmer?.primaryCrop || 'Paddy';
+  const rawFarmerCrop = currentFarmer?.primaryCrop || 'Wheat';
   const cropPriceInfo = getCropPriceInfo(rawFarmerCrop);
 
   const primaryCrop = currentFarmer?.primaryCrop
@@ -583,11 +765,13 @@ export default function FarmerDashboard() {
     : t.cropDefault;
 
   // Mandi district/city location
-  const mandiLocationRaw = currentFarmer?.district || activeMandi?.district || 'Kendujhar';
-  const mandiLocation = isOr && (mandiLocationRaw.toLowerCase().includes('kendujhar') || mandiLocationRaw.toLowerCase().includes('keonjhar'))
-    ? 'କେନ୍ଦୁଝର'
-    : isHi && (mandiLocationRaw.toLowerCase().includes('kendujhar') || mandiLocationRaw.toLowerCase().includes('keonjhar'))
-    ? 'केन्दुझर'
+  const mandiLocationRaw = currentFarmer?.district || activeMandi?.district || 'Bhopal';
+  const mandiLocation = isOr && (mandiLocationRaw.toLowerCase() === 'bhopal' || mandiLocationRaw.toLowerCase() === 'mp')
+    ? 'ଭୋପାଲ / ଭୁବନେଶ୍ୱର'
+    : isHi && (mandiLocationRaw.toLowerCase() === 'bhopal' || mandiLocationRaw.toLowerCase() === 'mp')
+    ? 'भोपाल'
+    : isHi && mandiLocationRaw.toLowerCase() === 'sehore'
+    ? 'सीहोर'
     : mandiLocationRaw;
 
   // Market price card data derived directly from farmer's primary crop
@@ -611,28 +795,74 @@ export default function FarmerDashboard() {
     ? 'भारतीय स्टेट बैंक'
     : rawBankName;
 
-  // Active token details
+  // Active token details - derived as per the farmer primary crop and dedicated Mandi address
   const tokenNumber = activeTx?.tokenNumber || 42;
-  const tokenCrop = activeTx?.crop
-    ? isOr
-      ? cropPriceInfo.nameOr
-      : isHi && activeTx.crop.toLowerCase().includes('paddy')
-      ? 'धान'
-      : isHi && activeTx.crop.toLowerCase().includes('wheat')
-      ? 'गेहूं'
-      : isHi
-      ? cropPriceInfo.nameHi
-      : activeTx.crop
-    : isOr
+  const mandiInfo = getCropMandiInfo(rawFarmerCrop, isOr, isHi);
+  const tokenCrop = isOr
     ? cropPriceInfo.nameOr
     : isHi
     ? cropPriceInfo.nameHi
     : cropPriceInfo.nameEn;
   const tokenQuantity = activeTx?.expectedQuantity || 20;
-  const tokenMandi = activeTx?.centreName
-    ? (isOr ? 'ଡେମୋ କୃଷି ଉପଜ ମଣ୍ଡି' : isHi ? 'डेमो कृषि उपज मंडी, भोपाल' : activeTx.centreName)
-    : (isOr ? 'ଡେମୋ କୃଷି ଉପଜ ମଣ୍ଡି' : isHi ? 'डेमो कृषि उपज मंडी, भोपाल' : 'Demo Krishi Upaj Mandi, Bhopal');
+  const tokenMandi = mandiInfo.fullDisplay;
+  const tokenMandiAddress = mandiInfo.mandiAddress;
   const tokenSlot = isOr ? 'ସକାଳ (୮:୦୦ - ୧୨:୦୦)' : isHi ? 'सुबह (8:00 - 12:00)' : (activeTx?.slotLabel || 'Morning (8:00 - 12:00)');
+
+  // Post-Quality-Check Estimated Payout & J-Form calculations
+  const payoutQuantity = tokenQuantity || 20; // 20 Quintals
+  const parsedMsp = parseInt(cropPriceInfo.priceDisplay.replace(/[^0-9]/g, ''), 10);
+  const mspRate = parsedMsp > 0 ? parsedMsp : 2450;
+  const estimatedPayout = payoutQuantity * mspRate;
+  const jFormReceiptNo = 'J-FORM-2026-08921';
+
+  const handleDownloadJForm = async () => {
+    const slipText = `================================================
+GOVERNMENT OF INDIA • APMC MANDI
+FORM 'J' - OFFICIAL WEIGHMENT & SALE RECEIPT
+(Issued under State Agricultural Produce Marketing Act)
+================================================
+J-Form Slip No : ${jFormReceiptNo}
+Date & Time    : ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}, 11:30 AM
+Mandi Centre   : ${mandiInfo.mandiName}
+Mandi Address  : ${tokenMandiAddress}
+
+--- FARMER DETAILS ---
+Farmer Name    : ${farmerName}
+Farmer ID      : ${farmerId}
+Mobile         : ${farmerPhone}
+Aadhaar Status : UIDAI Verified (DBT Linked)
+Bank Account   : ${bankName} (A/C: ••${bankAccount})
+
+--- COMMODITY & QUALITY CERTIFICATE ---
+Crop Commodity : ${tokenCrop}
+Quality Grade  : Grade A (FAQ Standard - Passed ✓)
+Moisture Level : 11.2% (Permissible Limit: ≤ 12.0%)
+Weighbridge    : Gross: 26.40 Qtl | Tare: 6.40 Qtl | Net: ${payoutQuantity}.00 Qtl
+
+--- ESTIMATED PAYOUT BREAKDOWN ---
+Net Weight     : ${payoutQuantity} Quintals
+MSP Rate       : ₹${mspRate.toLocaleString('en-IN')} / Quintal
+Breakdown      : ${payoutQuantity} Quintals × ₹${mspRate.toLocaleString('en-IN')} (MSP) = ₹${estimatedPayout.toLocaleString('en-IN')}
+Mandi Cess/Fee : ₹0.00 (Zero Fee for Farmer)
+------------------------------------------------
+TOTAL PAYOUT   : ₹${estimatedPayout.toLocaleString('en-IN')}
+------------------------------------------------
+Settlement     : Electronic DBT Transfer to Bank Account
+Signatures     : Digitally Signed by Weighbridge Officer & Quality Lab Inspector (OP-104)
+Status         : OFFICIALLY CERTIFIED & RECORDED
+================================================`;
+
+    try {
+      await Share.share({
+        title: `J-Form Sale Receipt - ${jFormReceiptNo}`,
+        message: slipText,
+      });
+      setJFormDownloaded(true);
+      setTimeout(() => setJFormDownloaded(false), 5000);
+    } catch (err) {
+      console.log('Error sharing J-Form:', err);
+    }
+  };
 
   return (
     <View style={[styles.screenWrapper, isHighContrast && styles.screenWrapperHighContrast]}>
@@ -681,44 +911,67 @@ export default function FarmerDashboard() {
               </Text>
             </View>
 
-            {/* Language Switcher Pill: Hindi / Odia / English */}
-            <View style={[styles.langPill, isHighContrast && styles.langPillHighContrast]}>
-              <TouchableOpacity
-                style={[styles.langOption, isHi && styles.langOptionActive]}
-                onPress={() => setLanguage('hi')}
-                activeOpacity={0.8}
-                accessible={true}
-                accessibilityRole="button"
-                accessibilityLabel="हिंदी भाषा चुनें"
-              >
-                <Text style={[styles.langText, isHi && styles.langTextActive]}>
-                  हिंदी
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.langOption, isOr && styles.langOptionActive]}
-                onPress={() => setLanguage('or')}
-                activeOpacity={0.8}
-                accessible={true}
-                accessibilityRole="button"
-                accessibilityLabel="ଓଡ଼ିଆ ଭାଷା ବାଛନ୍ତୁ"
-              >
-                <Text style={[styles.langText, isOr && styles.langTextActive]}>
-                  ଓଡ଼ିଆ
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.langOption, !isHi && !isOr && styles.langOptionActive]}
-                onPress={() => setLanguage('en')}
-                activeOpacity={0.8}
-                accessible={true}
-                accessibilityRole="button"
-                accessibilityLabel="Select English"
-              >
-                <Text style={[styles.langText, !isHi && !isOr && styles.langTextActive]}>
-                  English
-                </Text>
-              </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              {/* Language Switcher Pill: Hindi / Odia / English */}
+              <View style={[styles.langPill, isHighContrast && styles.langPillHighContrast]}>
+                <TouchableOpacity
+                  style={[styles.langOption, isHi && styles.langOptionActive]}
+                  onPress={() => setLanguage('hi')}
+                  activeOpacity={0.8}
+                  accessible={true}
+                  accessibilityRole="button"
+                  accessibilityLabel="हिंदी भाषा चुनें"
+                >
+                  <Text style={[styles.langText, isHi && styles.langTextActive]}>
+                    हिंदी
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.langOption, isOr && styles.langOptionActive]}
+                  onPress={() => setLanguage('or')}
+                  activeOpacity={0.8}
+                  accessible={true}
+                  accessibilityRole="button"
+                  accessibilityLabel="ଓଡ଼ିଆ ଭାଷା ବାଛନ୍ତୁ"
+                >
+                  <Text style={[styles.langText, isOr && styles.langTextActive]}>
+                    ଓଡ଼ିଆ
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.langOption, !isHi && !isOr && styles.langOptionActive]}
+                  onPress={() => setLanguage('en')}
+                  activeOpacity={0.8}
+                  accessible={true}
+                  accessibilityRole="button"
+                  accessibilityLabel="Select English"
+                >
+                  <Text style={[styles.langText, !isHi && !isOr && styles.langTextActive]}>
+                    EN
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Small Speaker Voice Assistance Button at Page Top */}
+              <SpeakerButton
+                cardId="home-top-voice-assistant"
+                getText={() => {
+                  if (isOr) {
+                    return `କିଷାନ ମିତ୍ର ମୂଳପୃଷ୍ଠାରେ ସ୍ୱାଗତ। ଚାଷୀ ${farmerName}। ଆପଣଙ୍କ ସକ୍ରିୟ ଟୋକନ୍ ନମ୍ବର ${tokenNumber}। ଫସଲ ${tokenCrop}, ${tokenQuantity} କ୍ୱିଣ୍ଟାଲ। ମଣ୍ଡି: ${tokenMandi}। ଗୁଣବତ୍ତା ଯାଞ୍ଚ ପରେ ଆନୁମାନିକ ପାଉଣା ୪୯୦୦୦ ଟଙ୍କା। J-ଫର୍ମ ବିକ୍ରି ରସିଦ ଡାଉନଲୋଡ୍ କରନ୍ତୁ।`;
+                  }
+                  if (isHi) {
+                    return `किसान मित्र मुख्य पृष्ठ में आपका स्वागत है। किसान ${farmerName}। आपका सक्रिय टोकन नंबर ${tokenNumber}। फसल ${tokenCrop}, ${tokenQuantity} क्विंटल। मंडी: ${tokenMandi}। क्वालिटी जांच के बाद अनुमानित भुगतान 49000 रुपये। बिक्री रसीद J-फॉर्म डाउनलोड करें।`;
+                  }
+                  return `Welcome to Kisan Mitra Home. Farmer ${farmerName}. Your active token number is ${tokenNumber}. Crop ${tokenCrop}, ${tokenQuantity} quintals. Mandi: ${tokenMandi}. Post-quality check estimated payout is 49,000 rupees. Download J-Form sale receipt for your records.`;
+                }}
+                lang={currentLang}
+                size={16}
+                bgColor={isHighContrast ? '#FFE500' : 'rgba(255,255,255,0.22)'}
+                color={isHighContrast ? '#000000' : '#FFFFFF'}
+                activeBgColor="#DC2626"
+                activeColor="#FFFFFF"
+                isHighContrast={isHighContrast}
+              />
             </View>
           </View>
 
@@ -835,14 +1088,6 @@ export default function FarmerDashboard() {
           </View>
         </View>
 
-        {/* Sync feedback notification banner if triggered */}
-        {seedMessage && (
-          <View style={styles.syncBanner}>
-            <Ionicons name="checkmark-circle" size={16} color="#2E7D32" />
-            <Text style={styles.syncBannerText}>{seedMessage}</Text>
-          </View>
-        )}
-
         {/* MAIN BODY AREA */}
         <View style={styles.mainBodyContainer}>
           {/* Urgent Agro-Met Weather Alert Banner */}
@@ -898,15 +1143,17 @@ export default function FarmerDashboard() {
             {/* Header: Photo + Info */}
             <View style={styles.farmerHeaderRow}>
               <View style={styles.farmerPhotoRing}>
-                <Image
-                  source={
-                    currentFarmer?.photoUrl
-                      ? { uri: currentFarmer.photoUrl }
-                      : require('../../../assets/farmer_avatar.jpg')
-                  }
-                  style={styles.farmerPhotoImage}
-                  resizeMode="cover"
-                />
+                {currentFarmer?.photoUrl ? (
+                  <Image
+                    source={{ uri: currentFarmer.photoUrl }}
+                    style={styles.farmerPhotoImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.farmerPhotoPlaceholder}>
+                    <Ionicons name="person" size={38} color={isHighContrast ? '#FFE500' : '#2E7D32'} />
+                  </View>
+                )}
               </View>
 
               <View style={styles.farmerDetailsCol}>
@@ -1138,21 +1385,137 @@ export default function FarmerDashboard() {
             </TouchableOpacity>
           </View>
 
+          {/* POST-QUALITY CHECK ESTIMATED PAYOUT BREAKDOWN & J-FORM DOWNLOAD ROW */}
+          <View style={[styles.payoutCard, isHighContrast && styles.payoutCardHighContrast]}>
+            {/* Top Bar: Quality Status & Verified Seal */}
+            <View style={styles.payoutTopBar}>
+              <View style={styles.qualityBadgeRow}>
+                <View style={styles.qualitySuccessPill}>
+                  <Ionicons name="checkmark-circle" size={14} color="#15803D" />
+                  <Text style={styles.qualitySuccessText}>
+                    {t.qualityPassed}
+                  </Text>
+                </View>
+                <View style={styles.moistureTag}>
+                  <Text style={styles.moistureTagText}>Moisture 11.2% ✓</Text>
+                </View>
+              </View>
+              <Text style={styles.jFormIdTag}>{jFormReceiptNo}</Text>
+            </View>
+
+            {/* Payout Breakdown Section */}
+            <View style={styles.payoutContentBox}>
+              <View style={styles.payoutHeaderRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.payoutCardTitle, isHighContrast && styles.textHighContrast]}>
+                    {t.payoutTitle}
+                  </Text>
+                  <Text style={[styles.payoutFormulaText, isHighContrast && styles.textHighlightHighContrast]}>
+                    {payoutQuantity} {t.quintal} × ₹{mspRate.toLocaleString('en-IN')} (MSP) = ₹{estimatedPayout.toLocaleString('en-IN')}
+                  </Text>
+                </View>
+
+                {/* Speaker Button for Audio Assistance */}
+                <SpeakerButton
+                  cardId="payout-card"
+                  getText={() => {
+                    if (isOr) {
+                      return `ଗୁଣବତ୍ତା ଯାଞ୍ଚ ସଫଳ ହୋଇଛି, ଗ୍ରେଡ୍ A। ଆନୁମାନିକ ପାଉଣା ହିସାବ: ${payoutQuantity} କ୍ୱିଣ୍ଟାଲ ଗୁଣନ ୨୪୫୦ ଟଙ୍କା MSP, ସମୁଦାୟ ପାଉଣା ୪୯ ହଜାର ଟଙ୍କା। ସିଧାସଳଖ ଆପଣଙ୍କ ବ୍ୟାଙ୍କ ଖାତାକୁ DBT ଜମା ହେବ। ବିକ୍ରି ରସିଦ ବା J-ଫର୍ମ ଡାଉନଲୋଡ୍ କରନ୍ତୁ।`;
+                    }
+                    if (isHi) {
+                      return `क्वालिटी जांच पास, ग्रेड A। अनुमानित भुगतान विवरण: ${payoutQuantity} क्विंटल गुना 2450 रुपये एमएसपी, कुल भुगतान 49000 रुपये। सीधे आपके बैंक खाते में डीबीटी जमा होगा। स्थानीय रिकॉर्ड हेतु J-फॉर्म बिक्री रसीद डाउनलोड करें।`;
+                    }
+                    return `Quality check passed, Grade A. Estimated payout breakdown: ${payoutQuantity} quintals multiplied by 2,450 rupees MSP equals 49,000 rupees. Direct DBT transfer to your linked bank account. One-tap download available for signed weight and payment slip J-Form.`;
+                  }}
+                  lang={currentLang}
+                  size={15}
+                  isHighContrast={isHighContrast}
+                />
+              </View>
+
+              {/* 3-Pillar Breakdown Strip */}
+              <View style={styles.breakdownGrid}>
+                <View style={styles.breakdownCol}>
+                  <Text style={styles.breakdownColLabel}>{t.netWeight}</Text>
+                  <Text style={[styles.breakdownColVal, isHighContrast && styles.textHighContrast]}>
+                    {payoutQuantity}.00 {t.qtlShort}
+                  </Text>
+                </View>
+                <View style={styles.breakdownColDivider} />
+                <View style={styles.breakdownCol}>
+                  <Text style={styles.breakdownColLabel}>{t.mspRateLabel}</Text>
+                  <Text style={[styles.breakdownColVal, isHighContrast && styles.textHighContrast]}>
+                    ₹{mspRate.toLocaleString('en-IN')}/{t.qtlShort}
+                  </Text>
+                </View>
+                <View style={styles.breakdownColDivider} />
+                <View style={styles.breakdownCol}>
+                  <Text style={styles.breakdownColLabel}>{t.totalPayoutLabel}</Text>
+                  <Text style={[styles.breakdownColTotal, isHighContrast && styles.textHighlightHighContrast]}>
+                    ₹{estimatedPayout.toLocaleString('en-IN')}
+                  </Text>
+                </View>
+              </View>
+
+              {/* DBT Linked Note */}
+              <View style={styles.dbtNoteRow}>
+                <Ionicons name="shield-checkmark" size={13} color="#15803D" />
+                <Text style={styles.dbtNoteText} numberOfLines={1}>
+                  {bankName} (••{bankAccount}) • {t.dbtCreditNote}
+                </Text>
+              </View>
+            </View>
+
+            {/* ONE-TAP DOWNLOAD J-FORM / SALE RECEIPT BUTTON */}
+            <TouchableOpacity
+              style={[styles.downloadJFormBtn, isHighContrast && styles.downloadJFormBtnHighContrast]}
+              onPress={handleDownloadJForm}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Download Sale Receipt J-Form"
+            >
+              <View style={styles.downloadBtnIconCircle}>
+                <Ionicons name="download-outline" size={18} color="#FFFFFF" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.downloadBtnTitle}>{t.downloadJForm}</Text>
+                <Text style={styles.downloadBtnSub}>{t.jFormSub}</Text>
+              </View>
+              <View style={styles.jFormOfficialBadge}>
+                <Text style={styles.jFormOfficialBadgeText}>J-FORM</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Success toast if downloaded */}
+            {jFormDownloaded && (
+              <View style={styles.jFormSuccessBanner}>
+                <Ionicons name="checkmark-circle" size={15} color="#15803D" />
+                <Text style={styles.jFormSuccessText}>
+                  {isOr
+                    ? 'J-ଫର୍ମ ବିକ୍ରି ରସିଦ ପ୍ରସ୍ତୁତ ଏବଂ ରେକର୍ଡ ପାଇଁ ଉପଲବ୍ଧ!'
+                    : isHi
+                    ? 'J-फॉर्म बिक्री रसीद तैयार और रिकॉर्ड हेतु उपलब्ध!'
+                    : 'J-Form sale receipt downloaded & ready for local records!'}
+                </Text>
+              </View>
+            )}
+
+            {/* View Full Digital Receipt Link */}
+            <TouchableOpacity
+              style={styles.viewDigitalSlipRow}
+              onPress={() => router.push('/(farmer)/procurement/receipt' as any)}
+              activeOpacity={0.75}
+            >
+              <Text style={[styles.viewDigitalSlipText, isHighContrast && styles.textHighlightHighContrast]}>
+                {t.viewDigitalReceipt}
+              </Text>
+              <Ionicons name="arrow-forward" size={13} color={isHighContrast ? '#FFE500' : '#15803D'} />
+            </TouchableOpacity>
+          </View>
+
           {/* SECTION: QUICK ACTIONS */}
           <View style={styles.quickActionsHeaderRow}>
             <Text style={styles.sectionHeaderTitleNoMargin}>{t.quickActions}</Text>
-            <TouchableOpacity
-              onPress={handleSeed}
-              disabled={isSeeding}
-              activeOpacity={0.7}
-              style={styles.seedLinkBtn}
-            >
-              {isSeeding ? (
-                <ActivityIndicator size="small" color="#184D2B" />
-              ) : (
-                <Text style={styles.seedLinkText}>{t.seedData}</Text>
-              )}
-            </TouchableOpacity>
           </View>
 
           {/* Quick Actions 3-Column Grid */}
@@ -1218,7 +1581,7 @@ export default function FarmerDashboard() {
               activeOpacity={0.75}
             >
               <View style={[styles.actionIconBox, { backgroundColor: '#FFEBEE' }]}>
-                <Ionicons name="help-buoy" size={24} color="#D32F2F" />
+                <Ionicons name="call" size={24} color="#D32F2F" />
               </View>
               <Text style={styles.actionLabel}>{t.support}</Text>
             </TouchableOpacity>
@@ -1657,7 +2020,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   metricTitle: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     color: '#4A5568',
     marginLeft: 4,
@@ -1676,7 +2039,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#CCA258',
   },
   metricBigValue: {
-    fontSize: 13,
+    fontSize: 17.5,
     fontWeight: '900',
     color: '#1A202C',
     marginTop: 3,
@@ -1689,23 +2052,25 @@ const styles = StyleSheet.create({
   },
   tokenMetaStrip: {
     backgroundColor: '#FDFBF7',
-    borderRadius: 8,
+    borderRadius: 10,
     marginHorizontal: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     marginBottom: 10,
     borderWidth: 1,
     borderColor: '#EFE7D5',
   },
   tokenMetaText: {
-    fontSize: 12,
-    color: '#2D3748',
-    lineHeight: 18,
+    fontSize: 18.5,
+    fontWeight: '600',
+    color: '#333333',
+    lineHeight: 26,
     textAlign: 'center',
   },
   tokenMetaBold: {
+    fontSize: 18.5,
     fontWeight: '800',
-    color: '#1A202C',
+    color: '#1F2937',
   },
   trackStatusBtn: {
     backgroundColor: '#1E5830',
@@ -1720,7 +2085,7 @@ const styles = StyleSheet.create({
     borderColor: '#2E7D32',
   },
   trackStatusBtnText: {
-    fontSize: 14,
+    fontSize: 17.5,
     fontWeight: '700',
     color: '#FFFFFF',
   },
@@ -1796,28 +2161,35 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  farmerPhotoPlaceholder: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E8F5E9',
+  },
   farmerDetailsCol: {
     flex: 1,
     justifyContent: 'center',
   },
   farmerCardName: {
-    fontSize: 19,
+    fontSize: 22,
     fontWeight: '800',
     color: '#1A202C',
   },
   farmerCardId: {
-    fontSize: 13,
+    fontSize: 17,
     fontWeight: '600',
     color: '#4A5568',
-    marginTop: 1,
+    marginTop: 2,
   },
   farmerCardPhone: {
-    fontSize: 12,
+    fontSize: 17,
     color: '#2D3748',
     marginTop: 2,
   },
   farmerCardLocation: {
-    fontSize: 11,
+    fontSize: 16.5,
     color: '#4A5568',
     marginTop: 2,
   },
@@ -1830,15 +2202,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FAF5EA',
     borderRadius: 10,
-    padding: 9,
+    padding: 10,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#EFE5D0',
   },
   holdingIconBg: {
-    width: 34,
-    height: 34,
+    width: 38,
+    height: 38,
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
@@ -1849,20 +2221,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   holdingLabel: {
-    fontSize: 10,
+    fontSize: 15,
     color: '#64748B',
     fontWeight: '600',
   },
   holdingValue: {
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: '800',
     color: '#1A202C',
-    marginTop: 1,
+    marginTop: 2,
   },
   verificationStrip: {
     backgroundColor: '#FAF5EA',
     borderRadius: 10,
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1880,12 +2252,12 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   verifyTitle: {
-    fontSize: 12,
+    fontSize: 17,
     fontWeight: '800',
     color: '#1A202C',
   },
   verifySub: {
-    fontSize: 10,
+    fontSize: 15,
     color: '#64748B',
   },
   sbiBadge: {
@@ -1898,32 +2270,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sbiBadgeText: {
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: '900',
     color: '#FFFFFF',
   },
   viewDetailedProfileBtn: {
-    paddingTop: 6,
+    paddingTop: 8,
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: '#F0F2F0',
   },
   viewDetailedProfileText: {
-    fontSize: 12,
+    fontSize: 17,
     fontWeight: '700',
     color: '#184E29',
   },
 
   /* NEW ADDED & ENVIRONMENT SECTION */
   sectionHeaderTitle: {
-    fontSize: 16,
+    fontSize: 19,
     fontWeight: '800',
     color: '#1A202C',
     marginTop: 18,
     marginBottom: 10,
   },
   sectionHeaderTitleNoMargin: {
-    fontSize: 16,
+    fontSize: 19,
     fontWeight: '800',
     color: '#1A202C',
   },
@@ -1941,14 +2313,14 @@ const styles = StyleSheet.create({
     borderColor: '#EFE5D0',
   },
   envCardTitle: {
-    fontSize: 13,
+    fontSize: 17.5,
     fontWeight: '700',
     color: '#1A202C',
   },
   envCardSub: {
-    fontSize: 10,
+    fontSize: 15,
     color: '#64748B',
-    marginTop: 1,
+    marginTop: 2,
   },
   priceRow: {
     flexDirection: 'row',
@@ -1956,27 +2328,27 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   envPriceBig: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '900',
     color: '#1A202C',
   },
   arrowUpPill: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: '#C8E6C9',
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 6,
   },
   priceUnitSlash: {
-    fontSize: 13,
+    fontSize: 17,
     fontWeight: '700',
     color: '#64748B',
     marginLeft: 2,
   },
   unitSubText: {
-    fontSize: 10,
+    fontSize: 15,
     fontWeight: '700',
     color: '#64748B',
     marginTop: 2,
@@ -1985,28 +2357,28 @@ const styles = StyleSheet.create({
   mspCompareBox: {
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
-    paddingVertical: 5,
-    paddingHorizontal: 7,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: '#EFE5D0',
-    marginTop: 3,
+    marginTop: 4,
   },
   mspCompareText: {
-    fontSize: 10,
+    fontSize: 15.5,
     fontWeight: '800',
     color: '#1E293B',
-    lineHeight: 14,
+    lineHeight: 20,
   },
   mspBenefitTag: {
     backgroundColor: '#E8F5E9',
     borderRadius: 4,
-    paddingVertical: 2,
-    paddingHorizontal: 5,
-    marginTop: 4,
+    paddingVertical: 3,
+    paddingHorizontal: 6,
+    marginTop: 5,
     alignSelf: 'flex-start',
   },
   mspBenefitTagText: {
-    fontSize: 9,
+    fontSize: 14,
     fontWeight: '800',
     color: '#2E7D32',
   },
@@ -2016,7 +2388,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FEF3C7',
     borderRadius: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 12,
     marginBottom: 12,
     borderWidth: 1.5,
@@ -2027,9 +2399,9 @@ const styles = StyleSheet.create({
     borderColor: '#86EFAC',
   },
   weatherAlertIconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#D97706',
     justifyContent: 'center',
     alignItems: 'center',
@@ -2042,7 +2414,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   weatherAlertTitle: {
-    fontSize: 12,
+    fontSize: 17,
     fontWeight: '800',
     color: '#92400E',
   },
@@ -2050,9 +2422,9 @@ const styles = StyleSheet.create({
     color: '#14532D',
   },
   weatherAlertSub: {
-    fontSize: 10,
+    fontSize: 15.5,
     color: '#B45309',
-    marginTop: 1,
+    marginTop: 2,
   },
   weatherAlertSubFavorable: {
     color: '#166534',
@@ -2383,6 +2755,231 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 
+  /* POST-QUALITY CHECK ESTIMATED PAYOUT & J-FORM */
+  payoutCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1.5,
+    borderColor: '#BBF7D0',
+    shadowColor: '#15803D',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  payoutCardHighContrast: {
+    backgroundColor: '#000000',
+    borderColor: '#FFE500',
+    borderWidth: 2,
+  },
+  payoutTopBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  qualityBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  qualitySuccessPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#DCFCE7',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#86EFAC',
+  },
+  qualitySuccessText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#15803D',
+  },
+  moistureTag: {
+    backgroundColor: '#FEF3C7',
+    paddingVertical: 3,
+    paddingHorizontal: 7,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  moistureTagText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#92400E',
+  },
+  jFormIdTag: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#64748B',
+    backgroundColor: '#F1F5F9',
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 4,
+  },
+  payoutContentBox: {
+    backgroundColor: '#F8FAF9',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 10,
+  },
+  payoutHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
+  payoutCardTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  payoutFormulaText: {
+    fontSize: 18.5,
+    fontWeight: '900',
+    color: '#15803D',
+    marginTop: 3,
+    letterSpacing: -0.2,
+  },
+  breakdownGrid: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginTop: 6,
+    marginBottom: 8,
+  },
+  breakdownCol: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  breakdownColLabel: {
+    fontSize: 15,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  breakdownColVal: {
+    fontSize: 17.5,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginTop: 1,
+  },
+  breakdownColTotal: {
+    fontSize: 18.5,
+    fontWeight: '900',
+    color: '#15803D',
+    marginTop: 1,
+  },
+  breakdownColDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#E2E8F0',
+  },
+  dbtNoteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 2,
+  },
+  dbtNoteText: {
+    fontSize: 16,
+    color: '#475569',
+    fontWeight: '500',
+    flex: 1,
+  },
+  downloadJFormBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#15803D',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    gap: 10,
+    shadowColor: '#15803D',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  downloadJFormBtnHighContrast: {
+    backgroundColor: '#000000',
+    borderColor: '#FFE500',
+    borderWidth: 2,
+  },
+  downloadBtnIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  downloadBtnTitle: {
+    fontSize: 17.5,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  downloadBtnSub: {
+    fontSize: 14,
+    color: '#D1FAE5',
+    marginTop: 1,
+  },
+  jFormOfficialBadge: {
+    backgroundColor: '#FEF3C7',
+    paddingVertical: 3,
+    paddingHorizontal: 6,
+    borderRadius: 6,
+  },
+  jFormOfficialBadgeText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#92400E',
+    letterSpacing: 0.5,
+  },
+  jFormSuccessBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#DCFCE7',
+    borderRadius: 8,
+    padding: 8,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#86EFAC',
+  },
+  jFormSuccessText: {
+    fontSize: 16,
+    color: '#15803D',
+    fontWeight: '600',
+    flex: 1,
+  },
+  viewDigitalSlipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    marginTop: 8,
+    paddingVertical: 6,
+  },
+  viewDigitalSlipText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#15803D',
+  },
+
   /* QUICK ACTIONS */
   quickActionsHeaderRow: {
     flexDirection: 'row',
@@ -2395,7 +2992,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   seedLinkText: {
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: '700',
     color: '#184E29',
     textDecorationLine: 'underline',
@@ -2410,7 +3007,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     paddingVertical: 12,
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
     alignItems: 'center',
     marginBottom: 10,
     borderWidth: 1,
@@ -2425,7 +3022,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   actionLabel: {
-    fontSize: 11,
+    fontSize: 16,
     fontWeight: '700',
     color: '#1A202C',
     textAlign: 'center',

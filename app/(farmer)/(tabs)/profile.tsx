@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../../src/theme/colors';
@@ -11,6 +11,7 @@ import {
   SectionHeader,
   StatusBadge,
   KisanButton,
+  AppText as Text,
 } from '../../../src/components/common';
 import { MOCK_FARMERS } from '../../../src/services/mock-data.service';
 import { useAppContext } from '../../../src/store/app-context';
@@ -19,6 +20,7 @@ export default function FarmerProfileScreen() {
   const router = useRouter();
   const { state, setLanguage } = useAppContext();
   const farmer = state.currentFarmer || MOCK_FARMERS[0];
+  const avatarUrl = farmer.photoUrl || null;
   const lang = state.language || 'hi';
 
   const text = {
@@ -76,14 +78,13 @@ export default function FarmerProfileScreen() {
 
         {/* Profile Picture in Corner */}
         <View style={styles.avatarCornerWrapper}>
-          <Image
-            source={
-              farmer.photoUrl
-                ? { uri: farmer.photoUrl }
-                : require('../../../assets/farmer_avatar.png')
-            }
-            style={styles.avatarImage}
-          />
+          {avatarUrl ? (
+            <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Ionicons name="person" size={30} color={colors.primary} />
+            </View>
+          )}
           <TouchableOpacity
             style={styles.avatarEditBadge}
             onPress={() => router.push('/(auth)/register')}
@@ -101,17 +102,11 @@ export default function FarmerProfileScreen() {
       <KisanCard style={styles.card}>
         <View style={styles.row}>
           <Text style={styles.label}>{text.aadhaarNo}</Text>
-          <Text style={styles.value}>{farmer.aadhaar || '4751 3699 6443'} (UIDAI Verified)</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Aadhaar Address:</Text>
-          <Text style={styles.value}>
-            {farmer.village || 'Silipada'}, Patana, {farmer.district || 'Kendujhar'}, {farmer.state || 'Odisha'} - {farmer.pinCode || '758045'}
-          </Text>
+          <Text style={styles.value}>{farmer.aadhaar || 'XXXX-XXXX-9012'} (DigiLocker Linked)</Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>{text.regMobile}</Text>
-          <Text style={styles.value}>+91 {farmer.phone || '9777173473'} (OTP Active)</Text>
+          <Text style={styles.value}>+91 {farmer.phone} (OTP Active)</Text>
         </View>
         {farmer.fatherName ? (
           <View style={styles.row}>
@@ -204,7 +199,7 @@ export default function FarmerProfileScreen() {
           onPress={() => router.push('/(farmer)/support')}
         >
           <View style={styles.settingLeft}>
-            <Ionicons name="help-circle-outline" size={20} color={colors.textPrimary} />
+            <Ionicons name="call-outline" size={20} color={colors.textPrimary} />
             <Text style={styles.settingText}>{text.helpline}</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
@@ -246,18 +241,18 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   farmerName: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     color: colors.textPrimary,
     marginTop: 2,
   },
   phoneText: {
-    fontSize: 13,
+    fontSize: 17,
     color: colors.textSecondary,
     marginTop: 2,
   },
   locationText: {
-    fontSize: 12,
+    fontSize: 17,
     color: colors.textSecondary,
     marginTop: 2,
   },
@@ -276,6 +271,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 30,
+  },
+  avatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E8F5E9',
   },
   avatarEditBadge: {
     position: 'absolute',
@@ -297,16 +300,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#F5F5F5',
   },
   label: {
-    fontSize: 12,
+    fontSize: 17,
     color: colors.textSecondary,
   },
   value: {
-    fontSize: 12,
+    fontSize: 17.5,
     fontWeight: '600',
     color: colors.textPrimary,
   },
@@ -319,19 +322,19 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   bankName: {
-    fontSize: 15,
+    fontSize: 20,
     fontWeight: 'bold',
     color: colors.textPrimary,
   },
   bankAccount: {
-    fontSize: 13,
+    fontSize: 17,
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: 3,
   },
   ifscText: {
-    fontSize: 11,
+    fontSize: 16,
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: 3,
   },
   editActionBox: {
     marginBottom: spacing.md,
@@ -340,7 +343,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
   },
@@ -349,12 +352,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   settingText: {
-    fontSize: 14,
+    fontSize: 17.5,
     color: colors.textPrimary,
     marginLeft: spacing.sm,
   },
   settingValue: {
-    fontSize: 13,
+    fontSize: 17,
     color: colors.primary,
     fontWeight: '500',
   },
@@ -369,7 +372,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   logoutBtnText: {
-    fontSize: 14,
+    fontSize: 17.5,
     fontWeight: 'bold',
     color: colors.error,
     marginLeft: 6,

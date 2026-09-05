@@ -10,7 +10,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../src/theme/colors';
 import { spacing } from '../../src/theme/spacing';
@@ -32,9 +32,13 @@ import {
   getDistrictsForState,
   getVillagesForDistrict,
 } from '../../src/data/india-locations';
+import { checkUserRegistration, saveRegisteredFarmer } from '../../src/services/auth-lookup.service';
 
 export default function FarmerRegistrationScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const paramPhone = (params.phone as string) || '';
+  const isNewParam = params.isNew === 'true';
   const { dispatch } = useAppContext();
 
   // Submitted farmer state (when set, display full real registered data card)
@@ -45,21 +49,21 @@ export default function FarmerRegistrationScreen() {
   const [fileName, setFileName] = useState<string>('No file chosen');
 
   // 1. Aadhaar & Mobile
-  const [aadhaar, setAadhaar] = useState('4751 3699 6443');
-  const [isAadhaarVerified, setIsAadhaarVerified] = useState(true);
-  const [mobile, setMobile] = useState('9777173473');
+  const [aadhaar, setAadhaar] = useState('');
+  const [isAadhaarVerified, setIsAadhaarVerified] = useState(false);
+  const [mobile, setMobile] = useState(paramPhone);
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
-  const [isMobileVerified, setIsMobileVerified] = useState(true);
+  const [isMobileVerified, setIsMobileVerified] = useState(isNewParam && !!paramPhone);
 
-  // 2. Bio Data & Address (as per uploaded Aadhaar card)
-  const [fullName, setFullName] = useState('Nirmal Kumar Mohanta');
-  const [fatherName, setFatherName] = useState('Harishankar Mohanta');
+  // 2. Bio Data & Address
+  const [fullName, setFullName] = useState('');
+  const [fatherName, setFatherName] = useState('');
   const [gender, setGender] = useState<'Male' | 'Female' | 'Other'>('Male');
-  const [state, setState] = useState('Odisha');
-  const [district, setDistrict] = useState('Kendujhar (Keonjhar)');
-  const [village, setVillage] = useState('Silipada');
-  const [pinCode, setPinCode] = useState('758045');
+  const [state, setState] = useState('');
+  const [district, setDistrict] = useState('');
+  const [village, setVillage] = useState('');
+  const [pinCode, setPinCode] = useState('');
   const [showStateDD, setShowStateDD] = useState(false);
   const [showDistrictDD, setShowDistrictDD] = useState(false);
   const [showVillageDD, setShowVillageDD] = useState(false);
@@ -116,12 +120,44 @@ export default function FarmerRegistrationScreen() {
     }
   };
 
-  const handleSendOtp = () => {
-    if (mobile.length === 10) {
-      setOtpSent(true);
-      Alert.alert('OTP Sent', `Verification code sent to +91 ${mobile}. (Demo OTP: 1234)`);
+  const handleSendOtp = async () => {
+    const cleaned = mobile.replace(/\D/g, '').slice(-10);
+    if (cleaned.length !== 10) {
+      Alert.alert('Invalid Mobile / अमान्य नंबर', 'Please enter a 10-digit mobile number.');
+      return;
+    }
+
+    const check = await checkUserRegistration(cleaned);
+    if (check.isRegistered) {
+      // User is already registered: Send OTP to verify and proceed
+      Alert.alert(
+        'Already Registered / पूर्व पंजीकृत खाता',
+        `Mobile number +91 ${cleaned} is already registered (${check.name || 'Verified Farmer'}).\n\nAn OTP has been sent. Redirecting to verify and log in.`,
+        [
+          {
+            text: 'Verify & Login with OTP / लॉगिन करें',
+            onPress: () => {
+              router.push({
+                pathname: '/(auth)/otp',
+                params: {
+                  phone: cleaned,
+                  name: check.name || '',
+                  role: check.userType || 'farmer',
+                },
+              });
+            },
+          },
+        ],
+        { cancelable: false }
+      );
     } else {
-      Alert.alert('Invalid Mobile', 'Please enter a 10-digit mobile number.');
+      // First-time user (new registration): Direct registration without sending an OTP!
+      setIsMobileVerified(true);
+      setOtpSent(false);
+      Alert.alert(
+        'New Registration Verified / नया पंजीकरण',
+        `Mobile number +91 ${cleaned} is accepted for new farmer registration. No OTP required.`
+      );
     }
   };
 
@@ -187,64 +223,78 @@ export default function FarmerRegistrationScreen() {
   };
 
   const handleSubmitRegistration = async () => {
-    if (!fullName) {
-      Alert.alert('Required Field', 'Please enter farmer full name.');
+    if (!fullName || !fullName.trim()) {
+      Alert.alert('Required Field / आवश्यक जानकारी', 'Please enter farmer full name.');
       return;
     }
+
+    const cleanMobile = mobile ? mobile.replace(/\D/g, '').slice(-10) : '';
+    if (!cleanMobile || cleanMobile.length !== 10) {
+      Alert.alert('Required Field / आवश्यक जानकारी', 'Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
+    const cleanAadhaar = aadhaar ? aadhaar.trim() : 'XXXX-XXXX-XXXX';
     if (accountNo && accountNo !== confirmAccountNo) {
-      Alert.alert('Mismatch', 'Bank Account numbers do not match.');
+      Alert.alert('Mismatch / बेमेल खाता', 'Bank Account numbers do not match.');
       return;
     }
 
     const farmerId = `F-${Math.floor(100 + Math.random() * 900)}`;
     const newFarmer: Farmer = {
       id: farmerId,
-      name: fullName,
-      phone: mobile || '9777173473',
-      aadhaar: aadhaar || '4751 3699 6443',
-      district: district || 'Kendujhar',
-      village: village || 'Silipada',
-      state: state || 'Odisha',
-      pinCode: pinCode || '758045',
-      landArea: parseFloat(landArea) || 4.5,
+      name: fullName.trim(),
+      phone: cleanMobile,
+      aadhaar: cleanAadhaar,
+      district: district || 'Bhopal',
+      village: village || 'Gram Panchayat',
+      state: state || 'Madhya Pradesh',
+      pinCode: pinCode || '462001',
+      landArea: parseFloat(landArea) || 5.0,
       khasraNo: khasraNo || '142/1',
+      registrationNumber: `MP-${(district || 'BHO').slice(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`,
       primaryCrop: primaryCrop || 'Wheat (गेहूं)',
       bankAccount: accountNo ? `•••• ${accountNo.slice(-4)}` : '•••• 5678',
       ifsc: ifsc || 'SBIN0001234',
       bankName: bankName || 'State Bank of India',
       branchName: branchName || 'Main Branch',
+      bankDetails: {
+        accountNumber: accountNo || '•••• 5678',
+        ifscCode: ifsc || 'SBIN0001234',
+        bankName: bankName || 'State Bank of India',
+        branchName: branchName || 'Main Branch',
+      },
       fatherName: fatherName || '',
       gender: gender || 'Male',
       landDocFileName: landDocUploaded ? landDocFileName : 'Khasra_Record.pdf',
       photoUrl: profileImage,
       isVerified: true,
       profileComplete: true,
-      status: 'Active',
+      status: 'VERIFIED',
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
-    // 1. Save to persistent device storage so it survives app restarts
-    try {
-      await StorageService.setItem('kisan_current_farmer', newFarmer);
-      const allFarmers = (await StorageService.getItem<Farmer[]>('kisan_all_farmers')) || [];
-      const updatedAll = [newFarmer, ...allFarmers.filter((f) => f.phone !== newFarmer.phone && f.id !== newFarmer.id)];
-      await StorageService.setItem('kisan_all_farmers', updatedAll);
-    } catch (e) {
-      console.warn('Farmer storage error:', e);
-    }
+    // 1. Explicitly save mobile number, Aadhaar number, and farmer profile to Server Database & Device Storage
+    await saveRegisteredFarmer(newFarmer);
 
-    // 2. Save to Firestore DB
-    try {
-      await FirestoreService.saveFarmer(newFarmer as any);
-    } catch (e) {
-      console.warn('Farmer save notice:', e);
-    }
-
-    // 3. Dispatch to AppContext global state
+    // 2. Dispatch to AppContext global state
     dispatch({
       type: 'SET_CURRENT_FARMER',
       payload: newFarmer,
     });
+
+    // 3. Inform user that mobile number & Aadhaar are saved to server database
+    Alert.alert(
+      'Registration Successful! 🎉',
+      `Farmer account created successfully!\n\n• Mobile: +91 ${cleanMobile}\n• Aadhaar: ${cleanAadhaar}\n• Server Database: Saved & Verified ✓`,
+      [
+        {
+          text: 'View Kisan Pehchan Patra',
+          onPress: () => setSubmittedFarmer(newFarmer),
+        },
+      ]
+    );
 
     // 4. Set submittedFarmer to show the real submitted registration view
     setSubmittedFarmer(newFarmer);
@@ -265,7 +315,13 @@ export default function FarmerRegistrationScreen() {
             <View style={{ width: 6 }} />
             <StatusBadge status="DBT SEEDED" variant="success" />
             <View style={{ width: 6 }} />
-            <StatusBadge status="BHU-ABHILEKH LINKED" variant="success" />
+            <StatusBadge status="SERVER SAVED" variant="success" />
+          </View>
+          <View style={styles.serverSavedPill}>
+            <Ionicons name="server-outline" size={15} color="#15803D" />
+            <Text style={styles.serverSavedPillText}>
+              Mobile (+91 {submittedFarmer.phone}) & Aadhaar ({submittedFarmer.aadhaar}) Saved to Server Database ✓
+            </Text>
           </View>
         </View>
 
@@ -500,6 +556,19 @@ export default function FarmerRegistrationScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* First-time Farmer Direct Registration Banner (when redirected from login) */}
+      {isNewParam && (
+        <View style={styles.newFarmerWelcomeBanner}>
+          <Ionicons name="sparkles" size={20} color="#15803D" />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.newFarmerBannerTitle}>First-Time Farmer Registration / नया पंजीकरण</Text>
+            <Text style={styles.newFarmerBannerSub}>
+              Mobile +91 {mobile} accepted. No OTP required — fill in your details below to register.
+            </Text>
+          </View>
+        </View>
+      )}
+
       {/* Section 1: Identity & Aadhaar Verification */}
       <SectionHeader
         title="1. Identity Verification (Aadhaar & Mobile)"
@@ -532,7 +601,10 @@ export default function FarmerRegistrationScreen() {
             placeholder="10-digit mobile number"
             keyboardType="phone-pad"
             value={mobile}
-            onChangeText={setMobile}
+            onChangeText={(txt) => {
+              setMobile(txt);
+              if (isMobileVerified && !isNewParam) setIsMobileVerified(false);
+            }}
             maxLength={10}
           />
           <TouchableOpacity
@@ -544,6 +616,15 @@ export default function FarmerRegistrationScreen() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {isMobileVerified && (
+          <View style={styles.verifiedNoticeRow}>
+            <Ionicons name="checkmark-circle" size={15} color="#15803D" />
+            <Text style={styles.verifiedNoticeText}>
+              Mobile accepted for registration (No OTP required for first-time user)
+            </Text>
+          </View>
+        )}
 
         {otpSent && !isMobileVerified ? (
           <View style={styles.otpBox}>
@@ -1673,4 +1754,57 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.secondary,
   },
+  newFarmerWelcomeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#DCFCE7',
+    borderWidth: 1,
+    borderColor: '#86EFAC',
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  newFarmerBannerTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#14532D',
+  },
+  newFarmerBannerSub: {
+    fontSize: 12,
+    color: '#166534',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  verifiedNoticeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 6,
+    paddingHorizontal: 4,
+  },
+  verifiedNoticeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#15803D',
+  },
+  serverSavedPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#DCFCE7',
+    borderWidth: 1,
+    borderColor: '#86EFAC',
+    borderRadius: radius.sm,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    marginTop: 10,
+    alignSelf: 'center',
+  },
+  serverSavedPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#15803D',
+  },
 });
+

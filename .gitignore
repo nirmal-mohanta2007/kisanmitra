@@ -40,3 +40,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# local generated QR viewer artifacts
+expo-*-qr.png
+expo-qr-viewer.html

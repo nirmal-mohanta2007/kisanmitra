@@ -20,6 +20,7 @@ import { useAppContext } from '../../src/store/app-context';
 import { StorageService } from '../../src/services/storage/storage.service';
 import { Farmer } from '../../src/types/models';
 import { UserRole } from '../../src/types/enums';
+import { TopVoiceLanguageBar } from '../../src/components/TopVoiceLanguageBar';
 
 const BG_IMAGE = 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200&auto=format&fit=crop&q=80';
 
@@ -222,6 +223,12 @@ export default function OtpVerificationScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.screen}>
+          {/* Top Voice Assistance & Language Switcher Bar */}
+          <TopVoiceLanguageBar
+            variant="transparent"
+            title="OTP Verification"
+            voiceText="ओटीपी सत्यापन पृष्ठ। कृपया अपने मोबाइल पर आया 6 अंकों का ओटीपी दर्ज करें।"
+          />
           {/* Top branding */}
           <View style={styles.brandRow}>
             <Image

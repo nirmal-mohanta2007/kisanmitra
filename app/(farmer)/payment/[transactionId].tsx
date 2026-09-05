@@ -118,7 +118,7 @@ export default function FarmerPaymentScreen() {
         style={styles.helpBtn}
         onPress={() => router.push('/(farmer)/support/create-issue')}
       >
-        <Ionicons name="help-buoy-outline" size={18} color={colors.primary} />
+        <Ionicons name="call-outline" size={18} color={colors.primary} />
         <Text style={styles.helpBtnText}>Payment Delayed? Raise an Issue</Text>
       </TouchableOpacity>
     </ScreenContainer>

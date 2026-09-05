@@ -261,8 +261,6 @@ export const COMMON_VILLAGES_BY_DISTRICT: Record<string, string[]> = {
   'Sehore': ['Ashta', 'Ichhawar', 'Budhni', 'Nasrullaganj (Bhairunda)', 'Jawar', 'Rehti', 'Shyampur', 'Doraha', 'Bilkisganj', 'Maina'],
 
   // Odisha
-  'Kendujhar (Keonjhar)': ['Silipada', 'Patana', 'Ghatgaon', 'Champua', 'Anandapur', 'Jhumpura', 'Banspal', 'Telkoi', 'Harichandanpur', 'Saharapada', 'Hatadihi'],
-  'Kendujhar': ['Silipada', 'Patana', 'Ghatgaon', 'Champua', 'Anandapur', 'Jhumpura', 'Banspal', 'Telkoi', 'Harichandanpur', 'Saharapada', 'Hatadihi'],
   'Cuttack': ['Banki', 'Athagarh', 'Baramba', 'Tigiria', 'Salepur', 'Nischintakoili', 'Mahanga', 'Choudwar Gram', 'Badamba', 'Kantapada', 'Niali'],
   'Khordha': ['Jatni Gram', 'Begunia', 'Bolagarh', 'Banapur', 'Tangi', 'Chilika', 'Balianta', 'Balipatna', 'Khordha Sadar', 'Pitapalli'],
   'Sambalpur': ['Rengali', 'Kuchinda', 'Redhakhol', 'Jujumura', 'Dhankauda', 'Maneswar', 'Bamra', 'Jamankira', 'Naktideul'],
