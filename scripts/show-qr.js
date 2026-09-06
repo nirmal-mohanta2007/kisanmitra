@@ -22,85 +22,76 @@ async function main() {
   const hotspot = ips.find(i => i.name.toLowerCase().includes('local area') || i.address.startsWith('192.168.137')) || null;
 
   const port = process.env.PORT || '8081';
-  const wifiUrl = `exp://${wifi.address}:${port}`;
-  const hotspotUrl = hotspot ? `exp://${hotspot.address}:${port}` : null;
-  const clientApkUrl = 'https://www.apkmirror.com/apk/expo-project/expo-go/expo-go-54-0-8-release/';
+  const webUrl = `http://${wifi.address}:${port}`;
+  const localWebUrl = `http://localhost:${port}`;
+  const expoUrl = `exp://${wifi.address}:${port}`;
+  const officialApkUrl = 'https://expo.dev/go?sdkVersion=54&platform=android&device=true';
 
-  console.log('\n' + '='.repeat(60));
-  console.log('       KISAN MITRA - EXPO GO SDK 54 (v54.0.8) QR CODE');
-  console.log('='.repeat(60));
+  console.log('\n' + '='.repeat(64));
+  console.log('       🌾 KISAN MITRA - AUTO-REFRESHING LIVE PORTAL 🌾');
+  console.log('='.repeat(64));
 
-  console.log(`\n============================================================`);
-  console.log(` [1] EXPO GO APP DEV SERVER (SDK 54) - Wi-Fi: ${wifi.address}`);
-  console.log(` 📱 Scan inside Expo Go App or Camera to open Kisan Mitra:`);
-  console.log(` URL: ${wifiUrl}`);
-  console.log(`============================================================\n`);
-  const wifiTerminalQr = await QRCode.toString(wifiUrl, { type: 'terminal', small: true });
-  console.log(wifiTerminalQr);
+  console.log(`\n================================================================`);
+  console.log(` [1] DIRECT PHONE / PC WEB BROWSER (NO EXPO GO NEEDED)`);
+  console.log(` 🌐 Phone Browser URL : ${webUrl}`);
+  console.log(` 💻 Local PC URL      : ${localWebUrl}`);
+  console.log(`================================================================\n`);
+  const webTerminalQr = await QRCode.toString(webUrl, { type: 'terminal', small: true });
+  console.log(webTerminalQr);
 
-  console.log(`\n============================================================`);
-  console.log(` [2] EXPO GO CLIENT v54.0.8 (APK DOWNLOAD QR)`);
-  console.log(` 📦 Scan with Phone Camera / Browser to download Expo Go 54.0.8:`);
-  console.log(` URL: ${clientApkUrl}`);
-  console.log(`============================================================\n`);
-  const apkTerminalQr = await QRCode.toString(clientApkUrl, { type: 'terminal', small: true });
-  console.log(apkTerminalQr);
+  console.log(`\n================================================================`);
+  console.log(` [2] EXPO GO APP (NATIVE APP - SDK 54)`);
+  console.log(` 📱 Scan inside Expo Go App:`);
+  console.log(` URL: ${expoUrl}`);
+  console.log(`================================================================\n`);
+  const expoTerminalQr = await QRCode.toString(expoUrl, { type: 'terminal', small: true });
+  console.log(expoTerminalQr);
 
-  if (hotspotUrl) {
-    console.log(`\n============================================================`);
-    console.log(` [3] HOTSPOT NETWORK DEV SERVER (${hotspot.address})`);
-    console.log(` URL: ${hotspotUrl}`);
-    console.log(`============================================================\n`);
-    const hotspotTerminalQr = await QRCode.toString(hotspotUrl, { type: 'terminal', small: true });
-    console.log(hotspotTerminalQr);
-  }
-
-  // Generate PNGs
+  // Generate PNG files
   const appDir = path.resolve(__dirname, '..');
   const rootDir = path.resolve(appDir, '..');
 
-  const wifiPng = path.join(appDir, 'expo-dev-wifi-qr.png');
-  await QRCode.toFile(wifiPng, wifiUrl, {
-    width: 450,
-    margin: 2,
-    color: { dark: '#1B5E20', light: '#FFFFFF' },
-  });
-
-  if (hotspotUrl) {
-    const hotspotPng = path.join(appDir, 'expo-dev-hotspot-qr.png');
-    await QRCode.toFile(hotspotPng, hotspotUrl, {
-      width: 450,
-      margin: 2,
-      color: { dark: '#1B5E20', light: '#FFFFFF' },
-    });
-  }
-
-  const apkPng = path.join(appDir, 'expo-go-client-54-0-8-qr.png');
-  await QRCode.toFile(apkPng, clientApkUrl, {
+  const webPng = path.join(appDir, 'kisan-operator-web-qr.png');
+  await QRCode.toFile(webPng, webUrl, {
     width: 450,
     margin: 2,
     color: { dark: '#0D47A1', light: '#FFFFFF' },
   });
 
-  // Generate Data URLs for standalone HTML viewer
-  const wifiDataUrl = await QRCode.toDataURL(wifiUrl, { width: 360, margin: 2, color: { dark: '#1B5E20', light: '#FFFFFF' } });
-  const hotspotDataUrl = hotspotUrl ? await QRCode.toDataURL(hotspotUrl, { width: 360, margin: 2, color: { dark: '#1B5E20', light: '#FFFFFF' } }) : wifiDataUrl;
-  const apkDataUrl = await QRCode.toDataURL(clientApkUrl, { width: 360, margin: 2, color: { dark: '#0D47A1', light: '#FFFFFF' } });
+  const expoPng = path.join(appDir, 'kisan-expo-go-qr.png');
+  await QRCode.toFile(expoPng, expoUrl, {
+    width: 450,
+    margin: 2,
+    color: { dark: '#1B5E20', light: '#FFFFFF' },
+  });
+
+  const apkPng = path.join(appDir, 'expo-go-sdk54-download-qr.png');
+  await QRCode.toFile(apkPng, officialApkUrl, {
+    width: 450,
+    margin: 2,
+    color: { dark: '#E65100', light: '#FFFFFF' },
+  });
+
+  // Data URLs for standalone HTML viewer
+  const webDataUrl = await QRCode.toDataURL(webUrl, { width: 360, margin: 2, color: { dark: '#0D47A1', light: '#FFFFFF' } });
+  const expoDataUrl = await QRCode.toDataURL(expoUrl, { width: 360, margin: 2, color: { dark: '#1B5E20', light: '#FFFFFF' } });
+  const apkDataUrl = await QRCode.toDataURL(officialApkUrl, { width: 360, margin: 2, color: { dark: '#E65100', light: '#FFFFFF' } });
 
   const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kisan Mitra - Expo Go SDK 54 (v54.0.8) QR Codes</title>
+  <title>🌾 Kisan Mitra - Auto-Refreshing Live Portal</title>
   <style>
     :root {
-      --primary: #2E7D32;
-      --primary-dark: #1B5E20;
-      --primary-light: #E8F5E9;
-      --accent: #FF9800;
-      --blue: #1976D2;
-      --blue-light: #E3F2FD;
+      --primary: #1565C0;
+      --primary-dark: #0D47A1;
+      --primary-light: #E3F2FD;
+      --green: #2E7D32;
+      --green-light: #E8F5E9;
+      --orange: #E65100;
+      --orange-light: #FFF3E0;
       --bg: #F4F7F5;
       --surface: #FFFFFF;
       --text: #1C2826;
@@ -113,7 +104,7 @@ async function main() {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     body {
       background-color: var(--bg);
@@ -122,44 +113,70 @@ async function main() {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 32px 16px;
+      padding: 24px 16px;
     }
     header {
       text-align: center;
-      margin-bottom: 28px;
-      max-width: 720px;
+      margin-bottom: 24px;
+      max-width: 780px;
     }
     .badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      background: var(--primary-light);
-      color: var(--primary-dark);
+      gap: 8px;
+      background: var(--green-light);
+      color: var(--green);
       font-weight: 700;
-      font-size: 0.82rem;
-      padding: 6px 14px;
+      font-size: 0.88rem;
+      padding: 6px 16px;
       border-radius: 999px;
       margin-bottom: 12px;
       border: 1px solid #C8E6C9;
     }
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #00E676;
+      box-shadow: 0 0 10px #00E676;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.7; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.7; }
+    }
     h1 {
-      font-size: 2.1rem;
-      color: var(--primary-dark);
-      margin-bottom: 8px;
+      font-size: 2.2rem;
+      color: #1A237E;
+      margin-bottom: 6px;
       font-weight: 800;
-      letter-spacing: -0.5px;
     }
     p.subtitle {
       color: var(--text-muted);
       font-size: 1.05rem;
+      line-height: 1.4;
+    }
+    .status-bar {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
     }
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 24px;
       width: 100%;
-      max-width: 900px;
-      margin-bottom: 32px;
+      max-width: 1100px;
+      margin-bottom: 28px;
     }
     .card {
       background: var(--surface);
@@ -182,12 +199,10 @@ async function main() {
       right: 0;
       height: 6px;
     }
-    .card.green::before {
-      background: linear-gradient(90deg, #43A047, #2E7D32);
-    }
-    .card.blue::before {
-      background: linear-gradient(90deg, #1E88E5, #0D47A1);
-    }
+    .card.blue::before { background: linear-gradient(90deg, #1E88E5, #0D47A1); }
+    .card.green::before { background: linear-gradient(90deg, #43A047, #2E7D32); }
+    .card.orange::before { background: linear-gradient(90deg, #FB8C00, #E65100); }
+
     .card h2 {
       font-size: 1.25rem;
       font-weight: 700;
@@ -195,28 +210,29 @@ async function main() {
       margin-bottom: 4px;
     }
     .card p.card-desc {
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: var(--text-muted);
       margin-bottom: 16px;
+      min-height: 38px;
     }
     .qr-frame {
       background: #ffffff;
-      padding: 14px;
+      padding: 12px;
       border-radius: 12px;
-      border: 2px dashed #C8E6C9;
+      border: 2px dashed #BBDEFB;
       box-shadow: 0 4px 12px rgba(0,0,0,0.04);
       margin-bottom: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    .card.blue .qr-frame {
-      border-color: #BBDEFB;
-    }
+    .card.green .qr-frame { border-color: #C8E6C9; }
+    .card.orange .qr-frame { border-color: #FFE0B2; }
+
     .qr-frame img {
       display: block;
-      width: 240px;
-      height: 240px;
+      width: 220px;
+      height: 220px;
       border-radius: 6px;
     }
     .url-chip {
@@ -225,7 +241,7 @@ async function main() {
       border-radius: 8px;
       padding: 8px 12px;
       font-family: monospace;
-      font-size: 0.92rem;
+      font-size: 0.88rem;
       color: var(--text);
       word-break: break-all;
       margin-bottom: 14px;
@@ -237,7 +253,7 @@ async function main() {
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 10px 20px;
+      padding: 11px 20px;
       border-radius: 10px;
       font-weight: 600;
       font-size: 0.95rem;
@@ -246,92 +262,33 @@ async function main() {
       border: none;
       transition: all 0.2s ease;
       width: 100%;
+      margin-bottom: 8px;
     }
-    .btn-green {
-      background: var(--primary);
-      color: white;
-    }
-    .btn-green:hover {
-      background: var(--primary-dark);
-    }
-    .btn-blue {
-      background: var(--blue);
-      color: white;
-    }
-    .btn-blue:hover {
-      background: #0D47A1;
-    }
-    .toggle-group {
-      display: inline-flex;
-      background: var(--bg);
-      padding: 4px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      margin-bottom: 16px;
-    }
-    .toggle-btn {
-      padding: 6px 14px;
-      border-radius: 8px;
-      border: none;
+    .btn-blue { background: var(--primary); color: white; }
+    .btn-blue:hover { background: var(--primary-dark); }
+    .btn-green { background: var(--green); color: white; }
+    .btn-green:hover { background: #1B5E20; }
+    .btn-outline {
       background: transparent;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      color: var(--text-muted);
-    }
-    .toggle-btn.active {
-      background: white;
-      color: var(--primary-dark);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-    }
-    .guide-box {
-      background: white;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
       border: 1px solid var(--border);
-      padding: 24px 28px;
+      color: var(--text);
+    }
+    .btn-outline:hover {
+      background: #ECEFF1;
+    }
+    .notice-box {
+      background: #E8F5E9;
+      border: 1px solid #C8E6C9;
+      border-radius: 12px;
+      padding: 16px 20px;
+      max-width: 1100px;
       width: 100%;
-      max-width: 900px;
-    }
-    .guide-box h3 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--primary-dark);
-      margin-bottom: 14px;
-    }
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-    }
-    .step {
-      display: flex;
-      gap: 12px;
-    }
-    .step-num {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: var(--primary-light);
-      color: var(--primary-dark);
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .step-content strong {
-      display: block;
-      font-size: 0.95rem;
-      margin-bottom: 3px;
-    }
-    .step-content p {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      line-height: 1.4;
+      font-size: 0.92rem;
+      color: #1B5E20;
+      line-height: 1.5;
     }
     footer {
-      margin-top: 32px;
+      margin-top: 24px;
       text-align: center;
       font-size: 0.85rem;
       color: var(--text-muted);
@@ -340,101 +297,86 @@ async function main() {
 </head>
 <body>
   <header>
-    <div class="badge">🌱 Kisan Mitra • Mobile Connect</div>
-    <h1>Expo Go SDK 54 (v54.0.8)</h1>
-    <p class="subtitle">Scan the QR code with your mobile device running <strong>Expo Go v54.0.8</strong> or your phone camera.</p>
+    <div class="badge">
+      <div class="pulse-dot"></div>
+      <span>🌾 किसान मित्र • Live Refresh Portal</span>
+    </div>
+    <h1>Operator Dashboard Portal</h1>
+    <p class="subtitle">यह पेज सर्वर के साथ ऑटो-रिफ्रेश होता है। आपको बार-बार नया लिंक मांगने की आवश्यकता नहीं है।</p>
   </header>
 
-  <div class="cards-grid">
-    <!-- Card 1: Dev Server QR -->
-    <div class="card green">
-      <h2>🚀 Open Kisan Mitra App</h2>
-      <p class="card-desc">Scan inside the Expo Go app or your camera</p>
+  <div class="status-bar" id="liveStatus">
+    <div class="pulse-dot"></div>
+    <span id="statusText">Checking Metro Server on Port 8081...</span>
+  </div>
 
-      ${hotspot ? `
-      <div class="toggle-group">
-        <button class="toggle-btn active" id="btn-wifi" onclick="switchNetwork('wifi')">Wi-Fi (${wifi.address})</button>
-        <button class="toggle-btn" id="btn-hotspot" onclick="switchNetwork('hotspot')">Hotspot (${hotspot.address})</button>
-      </div>
-      ` : ''}
+  <div class="cards-grid">
+    <!-- Card 1: Direct Phone / PC Web -->
+    <div class="card blue">
+      <h2>🌐 1. Phone / PC Browser (Web)</h2>
+      <p class="card-desc">फोन के सामान्य कैमरा से स्कैन करें या नीचे दिए बटन पर क्लिक करें। (Zero SDK Mismatch)</p>
 
       <div class="qr-frame">
-        <img id="dev-qr-img" src="${wifiDataUrl}" alt="Kisan Mitra Expo Dev Server QR Code" />
+        <img src="${webDataUrl}" alt="Web QR Code" />
       </div>
 
-      <div class="url-chip" id="dev-url-text">${wifiUrl}</div>
-      <a href="${wifiUrl}" class="btn btn-green">Open in Browser / Metro</a>
+      <div class="url-chip">${webUrl}</div>
+      <a href="${localWebUrl}" target="_blank" class="btn btn-blue">💻 Open on this PC (${localWebUrl})</a>
+      <a href="${webUrl}" target="_blank" class="btn btn-outline">📱 Open Phone LAN (${webUrl})</a>
     </div>
 
-    <!-- Card 2: Expo Go Client v54.0.8 APK Download -->
-    <div class="card blue">
-      <h2>📦 Expo Go Client v54.0.8</h2>
-      <p class="card-desc">Download & install the exact Expo Go 54.0.8 Android APK</p>
+    <!-- Card 2: Native Expo Go SDK 54 -->
+    <div class="card green">
+      <h2>📱 2. Expo Go App (SDK 54)</h2>
+      <p class="card-desc">यदि आपके फोन में Expo Go v54 installed है तो सीधे Expo Go ऐप से स्कैन करें।</p>
 
       <div class="qr-frame">
-        <img src="${apkDataUrl}" alt="Expo Go v54.0.8 Client APK Download QR" />
+        <img src="${expoDataUrl}" alt="Expo Go Dev Server QR Code" />
       </div>
 
-      <div class="url-chip">Expo Go v54.0.8 Android Release</div>
-      <a href="${clientApkUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-blue">Download Client APK</a>
+      <div class="url-chip">${expoUrl}</div>
+      <a href="${expoUrl}" class="btn btn-green">Open in Expo Go</a>
+    </div>
+
+    <!-- Card 3: Download Expo Go SDK 54 -->
+    <div class="card orange">
+      <h2>📦 3. Download Expo Go SDK 54</h2>
+      <p class="card-desc">यदि Play Store वाला Expo Go (SDK 57) एरर दे रहा हो तो यहाँ से आधिकारिक SDK 54 APK लें।</p>
+
+      <div class="qr-frame">
+        <img src="${apkDataUrl}" alt="Expo Go APK QR" />
+      </div>
+
+      <div class="url-chip">Official Expo Go SDK 54 APK</div>
+      <a href="${officialApkUrl}" target="_blank" class="btn btn-outline" style="background: #E65100; color: white;">Download SDK 54 APK</a>
     </div>
   </div>
 
-  <div class="guide-box">
-    <h3>📱 How to Connect Your Phone:</h3>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-content">
-          <strong>Ensure Same Network</strong>
-          <p>Make sure your PC and mobile device are connected to the same Wi-Fi network (or PC Mobile Hotspot).</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-content">
-          <strong>Start Expo Dev Server</strong>
-          <p>Double-click <code>run-expo.bat</code> or run <code>npm start</code> in your terminal if not already running.</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-content">
-          <strong>Scan the QR Code</strong>
-          <p>Open <strong>Expo Go v54.0.8</strong> on Android & tap "Scan QR Code", or open Camera on iOS.</p>
-        </div>
-      </div>
-    </div>
+  <div class="notice-box">
+    <strong>💡 टोकन बचाने के लिए स्थायी उपाय (Permanent Solution):</strong>
+    <p style="margin-top: 4px;">इस पेज को अपने ब्राउज़र में बुकमार्क कर लें। जब भी आप <code>run-web.bat</code> या <code>npm start</code> चलाएंगे, यह पोर्टल स्वतः लाइव हो जाएगा। आपको चैट में बार-बार QR कोड मांगने की आवश्यकता नहीं पड़ेगी!</p>
   </div>
 
   <footer>
-    <p>Kisan Mitra App • Expo SDK 54.0.0 • Client v54.0.8</p>
+    <p>Kisan Mitra Platform • Talcher Mandi Command Console • Port ${port}</p>
   </footer>
 
   <script>
-    const wifiData = "${wifiDataUrl}";
-    const wifiUrl = "${wifiUrl}";
-    const hotspotData = "${hotspotDataUrl}";
-    const hotspotUrl = "${hotspotUrl || ''}";
-
-    function switchNetwork(type) {
-      const img = document.getElementById('dev-qr-img');
-      const text = document.getElementById('dev-url-text');
-      const btnWifi = document.getElementById('btn-wifi');
-      const btnHotspot = document.getElementById('btn-hotspot');
-
-      if (type === 'hotspot' && hotspotUrl) {
-        img.src = hotspotData;
-        text.innerText = hotspotUrl;
-        if (btnHotspot) btnHotspot.classList.add('active');
-        if (btnWifi) btnWifi.classList.remove('active');
-      } else {
-        img.src = wifiData;
-        text.innerText = wifiUrl;
-        if (btnWifi) btnWifi.classList.add('active');
-        if (btnHotspot) btnHotspot.classList.remove('active');
+    // Live Heartbeat Auto-detection
+    const testUrl = 'http://localhost:${port}/';
+    async function checkServer() {
+      const statusEl = document.getElementById('statusText');
+      try {
+        const res = await fetch(testUrl, { mode: 'no-cors' });
+        statusEl.innerText = '🟢 Server Online & Ready on Port ${port} (Auto-refresh active)';
+        statusEl.style.color = '#2E7D32';
+      } catch(e) {
+        statusEl.innerText = '🟡 Server starting or offline... Run "run-web.bat" in your folder';
+        statusEl.style.color = '#E65100';
       }
     }
+    checkServer();
+    setInterval(checkServer, 4000);
   </script>
 </body>
 </html>`;
@@ -444,18 +386,15 @@ async function main() {
   fs.writeFileSync(htmlPathApp, htmlContent, 'utf-8');
   fs.writeFileSync(htmlPathRoot, htmlContent, 'utf-8');
 
-  console.log('\n' + '='.repeat(60));
-  console.log(`[SAVED] QR code files generated:`);
-  console.log(`- HTML Viewer : ${htmlPathRoot}`);
-  console.log(`- Wi-Fi PNG   : ${wifiPng}`);
-  if (hotspotUrl) {
-    console.log(`- Hotspot PNG : ${path.join(appDir, 'expo-dev-hotspot-qr.png')}`);
-  }
-  console.log(`- Client APK  : ${apkPng}`);
-  console.log('='.repeat(60) + '\n');
+  console.log('\n' + '='.repeat(64));
+  console.log(`[LIVE] QR Portal & PNGs Updated:`);
+  console.log(`- Auto-Refreshing Portal : ${htmlPathRoot}`);
+  console.log(`- Web Access QR PNG      : ${webPng}`);
+  console.log(`- Expo Go QR PNG         : ${expoPng}`);
+  console.log('='.repeat(64) + '\n');
 }
 
 main().catch(err => {
-  console.error('Error generating QR code:', err);
+  console.error('Error in show-qr.js:', err);
   process.exit(1);
 });

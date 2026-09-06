@@ -9,3 +9,16 @@ export type { WeighmentLog, QualityRecord } from './procurement';
 export type { PaymentStatus, PaymentRecord } from './payment';
 export type { Issue, IssueCategory, IssueStatus } from './issue';
 export type { ApiResponse, PaginatedResult, SelectOption } from './common';
+export type {
+  LaneStatusType,
+  MandiLane,
+  OperatorSession,
+  QueueEventType,
+  AuditLogEntry,
+  OperatorKPIs,
+  StationException,
+  PaymentBatch,
+} from './operator';
+export type { QueueEvent as OperatorQueueEvent } from './operator';
+export * from './weighing';
+export * from './quality';

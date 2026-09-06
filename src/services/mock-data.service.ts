@@ -125,7 +125,7 @@ export function generateTransactionId(): string {
 export function getNextTokenNumber(centreId: string, transactions: ProcurementTransaction[]): number {
   const centreTransactions = transactions.filter(t => t.centreId === centreId);
   if (centreTransactions.length === 0) return 1;
-  const maxToken = Math.max(...centreTransactions.map(t => t.tokenNumber));
+  const maxToken = Math.max(...centreTransactions.map(t => t.tokenNumber || 0));
   return maxToken + 1;
 }
 
@@ -162,7 +162,7 @@ export function generateMockTransactions(): ProcurementTransaction[] {
     
     const baseTx: ProcurementTransaction = {
       id: txId,
-      farmerId: farmer.id,
+      farmerId: farmer.farmerId || farmer.id || 'F-001',
       farmerName: farmer.name,
       farmerPhone: farmer.phone,
       centreId,

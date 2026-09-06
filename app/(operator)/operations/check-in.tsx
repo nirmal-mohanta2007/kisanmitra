@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../../src/theme/colors';
 import { spacing } from '../../../src/theme/spacing';
@@ -10,82 +10,192 @@ import {
   KisanCard,
   SectionHeader,
   StatusBadge,
-  KisanButton,
 } from '../../../src/components/common';
+import { useAppContext } from '../../../src/store/app-context';
+import { useOperatorStore } from '../../../src/store/operator.store';
+import { SubScreenHeader } from '../../../src/components/operator';
+import { getOperatorTexts } from '../../../src/i18n/operator-translations';
 
 export default function OperatorCheckInScreen() {
   const router = useRouter();
-  const [vehicleNo, setVehicleNo] = useState('MP-04-AB-1234');
-  const [bagsCount, setBagsCount] = useState('50');
+  const { txId } = useLocalSearchParams<{ txId?: string }>();
+  const { state } = useAppContext();
+  const scale = state.textScale || 1.0;
+  const t = getOperatorTexts(state.language);
 
-  const handleConfirmCheckIn = () => {
-    Alert.alert('Check-In Completed', 'Farmer Token #42 checked in successfully. Routed to Weighbridge #1.', [
-      { text: 'Proceed to Weighing', onPress: () => router.push('/(operator)/operations/weighing') },
-    ]);
+  const { currentServing, registerGateEntry } = useOperatorStore();
+
+  const [isScanning, setIsScanning] = useState(false);
+  const [qrScanned, setQrScanned] = useState(true); // Pre-loaded with verified pass for hackathon demo
+  const [entryRegistered, setEntryRegistered] = useState(false);
+  const [registrationTime, setRegistrationTime] = useState('11:04 AM');
+  const [assignedLane, setAssignedLane] = useState('Lane 2');
+
+  const handleSimulateScan = () => {
+    setIsScanning(true);
+    setTimeout(() => {
+      setIsScanning(false);
+      setQrScanned(true);
+      Alert.alert(
+        'QR Pass Verified ✓',
+        `Digital gate pass verified for ${currentServing.farmer} (${currentServing.token}).`
+      );
+    }, 1000);
+  };
+
+  const handleRegisterGateEntry = async () => {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setRegistrationTime(timeString);
+    setEntryRegistered(true);
+
+    await registerGateEntry(currentServing.token, assignedLane, txId || currentServing.transactionId);
+
+    Alert.alert(
+      'Gate Entry Registered Successfully ✓',
+      `Gate entry recorded at ${timeString}.\nAllocated Lane: ${assignedLane}\nState updated: BOOKED → CHECKED_IN.`,
+      [
+        {
+          text: 'Proceed to Quality Check ›',
+          onPress: () =>
+            router.push(
+              `/(operator)/operations/quality-check?txId=${txId || currentServing.transactionId || 'TX-2026-001'}` as any
+            ),
+        },
+      ]
+    );
   };
 
   return (
     <ScreenContainer scrollable style={styles.container}>
-      <SectionHeader
-        title="Gate Security & Entry Check-in"
-        subtitle="Verify farmer identity and vehicle entry at mandi gate"
+      <SubScreenHeader
+        title={t.checkInTitle}
+        subtitle={t.checkInSub}
       />
 
-      {/* Verified Farmer Token Card */}
-      <KisanCard style={styles.card}>
-        <View style={styles.row}>
-          <Text style={styles.label}>Token Number:</Text>
-          <Text style={styles.tokenHighlight}>#42</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Farmer Name:</Text>
-          <Text style={styles.value}>Ramesh Nayak</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Commodity:</Text>
-          <Text style={styles.value}>Wheat (25 Qtl Booked)</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Aadhaar Authentication:</Text>
-          <StatusBadge status="VERIFIED" variant="success" />
-        </View>
-      </KisanCard>
+      {/* 1. QR SCANNER AREA (Section 12) */}
+      <KisanCard style={styles.scannerBoxCard}>
+        <Text style={styles.scannerHeaderTitle}>{t.scanFarmerQrPass}</Text>
 
-      {/* Vehicle & Bag Input Form */}
-      <SectionHeader title="Vehicle & Physical Inspection" />
-      <KisanCard style={styles.card}>
-        <Text style={styles.inputLabel}>Tractor / Vehicle Registration Number</Text>
-        <TextInput
-          style={styles.input}
-          value={vehicleNo}
-          onChangeText={setVehicleNo}
-          placeholder="MP-00-XX-0000"
-        />
+        <View style={styles.viewfinder}>
+          <View style={styles.cornerTL} />
+          <View style={styles.cornerTR} />
+          <View style={styles.cornerBL} />
+          <View style={styles.cornerBR} />
 
-        <Text style={styles.inputLabel}>Estimated Bags Loaded (Jute Bags)</Text>
-        <TextInput
-          style={styles.input}
-          value={bagsCount}
-          onChangeText={setBagsCount}
-          keyboardType="numeric"
-          placeholder="50"
-        />
+          <Ionicons
+            name={isScanning ? 'barcode' : 'qr-code'}
+            size={48}
+            color="#FFFFFF"
+            style={{ opacity: 0.8 }}
+          />
 
-        <View style={styles.gateRoutingBox}>
-          <Ionicons name="navigate" size={18} color={colors.secondary} />
-          <Text style={styles.gateRoutingText}>
-            Allocated Weighbridge: Weighbridge Station #1 (North Gate)
+          <Text style={styles.viewfinderInstruction}>
+            {isScanning ? t.scanningText : t.pointCameraInstruction}
           </Text>
+
+          {isScanning && <View style={styles.laserLine} />}
         </View>
+
+        <TouchableOpacity
+          style={styles.scanActionBtn}
+          onPress={handleSimulateScan}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="camera-reverse-outline" size={18} color="#FFFFFF" />
+          <Text style={styles.scanActionBtnText}>{t.btnSimulateScan}</Text>
+        </TouchableOpacity>
       </KisanCard>
 
-      <View style={styles.btnBox}>
-        <KisanButton
-          title="Confirm Gate Check-in"
-          onPress={handleConfirmCheckIn}
-          variant="primary"
-        />
-      </View>
+      {/* 2. SCANNED DETAILS (Section 12) */}
+      {qrScanned && (
+        <KisanCard style={styles.scannedCard}>
+          <View style={styles.scannedHeader}>
+            <View style={styles.scannedBadge}>
+              <Ionicons name="checkmark-done" size={16} color="#2E7D32" />
+              <Text style={styles.scannedBadgeText}>QR VERIFIED ✓</Text>
+            </View>
+            <StatusBadge status={entryRegistered ? 'CHECKED_IN' : 'BOOKED'} />
+          </View>
+
+          <View style={styles.detailsList}>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>{t.farmer}:</Text>
+              <Text style={styles.value}>{currentServing.farmer}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>{t.currentToken}:</Text>
+              <Text style={[styles.value, { color: colors.primary, fontWeight: '800' }]}>
+                {currentServing.token}
+              </Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Booking ID:</Text>
+              <Text style={styles.value}>{txId || 'BK-2026-00981'}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>{t.vehicle}:</Text>
+              <Text style={styles.value}>{currentServing.vehicle}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>{t.crop}:</Text>
+              <Text style={styles.value}>🌾 {currentServing.crop}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>{t.expectedWeight}:</Text>
+              <Text style={styles.value}>{currentServing.quantity}</Text>
+            </View>
+          </View>
+
+          {/* Lane Selection for Gate Clearance */}
+          <View style={styles.laneSelectSection}>
+            <Text style={styles.laneSelectLabel}>Assign Entry Inspection Lane:</Text>
+            <View style={styles.laneButtonGroup}>
+              {['Lane 1', 'Lane 2', 'Lane 3', 'Lane 4'].map((lane) => (
+                <TouchableOpacity
+                  key={lane}
+                  style={[
+                    styles.laneButton,
+                    assignedLane === lane && styles.laneButtonActive,
+                  ]}
+                  onPress={() => setAssignedLane(lane)}
+                >
+                  <Text
+                    style={[
+                      styles.laneButtonText,
+                      assignedLane === lane && styles.laneButtonTextActive,
+                    ]}
+                  >
+                    {lane}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Registration Confirmation Feedback */}
+          {entryRegistered ? (
+            <View style={styles.successBanner}>
+              <Ionicons name="checkmark-circle" size={24} color="#2E7D32" />
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={styles.successTitle}>Gate entry registered successfully.</Text>
+                <Text style={styles.successSub}>
+                  Time: {registrationTime} • Lane: {assignedLane}
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.registerBtn}
+              onPress={handleRegisterGateEntry}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="enter-outline" size={20} color="#FFFFFF" />
+              <Text style={styles.registerBtnText}>{t.confirmCheckIn}</Text>
+            </TouchableOpacity>
+          )}
+        </KisanCard>
+      )}
     </ScreenContainer>
   );
 }
@@ -94,14 +204,133 @@ const styles = StyleSheet.create({
   container: {
     padding: spacing.md,
   },
-  card: {
+  scannerBoxCard: {
+    padding: spacing.md,
     marginBottom: spacing.md,
+    alignItems: 'center',
   },
-  row: {
+  scannerHeaderTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
+  },
+  viewfinder: {
+    width: '100%',
+    height: 180,
+    backgroundColor: '#1E293B',
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  cornerTL: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    width: 20,
+    height: 20,
+    borderTopWidth: 3,
+    borderLeftWidth: 3,
+    borderColor: '#4CAF50',
+  },
+  cornerTR: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 20,
+    height: 20,
+    borderTopWidth: 3,
+    borderRightWidth: 3,
+    borderColor: '#4CAF50',
+  },
+  cornerBL: {
+    position: 'absolute',
+    bottom: 12,
+    left: 12,
+    width: 20,
+    height: 20,
+    borderBottomWidth: 3,
+    borderLeftWidth: 3,
+    borderColor: '#4CAF50',
+  },
+  cornerBR: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    width: 20,
+    height: 20,
+    borderBottomWidth: 3,
+    borderRightWidth: 3,
+    borderColor: '#4CAF50',
+  },
+  viewfinderInstruction: {
+    color: '#94A3B8',
+    fontSize: 12,
+    marginTop: 8,
+  },
+  laserLine: {
+    position: 'absolute',
+    width: '80%',
+    height: 2,
+    backgroundColor: '#EF4444',
+    shadowColor: '#EF4444',
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+  },
+  scanActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.secondary,
+    paddingVertical: 10,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    marginTop: spacing.md,
+    gap: 8,
+    width: '100%',
+  },
+  scanActionBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  scannedCard: {
+    padding: spacing.md,
+    marginBottom: spacing.xl,
+  },
+  scannedHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 6,
+    marginBottom: spacing.sm,
+    paddingBottom: spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+  },
+  scannedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.round,
+    gap: 4,
+  },
+  scannedBadgeText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#2E7D32',
+  },
+  detailsList: {
+    gap: 6,
+    marginVertical: spacing.xs,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
     borderBottomWidth: 1,
     borderBottomColor: '#F5F5F5',
   },
@@ -114,43 +343,74 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.textPrimary,
   },
-  tokenHighlight: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.secondary,
+  laneSelectSection: {
+    marginVertical: spacing.md,
   },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
-    marginTop: spacing.sm,
-    marginBottom: 6,
+  laneSelectLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
   },
-  input: {
-    backgroundColor: '#FAFAFA',
-    borderWidth: 1,
-    borderColor: colors.border,
+  laneButtonGroup: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  laneButton: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
     borderRadius: radius.sm,
-    padding: 10,
-    fontSize: 15,
-    color: colors.textPrimary,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
-  gateRoutingBox: {
+  laneButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  laneButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  laneButtonTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  registerBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E3F2FD',
-    padding: spacing.sm,
-    borderRadius: radius.sm,
-    marginTop: spacing.md,
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    paddingVertical: 14,
+    borderRadius: radius.md,
+    marginTop: spacing.sm,
+    gap: 8,
   },
-  gateRoutingText: {
+  registerBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 14,
+  },
+  successBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    padding: spacing.md,
+    borderRadius: radius.md,
+    marginTop: spacing.sm,
+    borderWidth: 1,
+    borderColor: '#A5D6A7',
+  },
+  successTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#2E7D32',
+  },
+  successSub: {
     fontSize: 12,
-    color: colors.secondary,
-    fontWeight: 'bold',
-    marginLeft: 6,
-  },
-  btnBox: {
-    marginVertical: spacing.lg,
-    marginBottom: spacing.xl,
+    color: '#388E3C',
+    marginTop: 2,
   },
 });

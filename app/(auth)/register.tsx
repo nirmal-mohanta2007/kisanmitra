@@ -33,6 +33,8 @@ import {
   getVillagesForDistrict,
 } from '../../src/data/india-locations';
 import { checkUserRegistration, saveRegisteredFarmer } from '../../src/services/auth-lookup.service';
+import { farmerService } from '../../src/services/farmerService';
+import { auth } from '../../src/services/firebase/firebase.config';
 
 export default function FarmerRegistrationScreen() {
   const router = useRouter();
@@ -240,19 +242,32 @@ export default function FarmerRegistrationScreen() {
       return;
     }
 
-    const farmerId = `F-${Math.floor(100 + Math.random() * 900)}`;
+    const farmerId = await farmerService.generateFarmerId();
+    const currentUid = auth?.currentUser?.uid || `USR-${Date.now()}`;
     const newFarmer: Farmer = {
+      farmerId,
       id: farmerId,
+      userId: currentUid,
+      fullName: fullName.trim(),
       name: fullName.trim(),
+      mobileNumber: cleanMobile,
       phone: cleanMobile,
       aadhaar: cleanAadhaar,
+      address: {
+        village: village || 'Gram Panchayat',
+        district: district || 'Bhopal',
+        state: state || 'Madhya Pradesh',
+        pincode: pinCode || '462001',
+      },
       district: district || 'Bhopal',
       village: village || 'Gram Panchayat',
       state: state || 'Madhya Pradesh',
       pinCode: pinCode || '462001',
+      farmerType: 'individual',
       landArea: parseFloat(landArea) || 5.0,
+      landAreaUnit: 'acre',
       khasraNo: khasraNo || '142/1',
-      registrationNumber: `MP-${(district || 'BHO').slice(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      registrationNumber: farmerId,
       primaryCrop: primaryCrop || 'Wheat (गेहूं)',
       bankAccount: accountNo ? `•••• ${accountNo.slice(-4)}` : '•••• 5678',
       ifsc: ifsc || 'SBIN0001234',
@@ -270,7 +285,7 @@ export default function FarmerRegistrationScreen() {
       photoUrl: profileImage,
       isVerified: true,
       profileComplete: true,
-      status: 'VERIFIED',
+      status: 'verified',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
