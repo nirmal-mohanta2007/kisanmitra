@@ -57,9 +57,9 @@ export default function OtpVerificationScreen() {
 
       // Check role heuristics
       let detected: 'farmer' | 'operator' | 'admin' = 'farmer';
-      if (paramRole === 'admin' || phone.startsWith('999') || phone === '9999999999') {
+      if (paramRole === 'admin' || phone.startsWith('999') || phone === '9999999999' || phone === '9876543212') {
         detected = 'admin';
-      } else if (paramRole === 'operator' || phone.startsWith('888') || phone === '8888888888') {
+      } else if (paramRole === 'operator' || phone.startsWith('888') || phone === '8888888888' || phone === '9348856994') {
         detected = 'operator';
       } else {
         detected = 'farmer';
@@ -188,12 +188,12 @@ export default function OtpVerificationScreen() {
 
     // 2. Mandi Officer Dashboard
     if (selectedRole === 'operator') {
-      const opName = initialName.trim() || 'Suresh Verma';
+      const opName = initialName.trim() || 'Dr Nirmal Kumar Mohanta';
       dispatch({
         type: 'SET_ROLE',
         payload: {
           role: UserRole.OPERATOR,
-          userId: 'OP-104',
+          userId: phone === '9348856994' ? 'OP-001' : 'OP-104',
           userName: opName,
         },
       });
@@ -386,6 +386,11 @@ export default function OtpVerificationScreen() {
                     <Text style={styles.roleDescText}>
                       Station operations, check-in, weighbridge scale & inspection
                     </Text>
+                    {(phone === '9348856994' || detectedRole === 'operator' || selectedRole === 'operator') && (
+                      <Text style={styles.accountHint}>
+                        Officer: {initialName || 'Dr Nirmal Kumar Mohanta'} (Centre C-001)
+                      </Text>
+                    )}
                   </View>
                   <View style={styles.radioCircle}>
                     {selectedRole === 'operator' && <View style={styles.radioInner} />}

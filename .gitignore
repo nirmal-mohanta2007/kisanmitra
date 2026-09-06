@@ -43,4 +43,6 @@ yarn-error.*
 
 # local generated QR viewer artifacts
 expo-*-qr.png
+expo-*.svg
 expo-qr-viewer.html
+powershell.cmd

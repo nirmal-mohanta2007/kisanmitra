@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - Sibani
   workflow_dispatch:
 
 permissions:

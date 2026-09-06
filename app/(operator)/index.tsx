@@ -19,7 +19,7 @@ export default function OperatorDashboard() {
   const router = useRouter();
   const { state } = useAppContext();
   const currentFarmer = MOCK_TRANSACTIONS[0];
-  const operatorOfficerName = state.currentUserName || 'Suresh Verma';
+  const operatorOfficerName = state.currentUserName || 'Dr Nirmal Kumar Mohanta';
 
   return (
     <ScreenContainer scrollable style={styles.container}>
@@ -30,7 +30,7 @@ export default function OperatorDashboard() {
         <View>
           <Text style={styles.centreLabel}>OPERATING STATION</Text>
           <Text style={styles.centreName}>Bhopal Krishi Upaj Mandi</Text>
-          <Text style={styles.operatorName}>Officer: {operatorOfficerName} (OP-104)</Text>
+          <Text style={styles.operatorName}>Officer: {operatorOfficerName} ({state.currentUserId || 'OP-001'})</Text>
         </View>
         <TouchableOpacity
           style={styles.switchRoleBtn}

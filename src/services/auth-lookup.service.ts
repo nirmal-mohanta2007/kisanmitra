@@ -31,7 +31,29 @@ export async function checkUserRegistration(phoneInput: string): Promise<UserLoo
     return { isRegistered: false, phone: cleaned };
   }
 
-  // 1. Check current farmer in device storage
+  // 1. Check admin credentials first (admin access on this device)
+  const adminMatch = MOCK_ADMIN.find((a) => normalizePhone(a.phone) === cleaned);
+  if (adminMatch) {
+    return {
+      isRegistered: true,
+      userType: 'admin',
+      name: adminMatch.name,
+      phone: cleaned,
+    };
+  }
+
+  // 2. Check Mandi Officers / Operators (e.g. Dr Nirmal Kumar Mohanta - 9348856994)
+  const opMatch = MOCK_OPERATORS.find((o) => normalizePhone(o.phone) === cleaned);
+  if (opMatch) {
+    return {
+      isRegistered: true,
+      userType: 'operator',
+      name: opMatch.name,
+      phone: cleaned,
+    };
+  }
+
+  // 3. Check current farmer in device storage
   try {
     const current = await StorageService.getItem<Farmer>('kisan_current_farmer');
     if (current && normalizePhone(current.phone) === cleaned) {
@@ -90,29 +112,7 @@ export async function checkUserRegistration(phoneInput: string): Promise<UserLoo
     };
   }
 
-  // 5. Check operators
-  const opMatch = MOCK_OPERATORS.find((o) => normalizePhone(o.phone) === cleaned);
-  if (opMatch) {
-    return {
-      isRegistered: true,
-      userType: 'operator',
-      name: opMatch.name,
-      phone: cleaned,
-    };
-  }
-
-  // 6. Check admin
-  const adminMatch = MOCK_ADMIN.find((a) => normalizePhone(a.phone) === cleaned);
-  if (adminMatch) {
-    return {
-      isRegistered: true,
-      userType: 'admin',
-      name: adminMatch.name,
-      phone: cleaned,
-    };
-  }
-
-  // 7. Check Firestore if configured
+  // 5. Check Firestore if configured
   try {
     const firestoreFarmers = await FirestoreService.getFarmers();
     if (Array.isArray(firestoreFarmers)) {

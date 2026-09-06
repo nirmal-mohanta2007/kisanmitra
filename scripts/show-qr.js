@@ -1,14 +1,15 @@
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
-const QRCode = require('qrcode');
+const qrcodeCore = require('./qrcode-core');
 
 function getLocalIPs() {
   const nets = os.networkInterfaces();
   const ips = [];
   for (const name of Object.keys(nets)) {
     for (const net of nets[name]) {
-      if (net.family === 'IPv4' && !net.internal) {
+      const isIpv4 = net.family === 'IPv4' || net.family === 4;
+      if (isIpv4 && !net.internal) {
         ips.push({ name, address: net.address });
       }
     }
@@ -16,76 +17,97 @@ function getLocalIPs() {
   return ips;
 }
 
+/**
+ * Render high-contrast ANSI QR code for terminal
+ * Uses ANSI 47 (white bg) and ANSI 30 (black fg) with half-block Unicode characters
+ * This ensures pitch-black modules on pure white background on ANY terminal theme.
+ */
+function renderTerminalQR(url, margin = 2) {
+  const qr = qrcodeCore(0, 'M');
+  qr.addData(url);
+  qr.make();
+
+  const count = qr.getModuleCount();
+  const total = count + margin * 2;
+  const WHITE_BG_BLACK_FG = '\x1b[47;30m';
+  const RESET = '\x1b[0m';
+  const lines = [];
+
+  for (let y = 0; y < total; y += 2) {
+    let line = WHITE_BG_BLACK_FG;
+    const r1 = y - margin;
+    const r2 = y + 1 - margin;
+
+    for (let x = 0; x < total; x++) {
+      const c = x - margin;
+      const topDark = (r1 >= 0 && r1 < count && c >= 0 && c < count) ? qr.isDark(r1, c) : false;
+      const botDark = (r2 >= 0 && r2 < count && c >= 0 && c < count) ? qr.isDark(r2, c) : false;
+
+      if (topDark && botDark) {
+        line += '█';
+      } else if (topDark && !botDark) {
+        line += '▀';
+      } else if (!topDark && botDark) {
+        line += '▄';
+      } else {
+        line += ' ';
+      }
+    }
+    line += RESET;
+    lines.push(line);
+  }
+  return lines.join('\n');
+}
+
+function generateSvgQR(url, cellSize = 6, margin = 2) {
+  const qr = qrcodeCore(0, 'M');
+  qr.addData(url);
+  qr.make();
+  return qr.createSvg(cellSize, margin * cellSize);
+}
+
 async function main() {
   const ips = getLocalIPs();
-  const wifi = ips.find(i => i.name.toLowerCase().includes('wi-fi') || i.name.toLowerCase().includes('wifi')) || ips[0] || { address: '127.0.0.1' };
-  const hotspot = ips.find(i => i.name.toLowerCase().includes('local area') || i.address.startsWith('192.168.137')) || null;
+  const wifi = ips.find(i => /wi-?fi/i.test(i.name)) || ips[0] || { name: 'Localhost', address: '127.0.0.1' };
+  const hotspot = ips.find(i => /local area/i.test(i.name) || i.address.startsWith('192.168.137')) || null;
 
   const port = process.env.PORT || '8081';
   const wifiUrl = `exp://${wifi.address}:${port}`;
   const hotspotUrl = hotspot ? `exp://${hotspot.address}:${port}` : null;
   const clientApkUrl = 'https://www.apkmirror.com/apk/expo-project/expo-go/expo-go-54-0-8-release/';
 
-  console.log('\n' + '='.repeat(60));
-  console.log('       KISAN MITRA - EXPO GO SDK 54 (v54.0.8) QR CODE');
-  console.log('='.repeat(60));
+  console.log('\n' + '='.repeat(66));
+  console.log('       🌱 KISAN MITRA - EXPO GO SDK 54 (CLIENT v54.0.8)');
+  console.log('='.repeat(66));
 
-  console.log(`\n============================================================`);
-  console.log(` [1] EXPO GO APP DEV SERVER (SDK 54) - Wi-Fi: ${wifi.address}`);
-  console.log(` 📱 Scan inside Expo Go App or Camera to open Kisan Mitra:`);
-  console.log(` URL: ${wifiUrl}`);
-  console.log(`============================================================\n`);
-  const wifiTerminalQr = await QRCode.toString(wifiUrl, { type: 'terminal', small: true });
-  console.log(wifiTerminalQr);
+  console.log('\n' + '-'.repeat(66));
+  console.log(` 📱 [1] EXPO GO APP DEV SERVER (SDK 54)`);
+  console.log(` Network Interface : ${wifi.name} (${wifi.address})`);
+  console.log(` Target Expo URL   : ${wifiUrl}`);
+  console.log(` Action: Scan with Expo Go (v54.0.8) or Mobile Camera:`);
+  console.log('-'.repeat(66) + '\n');
+  console.log(renderTerminalQR(wifiUrl, 2));
 
-  console.log(`\n============================================================`);
-  console.log(` [2] EXPO GO CLIENT v54.0.8 (APK DOWNLOAD QR)`);
-  console.log(` 📦 Scan with Phone Camera / Browser to download Expo Go 54.0.8:`);
-  console.log(` URL: ${clientApkUrl}`);
-  console.log(`============================================================\n`);
-  const apkTerminalQr = await QRCode.toString(clientApkUrl, { type: 'terminal', small: true });
-  console.log(apkTerminalQr);
-
-  if (hotspotUrl) {
-    console.log(`\n============================================================`);
-    console.log(` [3] HOTSPOT NETWORK DEV SERVER (${hotspot.address})`);
-    console.log(` URL: ${hotspotUrl}`);
-    console.log(`============================================================\n`);
-    const hotspotTerminalQr = await QRCode.toString(hotspotUrl, { type: 'terminal', small: true });
-    console.log(hotspotTerminalQr);
-  }
-
-  // Generate PNGs
-  const appDir = path.resolve(__dirname, '..');
-  const rootDir = path.resolve(appDir, '..');
-
-  const wifiPng = path.join(appDir, 'expo-dev-wifi-qr.png');
-  await QRCode.toFile(wifiPng, wifiUrl, {
-    width: 450,
-    margin: 2,
-    color: { dark: '#1B5E20', light: '#FFFFFF' },
-  });
+  console.log('\n' + '-'.repeat(66));
+  console.log(` 📦 [2] EXPO GO CLIENT v54.0.8 (APK DOWNLOAD LINK)`);
+  console.log(` Direct APK URL    : ${clientApkUrl}`);
+  console.log(` Action: Scan to download & install Expo Go v54.0.8 on Android:`);
+  console.log('-'.repeat(66) + '\n');
+  console.log(renderTerminalQR(clientApkUrl, 2));
 
   if (hotspotUrl) {
-    const hotspotPng = path.join(appDir, 'expo-dev-hotspot-qr.png');
-    await QRCode.toFile(hotspotPng, hotspotUrl, {
-      width: 450,
-      margin: 2,
-      color: { dark: '#1B5E20', light: '#FFFFFF' },
-    });
+    console.log('\n' + '-'.repeat(66));
+    console.log(` 📡 [3] MOBILE HOTSPOT SERVER`);
+    console.log(` Network Interface : ${hotspot.name} (${hotspot.address})`);
+    console.log(` Target Expo URL   : ${hotspotUrl}`);
+    console.log('-'.repeat(66) + '\n');
+    console.log(renderTerminalQR(hotspotUrl, 2));
   }
 
-  const apkPng = path.join(appDir, 'expo-go-client-54-0-8-qr.png');
-  await QRCode.toFile(apkPng, clientApkUrl, {
-    width: 450,
-    margin: 2,
-    color: { dark: '#0D47A1', light: '#FFFFFF' },
-  });
-
-  // Generate Data URLs for standalone HTML viewer
-  const wifiDataUrl = await QRCode.toDataURL(wifiUrl, { width: 360, margin: 2, color: { dark: '#1B5E20', light: '#FFFFFF' } });
-  const hotspotDataUrl = hotspotUrl ? await QRCode.toDataURL(hotspotUrl, { width: 360, margin: 2, color: { dark: '#1B5E20', light: '#FFFFFF' } }) : wifiDataUrl;
-  const apkDataUrl = await QRCode.toDataURL(clientApkUrl, { width: 360, margin: 2, color: { dark: '#0D47A1', light: '#FFFFFF' } });
+  // Generate SVGs for HTML viewer
+  const wifiSvg = generateSvgQR(wifiUrl, 7, 2);
+  const hotspotSvg = hotspotUrl ? generateSvgQR(hotspotUrl, 7, 2) : '';
+  const apkSvg = generateSvgQR(clientApkUrl, 7, 2);
 
   const htmlContent = `<!DOCTYPE html>
 <html lang="en">
@@ -213,7 +235,7 @@ async function main() {
     .card.blue .qr-frame {
       border-color: #BBDEFB;
     }
-    .qr-frame img {
+    .qr-frame svg {
       display: block;
       width: 240px;
       height: 240px;
@@ -260,29 +282,6 @@ async function main() {
     }
     .btn-blue:hover {
       background: #0D47A1;
-    }
-    .toggle-group {
-      display: inline-flex;
-      background: var(--bg);
-      padding: 4px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      margin-bottom: 16px;
-    }
-    .toggle-btn {
-      padding: 6px 14px;
-      border-radius: 8px;
-      border: none;
-      background: transparent;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      color: var(--text-muted);
-    }
-    .toggle-btn.active {
-      background: white;
-      color: var(--primary-dark);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
     }
     .guide-box {
       background: white;
@@ -349,21 +348,14 @@ async function main() {
     <!-- Card 1: Dev Server QR -->
     <div class="card green">
       <h2>🚀 Open Kisan Mitra App</h2>
-      <p class="card-desc">Scan inside the Expo Go app or your camera</p>
-
-      ${hotspot ? `
-      <div class="toggle-group">
-        <button class="toggle-btn active" id="btn-wifi" onclick="switchNetwork('wifi')">Wi-Fi (${wifi.address})</button>
-        <button class="toggle-btn" id="btn-hotspot" onclick="switchNetwork('hotspot')">Hotspot (${hotspot.address})</button>
-      </div>
-      ` : ''}
+      <p class="card-desc">Scan inside Expo Go (v54.0.8) or with phone camera</p>
 
       <div class="qr-frame">
-        <img id="dev-qr-img" src="${wifiDataUrl}" alt="Kisan Mitra Expo Dev Server QR Code" />
+        ${wifiSvg}
       </div>
 
-      <div class="url-chip" id="dev-url-text">${wifiUrl}</div>
-      <a href="${wifiUrl}" class="btn btn-green">Open in Browser / Metro</a>
+      <div class="url-chip">${wifiUrl}</div>
+      <a href="${wifiUrl}" class="btn btn-green">Open in Expo Go</a>
     </div>
 
     <!-- Card 2: Expo Go Client v54.0.8 APK Download -->
@@ -372,10 +364,10 @@ async function main() {
       <p class="card-desc">Download & install the exact Expo Go 54.0.8 Android APK</p>
 
       <div class="qr-frame">
-        <img src="${apkDataUrl}" alt="Expo Go v54.0.8 Client APK Download QR" />
+        ${apkSvg}
       </div>
 
-      <div class="url-chip">Expo Go v54.0.8 Android Release</div>
+      <div class="url-chip">Expo Go v54.0.8 Android APK</div>
       <a href="${clientApkUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-blue">Download Client APK</a>
     </div>
   </div>
@@ -387,14 +379,14 @@ async function main() {
         <div class="step-num">1</div>
         <div class="step-content">
           <strong>Ensure Same Network</strong>
-          <p>Make sure your PC and mobile device are connected to the same Wi-Fi network (or PC Mobile Hotspot).</p>
+          <p>Make sure your PC and mobile device are connected to the same Wi-Fi network (${wifi.address}).</p>
         </div>
       </div>
       <div class="step">
         <div class="step-num">2</div>
         <div class="step-content">
           <strong>Start Expo Dev Server</strong>
-          <p>Double-click <code>run-expo.bat</code> or run <code>npm start</code> in your terminal if not already running.</p>
+          <p>Run <code>npx expo start --go --lan</code> in your terminal if not already running.</p>
         </div>
       </div>
       <div class="step">
@@ -408,51 +400,23 @@ async function main() {
   </div>
 
   <footer>
-    <p>Kisan Mitra App • Expo SDK 54.0.0 • Client v54.0.8</p>
+    <p>Kisan Mitra App • Expo SDK 54.0.8 • Client v54.0.8</p>
   </footer>
-
-  <script>
-    const wifiData = "${wifiDataUrl}";
-    const wifiUrl = "${wifiUrl}";
-    const hotspotData = "${hotspotDataUrl}";
-    const hotspotUrl = "${hotspotUrl || ''}";
-
-    function switchNetwork(type) {
-      const img = document.getElementById('dev-qr-img');
-      const text = document.getElementById('dev-url-text');
-      const btnWifi = document.getElementById('btn-wifi');
-      const btnHotspot = document.getElementById('btn-hotspot');
-
-      if (type === 'hotspot' && hotspotUrl) {
-        img.src = hotspotData;
-        text.innerText = hotspotUrl;
-        if (btnHotspot) btnHotspot.classList.add('active');
-        if (btnWifi) btnWifi.classList.remove('active');
-      } else {
-        img.src = wifiData;
-        text.innerText = wifiUrl;
-        if (btnWifi) btnWifi.classList.add('active');
-        if (btnHotspot) btnHotspot.classList.remove('active');
-      }
-    }
-  </script>
 </body>
 </html>`;
+
+  const appDir = path.resolve(__dirname, '..');
+  const rootDir = path.resolve(appDir, '..');
 
   const htmlPathApp = path.join(appDir, 'expo-qr-viewer.html');
   const htmlPathRoot = path.join(rootDir, 'expo-qr-viewer.html');
   fs.writeFileSync(htmlPathApp, htmlContent, 'utf-8');
   fs.writeFileSync(htmlPathRoot, htmlContent, 'utf-8');
 
-  console.log('\n' + '='.repeat(60));
-  console.log(`[SAVED] QR code files generated:`);
-  console.log(`- HTML Viewer : ${htmlPathRoot}`);
-  console.log(`- Wi-Fi PNG   : ${wifiPng}`);
-  if (hotspotUrl) {
-    console.log(`- Hotspot PNG : ${path.join(appDir, 'expo-dev-hotspot-qr.png')}`);
-  }
-  console.log(`- Client APK  : ${apkPng}`);
-  console.log('='.repeat(60) + '\n');
+  console.log('-'.repeat(66));
+  console.log(` ✅ Standalone HTML QR Viewer updated at:`);
+  console.log(`    ${htmlPathRoot}`);
+  console.log('='.repeat(66) + '\n');
 }
 
 main().catch(err => {

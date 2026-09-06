@@ -56,7 +56,7 @@ export default function DigitalReceiptScreen() {
           </View>
           <View style={styles.row}>
             <Text style={styles.lbl}>Weighbridge Operator:</Text>
-            <Text style={styles.val}>Suresh Verma (OP-104)</Text>
+            <Text style={styles.val}>Dr Nirmal Kumar Mohanta (OP-001)</Text>
           </View>
         </View>
 

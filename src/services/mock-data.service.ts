@@ -106,13 +106,14 @@ export const MOCK_FARMERS: Farmer[] = [
 ];
 
 export const MOCK_OPERATORS: Operator[] = [
-  { id: 'O-001', name: 'Anil Kumar', role: UserRole.OPERATOR, centreId: 'C-001', phone: '9998887770' },
+  { id: 'O-001', name: 'Dr Nirmal Kumar Mohanta', role: UserRole.OPERATOR, centreId: 'C-001', phone: '9348856994' },
   { id: 'O-002', name: 'Rajesh Verma', role: UserRole.OPERATOR, centreId: 'C-002', phone: '9998887771' },
   { id: 'O-003', name: 'Priya Sharma', role: UserRole.OPERATOR, centreId: 'C-003', phone: '9998887772' }
 ];
 
 export const MOCK_ADMIN: AdminUser[] = [
-  { id: 'A-001', name: 'Collector Shukla', role: UserRole.ADMIN, jurisdiction: 'Bhopal Division', phone: '9998887773' }
+  { id: 'A-001', name: 'Collector Shukla', role: UserRole.ADMIN, jurisdiction: 'Bhopal Division', phone: '9999999999' },
+  { id: 'A-002', name: 'Admin Officer', role: UserRole.ADMIN, jurisdiction: 'State Headquarter', phone: '9876543212' },
 ];
 
 let transactionCounter = 1000;
