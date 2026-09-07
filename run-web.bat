@@ -1,6 +1,6 @@
 @echo off
 title Kisan Mitra - Operator Dashboard (Web Mode)
-cd /d "%~dp0"
+
 echo ========================================================
 echo  Kisan Mitra - Operator Dashboard (Web Browser Mode)
 echo  No Expo Go required. Opens directly in browser.

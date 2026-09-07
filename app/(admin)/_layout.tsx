@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { TouchableOpacity, Alert } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -41,7 +41,7 @@ export default function AdminLayout() {
         headerRight: () => <LogoutButton />,
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Admin Command' }} />
+      <Stack.Screen name="index" options={{ title: 'State & District Command Center' }} />
       <Stack.Screen name="mandis" options={{ title: 'All Mandis' }} />
       <Stack.Screen name="mandi/[mandiId]" options={{ title: 'Mandi Detail' }} />
       <Stack.Screen name="analytics" options={{ title: 'Analytics' }} />

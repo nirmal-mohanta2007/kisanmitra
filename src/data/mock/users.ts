@@ -12,8 +12,8 @@ export const mockUsers: User[] = [
   },
   {
     id: 'usr_002',
-    name: 'Anil Kumar',
-    phone: '+91 9876543211',
+    name: 'Dr Nirmal Kumar Mohanta',
+    phone: '+91 9348856994',
     role: 'OPERATOR',
     status: 'ACTIVE',
     mandiId: 'mandi_001',

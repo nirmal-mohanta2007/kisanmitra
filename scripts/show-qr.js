@@ -19,6 +19,7 @@ function getLocalIPs() {
 
 /**
  * Render high-contrast ANSI QR code for terminal
+
  */
 function renderTerminalQR(url, margin = 2) {
   const qr = qrcodeCore(0, 'M');
@@ -77,46 +78,7 @@ async function main() {
   const hotspotExpoUrl = hotspot ? `exp://${hotspot.address}:${port}` : null;
   const clientApkUrl = 'https://www.apkmirror.com/apk/expo-project/expo-go/expo-go-54-0-8-release/';
 
-  console.log('\n' + '='.repeat(68));
-  console.log('       🌾 KISAN MITRA - BROWSER & EXPO LAUNCHER');
-  console.log('='.repeat(68));
 
-  console.log('\n' + '-'.repeat(68));
-  console.log(` 🌐 [1] LIVE CLOUD WEB APP (Runs directly in Chrome / Safari / Edge)`);
-  console.log(` Direct Browser Link: ${liveWebUrl}`);
-  console.log(` Status: Deployed & Online (No Expo Go or setup needed)`);
-  console.log(` Action: Click the link or scan with standard camera to open in browser:`);
-  console.log('-'.repeat(68) + '\n');
-  console.log(renderTerminalQR(liveWebUrl, 2));
-
-  console.log('\n' + '-'.repeat(68));
-  console.log(` 💻 [2] LOCAL DEVELOPMENT WEB SERVER (Metro Bundler)`);
-  console.log(` Local PC Link   : ${localWebUrl}`);
-  console.log(` Mobile LAN Link : ${lanWebUrl}`);
-  console.log(` Action: Run 'run-web.bat' to start the local dev server`);
-  console.log('-'.repeat(68));
-
-  console.log('\n' + '-'.repeat(68));
-  console.log(` 📱 [3] EXPO GO APP DEV SERVER (SDK 54)`);
-  console.log(` Network Interface : ${wifi.name} (${wifi.address})`);
-  console.log(` Target Expo URL   : ${wifiExpoUrl}`);
-  console.log(` Action: Scan with Expo Go (v54.0.8) or Mobile Camera:`);
-  console.log('-'.repeat(68) + '\n');
-  console.log(renderTerminalQR(wifiExpoUrl, 2));
-
-  if (hotspotExpoUrl) {
-    console.log('\n' + '-'.repeat(68));
-    console.log(` 📡 [4] MOBILE HOTSPOT SERVER`);
-    console.log(` Network Interface : ${hotspot.name} (${hotspot.address})`);
-    console.log(` Target Expo URL   : ${hotspotExpoUrl}`);
-    console.log('-'.repeat(68) + '\n');
-    console.log(renderTerminalQR(hotspotExpoUrl, 2));
-  }
-
-  // Generate SVGs for HTML viewer
-  const liveWebSvg = generateSvgQR(liveWebUrl, 7, 2);
-  const lanWebSvg = generateSvgQR(lanWebUrl, 7, 2);
-  const wifiExpoSvg = generateSvgQR(wifiExpoUrl, 7, 2);
   const apkSvg = generateSvgQR(clientApkUrl, 7, 2);
 
   const htmlContent = `<!DOCTYPE html>
@@ -271,9 +233,6 @@ async function main() {
       align-items: center;
       justify-content: center;
     }
-    .card.highlight .qr-frame { border-color: #81C784; }
-    .card.green .qr-frame { border-color: #C8E6C9; }
-    .card.orange .qr-frame { border-color: #FFE0B2; }
 
     .qr-frame svg {
       display: block;
@@ -310,16 +269,6 @@ async function main() {
       width: 100%;
       margin-bottom: 8px;
     }
-    .btn-green { background: #2E7D32; color: white; }
-    .btn-green:hover { background: #1B5E20; transform: translateY(-1px); }
-    .btn-blue { background: #1565C0; color: white; }
-    .btn-blue:hover { background: #0D47A1; transform: translateY(-1px); }
-    .btn-outline {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
-    }
-    .btn-outline:hover { background: #ECEFF1; }
 
     .guide-box {
       background: white;
@@ -386,33 +335,7 @@ async function main() {
   </header>
 
   <div class="cards-grid">
-    <!-- Card 1: Cloud Web Version (Recommended) -->
-    <div class="card highlight">
-      <span class="tag">⚡ Instant Access • No Install</span>
-      <h2>🌐 1. Live Web Browser App</h2>
-      <p class="card-desc">Runs instantly in Chrome, Safari, Edge, or mobile browser without Expo Go.</p>
 
-      <div class="qr-frame">
-        ${liveWebSvg}
-      </div>
-
-      <div class="url-chip">${liveWebUrl}</div>
-      <a href="${liveWebUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-green">🚀 Open in Browser Now</a>
-    </div>
-
-    <!-- Card 2: Local Web Dev Server -->
-    <div class="card blue">
-      <span class="tag">💻 Local Dev Server</span>
-      <h2>💻 2. Local PC / LAN Browser</h2>
-      <p class="card-desc">For local development. Run <code>run-web.bat</code> in the project folder to start.</p>
-
-      <div class="qr-frame">
-        ${lanWebSvg}
-      </div>
-
-      <div class="url-chip">${localWebUrl}</div>
-      <a href="${localWebUrl}" target="_blank" class="btn btn-blue">💻 Open Localhost (Port ${port})</a>
-      <a href="${lanWebUrl}" target="_blank" class="btn btn-outline">📱 Open Phone LAN (${wifi.address})</a>
     </div>
 
     <!-- Card 3: Native Expo Go App -->
@@ -439,8 +362,7 @@ async function main() {
         ${apkSvg}
       </div>
 
-      <div class="url-chip">Expo Go v54.0.8 APK</div>
-      <a href="${clientApkUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="background: #E65100; color: white;">Download APK</a>
+
     </div>
   </div>
 
@@ -450,15 +372,13 @@ async function main() {
       <div class="step">
         <div class="step-num">1</div>
         <div class="step-content">
-          <strong>Browser Mode (Zero Setup)</strong>
-          <p>Click <a href="${liveWebUrl}" target="_blank">Open in Browser</a> to immediately access the app in your browser on PC or smartphone.</p>
+
         </div>
       </div>
       <div class="step">
         <div class="step-num">2</div>
         <div class="step-content">
-          <strong>Local Development</strong>
-          <p>Double-click <code>run-web.bat</code> or <code>open-in-browser.bat</code> to start the local Metro Web bundler on port 8081.</p>
+
         </div>
       </div>
       <div class="step">
@@ -472,33 +392,12 @@ async function main() {
   </div>
 
   <footer>
-    <p>Kisan Mitra Platform • Talcher Mandi Command Console • SDK 54</p>
+
   </footer>
 </body>
 </html>`;
 
-  // Safely determine output paths avoiding drive root
-  const currentDir = path.resolve(__dirname, '..');
-  const parentDir = path.resolve(currentDir, '..');
 
-  const targets = new Set();
-  if (fs.existsSync(path.join(currentDir, 'package.json'))) {
-    targets.add(currentDir);
-  }
-  if (fs.existsSync(path.join(parentDir, 'package.json'))) {
-    targets.add(parentDir);
-  }
-  const nested = path.join(currentDir, 'KISAN MITRA');
-  if (fs.existsSync(path.join(nested, 'package.json'))) {
-    targets.add(nested);
-  }
-
-  for (const t of targets) {
-    const p = path.join(t, 'expo-qr-viewer.html');
-    fs.writeFileSync(p, htmlContent, 'utf-8');
-    console.log(` ✅ Updated viewer: ${p}`);
-  }
-  console.log('='.repeat(68) + '\n');
 }
 
 main().catch(err => {
