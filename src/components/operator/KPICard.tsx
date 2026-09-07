@@ -26,7 +26,7 @@ export const KPICard: React.FC<KPICardProps> = ({
   subtitle,
   badge,
   badgeColor = colors.primary,
-  badgeBg = '#E8F5E9',
+  badgeBg = '#889e8aff',
   iconName,
   iconColor = colors.secondary,
   scale = 1.0,

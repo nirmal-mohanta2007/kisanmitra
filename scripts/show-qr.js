@@ -1,14 +1,15 @@
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
-const QRCode = require('qrcode');
+const qrcodeCore = require('./qrcode-core');
 
 function getLocalIPs() {
   const nets = os.networkInterfaces();
   const ips = [];
   for (const name of Object.keys(nets)) {
     for (const net of nets[name]) {
-      if (net.family === 'IPv4' && !net.internal) {
+      const isIpv4 = net.family === 'IPv4' || net.family === 4;
+      if (isIpv4 && !net.internal) {
         ips.push({ name, address: net.address });
       }
     }
@@ -16,79 +17,121 @@ function getLocalIPs() {
   return ips;
 }
 
+/**
+ * Render high-contrast ANSI QR code for terminal
+ */
+function renderTerminalQR(url, margin = 2) {
+  const qr = qrcodeCore(0, 'M');
+  qr.addData(url);
+  qr.make();
+
+  const count = qr.getModuleCount();
+  const total = count + margin * 2;
+  const WHITE_BG_BLACK_FG = '\x1b[47;30m';
+  const RESET = '\x1b[0m';
+  const lines = [];
+
+  for (let y = 0; y < total; y += 2) {
+    let line = WHITE_BG_BLACK_FG;
+    const r1 = y - margin;
+    const r2 = y + 1 - margin;
+
+    for (let x = 0; x < total; x++) {
+      const c = x - margin;
+      const topDark = (r1 >= 0 && r1 < count && c >= 0 && c < count) ? qr.isDark(r1, c) : false;
+      const botDark = (r2 >= 0 && r2 < count && c >= 0 && c < count) ? qr.isDark(r2, c) : false;
+
+      if (topDark && botDark) {
+        line += '█';
+      } else if (topDark && !botDark) {
+        line += '▀';
+      } else if (!topDark && botDark) {
+        line += '▄';
+      } else {
+        line += ' ';
+      }
+    }
+    line += RESET;
+    lines.push(line);
+  }
+  return lines.join('\n');
+}
+
+function generateSvgQR(url, cellSize = 6, margin = 2) {
+  const qr = qrcodeCore(0, 'M');
+  qr.addData(url);
+  qr.make();
+  return qr.createSvg(cellSize, margin * cellSize);
+}
+
 async function main() {
   const ips = getLocalIPs();
-  const wifi = ips.find(i => i.name.toLowerCase().includes('wi-fi') || i.name.toLowerCase().includes('wifi')) || ips[0] || { address: '127.0.0.1' };
-  const hotspot = ips.find(i => i.name.toLowerCase().includes('local area') || i.address.startsWith('192.168.137')) || null;
+  const wifi = ips.find(i => /wi-?fi/i.test(i.name)) || ips[0] || { name: 'Localhost', address: '127.0.0.1' };
+  const hotspot = ips.find(i => /local area/i.test(i.name) || i.address.startsWith('192.168.137')) || null;
 
   const port = process.env.PORT || '8081';
-  const webUrl = `http://${wifi.address}:${port}`;
+  const liveWebUrl = 'https://nirmal-mohanta2007.github.io/kisanmitra/';
   const localWebUrl = `http://localhost:${port}`;
-  const expoUrl = `exp://${wifi.address}:${port}`;
-  const officialApkUrl = 'https://expo.dev/go?sdkVersion=54&platform=android&device=true';
+  const lanWebUrl = `http://${wifi.address}:${port}`;
+  const wifiExpoUrl = `exp://${wifi.address}:${port}`;
+  const hotspotExpoUrl = hotspot ? `exp://${hotspot.address}:${port}` : null;
+  const clientApkUrl = 'https://www.apkmirror.com/apk/expo-project/expo-go/expo-go-54-0-8-release/';
 
-  console.log('\n' + '='.repeat(64));
-  console.log('       🌾 KISAN MITRA - AUTO-REFRESHING LIVE PORTAL 🌾');
-  console.log('='.repeat(64));
+  console.log('\n' + '='.repeat(68));
+  console.log('       🌾 KISAN MITRA - BROWSER & EXPO LAUNCHER');
+  console.log('='.repeat(68));
 
-  console.log(`\n================================================================`);
-  console.log(` [1] DIRECT PHONE / PC WEB BROWSER (NO EXPO GO NEEDED)`);
-  console.log(` 🌐 Phone Browser URL : ${webUrl}`);
-  console.log(` 💻 Local PC URL      : ${localWebUrl}`);
-  console.log(`================================================================\n`);
-  const webTerminalQr = await QRCode.toString(webUrl, { type: 'terminal', small: true });
-  console.log(webTerminalQr);
+  console.log('\n' + '-'.repeat(68));
+  console.log(` 🌐 [1] LIVE CLOUD WEB APP (Runs directly in Chrome / Safari / Edge)`);
+  console.log(` Direct Browser Link: ${liveWebUrl}`);
+  console.log(` Status: Deployed & Online (No Expo Go or setup needed)`);
+  console.log(` Action: Click the link or scan with standard camera to open in browser:`);
+  console.log('-'.repeat(68) + '\n');
+  console.log(renderTerminalQR(liveWebUrl, 2));
 
-  console.log(`\n================================================================`);
-  console.log(` [2] EXPO GO APP (NATIVE APP - SDK 54)`);
-  console.log(` 📱 Scan inside Expo Go App:`);
-  console.log(` URL: ${expoUrl}`);
-  console.log(`================================================================\n`);
-  const expoTerminalQr = await QRCode.toString(expoUrl, { type: 'terminal', small: true });
-  console.log(expoTerminalQr);
+  console.log('\n' + '-'.repeat(68));
+  console.log(` 💻 [2] LOCAL DEVELOPMENT WEB SERVER (Metro Bundler)`);
+  console.log(` Local PC Link   : ${localWebUrl}`);
+  console.log(` Mobile LAN Link : ${lanWebUrl}`);
+  console.log(` Action: Run 'run-web.bat' to start the local dev server`);
+  console.log('-'.repeat(68));
 
-  // Generate PNG files
-  const appDir = path.resolve(__dirname, '..');
-  const rootDir = path.resolve(appDir, '..');
+  console.log('\n' + '-'.repeat(68));
+  console.log(` 📱 [3] EXPO GO APP DEV SERVER (SDK 54)`);
+  console.log(` Network Interface : ${wifi.name} (${wifi.address})`);
+  console.log(` Target Expo URL   : ${wifiExpoUrl}`);
+  console.log(` Action: Scan with Expo Go (v54.0.8) or Mobile Camera:`);
+  console.log('-'.repeat(68) + '\n');
+  console.log(renderTerminalQR(wifiExpoUrl, 2));
 
-  const webPng = path.join(appDir, 'kisan-operator-web-qr.png');
-  await QRCode.toFile(webPng, webUrl, {
-    width: 450,
-    margin: 2,
-    color: { dark: '#0D47A1', light: '#FFFFFF' },
-  });
+  if (hotspotExpoUrl) {
+    console.log('\n' + '-'.repeat(68));
+    console.log(` 📡 [4] MOBILE HOTSPOT SERVER`);
+    console.log(` Network Interface : ${hotspot.name} (${hotspot.address})`);
+    console.log(` Target Expo URL   : ${hotspotExpoUrl}`);
+    console.log('-'.repeat(68) + '\n');
+    console.log(renderTerminalQR(hotspotExpoUrl, 2));
+  }
 
-  const expoPng = path.join(appDir, 'kisan-expo-go-qr.png');
-  await QRCode.toFile(expoPng, expoUrl, {
-    width: 450,
-    margin: 2,
-    color: { dark: '#1B5E20', light: '#FFFFFF' },
-  });
-
-  const apkPng = path.join(appDir, 'expo-go-sdk54-download-qr.png');
-  await QRCode.toFile(apkPng, officialApkUrl, {
-    width: 450,
-    margin: 2,
-    color: { dark: '#E65100', light: '#FFFFFF' },
-  });
-
-  // Data URLs for standalone HTML viewer
-  const webDataUrl = await QRCode.toDataURL(webUrl, { width: 360, margin: 2, color: { dark: '#0D47A1', light: '#FFFFFF' } });
-  const expoDataUrl = await QRCode.toDataURL(expoUrl, { width: 360, margin: 2, color: { dark: '#1B5E20', light: '#FFFFFF' } });
-  const apkDataUrl = await QRCode.toDataURL(officialApkUrl, { width: 360, margin: 2, color: { dark: '#E65100', light: '#FFFFFF' } });
+  // Generate SVGs for HTML viewer
+  const liveWebSvg = generateSvgQR(liveWebUrl, 7, 2);
+  const lanWebSvg = generateSvgQR(lanWebUrl, 7, 2);
+  const wifiExpoSvg = generateSvgQR(wifiExpoUrl, 7, 2);
+  const apkSvg = generateSvgQR(clientApkUrl, 7, 2);
 
   const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🌾 Kisan Mitra - Auto-Refreshing Live Portal</title>
+  <title>🌾 Kisan Mitra - Web Browser & App Hub</title>
   <style>
     :root {
       --primary: #1565C0;
       --primary-dark: #0D47A1;
       --primary-light: #E3F2FD;
       --green: #2E7D32;
+      --green-dark: #1B5E20;
       --green-light: #E8F5E9;
       --orange: #E65100;
       --orange-light: #FFF3E0;
@@ -104,7 +147,7 @@ async function main() {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
     body {
       background-color: var(--bg);
@@ -113,12 +156,12 @@ async function main() {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 24px 16px;
+      padding: 32px 16px;
     }
     header {
       text-align: center;
       margin-bottom: 24px;
-      max-width: 780px;
+      max-width: 800px;
     }
     .badge {
       display: inline-flex;
@@ -147,28 +190,16 @@ async function main() {
       100% { transform: scale(0.95); opacity: 0.7; }
     }
     h1 {
-      font-size: 2.2rem;
-      color: #1A237E;
-      margin-bottom: 6px;
+      font-size: 2.3rem;
+      color: #0D47A1;
+      margin-bottom: 8px;
       font-weight: 800;
+      letter-spacing: -0.5px;
     }
     p.subtitle {
       color: var(--text-muted);
       font-size: 1.05rem;
-      line-height: 1.4;
-    }
-    .status-bar {
-      background: #FFFFFF;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 20px;
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      line-height: 1.5;
     }
     .cards-grid {
       display: grid;
@@ -176,7 +207,7 @@ async function main() {
       gap: 24px;
       width: 100%;
       max-width: 1100px;
-      margin-bottom: 28px;
+      margin-bottom: 32px;
     }
     .card {
       background: var(--surface);
@@ -199,15 +230,29 @@ async function main() {
       right: 0;
       height: 6px;
     }
+    .card.highlight::before { background: linear-gradient(90deg, #00C853, #1565C0); }
     .card.blue::before { background: linear-gradient(90deg, #1E88E5, #0D47A1); }
     .card.green::before { background: linear-gradient(90deg, #43A047, #2E7D32); }
     .card.orange::before { background: linear-gradient(90deg, #FB8C00, #E65100); }
 
+    .card .tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .card.highlight .tag { background: #E8F5E9; color: #1B5E20; }
+    .card.blue .tag { background: #E3F2FD; color: #0D47A1; }
+    .card.green .tag { background: #F1F8E9; color: #33691E; }
+    .card.orange .tag { background: #FFF3E0; color: #E65100; }
+
     .card h2 {
       font-size: 1.25rem;
       font-weight: 700;
-      margin-top: 6px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
     .card p.card-desc {
       font-size: 0.88rem;
@@ -226,10 +271,11 @@ async function main() {
       align-items: center;
       justify-content: center;
     }
+    .card.highlight .qr-frame { border-color: #81C784; }
     .card.green .qr-frame { border-color: #C8E6C9; }
     .card.orange .qr-frame { border-color: #FFE0B2; }
 
-    .qr-frame img {
+    .qr-frame svg {
       display: block;
       width: 220px;
       height: 220px;
@@ -241,7 +287,7 @@ async function main() {
       border-radius: 8px;
       padding: 8px 12px;
       font-family: monospace;
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       color: var(--text);
       word-break: break-all;
       margin-bottom: 14px;
@@ -253,9 +299,9 @@ async function main() {
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 11px 20px;
+      padding: 12px 20px;
       border-radius: 10px;
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.95rem;
       text-decoration: none;
       cursor: pointer;
@@ -264,31 +310,65 @@ async function main() {
       width: 100%;
       margin-bottom: 8px;
     }
-    .btn-blue { background: var(--primary); color: white; }
-    .btn-blue:hover { background: var(--primary-dark); }
-    .btn-green { background: var(--green); color: white; }
-    .btn-green:hover { background: #1B5E20; }
+    .btn-green { background: #2E7D32; color: white; }
+    .btn-green:hover { background: #1B5E20; transform: translateY(-1px); }
+    .btn-blue { background: #1565C0; color: white; }
+    .btn-blue:hover { background: #0D47A1; transform: translateY(-1px); }
     .btn-outline {
       background: transparent;
       border: 1px solid var(--border);
       color: var(--text);
     }
-    .btn-outline:hover {
-      background: #ECEFF1;
-    }
-    .notice-box {
-      background: #E8F5E9;
-      border: 1px solid #C8E6C9;
-      border-radius: 12px;
-      padding: 16px 20px;
-      max-width: 1100px;
+    .btn-outline:hover { background: #ECEFF1; }
+
+    .guide-box {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      padding: 24px 28px;
       width: 100%;
-      font-size: 0.92rem;
-      color: #1B5E20;
-      line-height: 1.5;
+      max-width: 1100px;
+      margin-bottom: 24px;
+    }
+    .guide-box h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 14px;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .step {
+      display: flex;
+      gap: 12px;
+    }
+    .step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-content strong {
+      display: block;
+      font-size: 0.95rem;
+      margin-bottom: 3px;
+    }
+    .step-content p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.4;
     }
     footer {
-      margin-top: 24px;
       text-align: center;
       font-size: 0.85rem;
       color: var(--text-muted);
@@ -299,102 +379,129 @@ async function main() {
   <header>
     <div class="badge">
       <div class="pulse-dot"></div>
-      <span>🌾 किसान मित्र • Live Refresh Portal</span>
+      <span>🌾 Kisan Mitra • Live Web & Mobile Portal</span>
     </div>
-    <h1>Operator Dashboard Portal</h1>
-    <p class="subtitle">यह पेज सर्वर के साथ ऑटो-रिफ्रेश होता है। आपको बार-बार नया लिंक मांगने की आवश्यकता नहीं है।</p>
+    <h1>Run Kisan Mitra Anywhere</h1>
+    <p class="subtitle">Open the app directly in any web browser without downloading, or scan to run on mobile.</p>
   </header>
 
-  <div class="status-bar" id="liveStatus">
-    <div class="pulse-dot"></div>
-    <span id="statusText">Checking Metro Server on Port 8081...</span>
-  </div>
-
   <div class="cards-grid">
-    <!-- Card 1: Direct Phone / PC Web -->
+    <!-- Card 1: Cloud Web Version (Recommended) -->
+    <div class="card highlight">
+      <span class="tag">⚡ Instant Access • No Install</span>
+      <h2>🌐 1. Live Web Browser App</h2>
+      <p class="card-desc">Runs instantly in Chrome, Safari, Edge, or mobile browser without Expo Go.</p>
+
+      <div class="qr-frame">
+        ${liveWebSvg}
+      </div>
+
+      <div class="url-chip">${liveWebUrl}</div>
+      <a href="${liveWebUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-green">🚀 Open in Browser Now</a>
+    </div>
+
+    <!-- Card 2: Local Web Dev Server -->
     <div class="card blue">
-      <h2>🌐 1. Phone / PC Browser (Web)</h2>
-      <p class="card-desc">फोन के सामान्य कैमरा से स्कैन करें या नीचे दिए बटन पर क्लिक करें। (Zero SDK Mismatch)</p>
+      <span class="tag">💻 Local Dev Server</span>
+      <h2>💻 2. Local PC / LAN Browser</h2>
+      <p class="card-desc">For local development. Run <code>run-web.bat</code> in the project folder to start.</p>
 
       <div class="qr-frame">
-        <img src="${webDataUrl}" alt="Web QR Code" />
+        ${lanWebSvg}
       </div>
 
-      <div class="url-chip">${webUrl}</div>
-      <a href="${localWebUrl}" target="_blank" class="btn btn-blue">💻 Open on this PC (${localWebUrl})</a>
-      <a href="${webUrl}" target="_blank" class="btn btn-outline">📱 Open Phone LAN (${webUrl})</a>
+      <div class="url-chip">${localWebUrl}</div>
+      <a href="${localWebUrl}" target="_blank" class="btn btn-blue">💻 Open Localhost (Port ${port})</a>
+      <a href="${lanWebUrl}" target="_blank" class="btn btn-outline">📱 Open Phone LAN (${wifi.address})</a>
     </div>
 
-    <!-- Card 2: Native Expo Go SDK 54 -->
+    <!-- Card 3: Native Expo Go App -->
     <div class="card green">
-      <h2>📱 2. Expo Go App (SDK 54)</h2>
-      <p class="card-desc">यदि आपके फोन में Expo Go v54 installed है तो सीधे Expo Go ऐप से स्कैन करें।</p>
+      <span class="tag">📱 Native App</span>
+      <h2>📱 3. Expo Go (SDK 54)</h2>
+      <p class="card-desc">Scan with Expo Go v54.0.8 or camera to test native Android / iOS features.</p>
 
       <div class="qr-frame">
-        <img src="${expoDataUrl}" alt="Expo Go Dev Server QR Code" />
+        ${wifiExpoSvg}
       </div>
 
-      <div class="url-chip">${expoUrl}</div>
-      <a href="${expoUrl}" class="btn btn-green">Open in Expo Go</a>
+      <div class="url-chip">${wifiExpoUrl}</div>
+      <a href="${wifiExpoUrl}" class="btn btn-green">Open in Expo Go</a>
     </div>
 
-    <!-- Card 3: Download Expo Go SDK 54 -->
+    <!-- Card 4: APK Download -->
     <div class="card orange">
-      <h2>📦 3. Download Expo Go SDK 54</h2>
-      <p class="card-desc">यदि Play Store वाला Expo Go (SDK 57) एरर दे रहा हो तो यहाँ से आधिकारिक SDK 54 APK लें।</p>
+      <span class="tag">📦 Android APK</span>
+      <h2>📦 4. Download Expo Go v54.0.8</h2>
+      <p class="card-desc">If Play Store version (SDK 57) is incompatible, install exact v54.0.8 APK.</p>
 
       <div class="qr-frame">
-        <img src="${apkDataUrl}" alt="Expo Go APK QR" />
+        ${apkSvg}
       </div>
 
-      <div class="url-chip">Official Expo Go SDK 54 APK</div>
-      <a href="${officialApkUrl}" target="_blank" class="btn btn-outline" style="background: #E65100; color: white;">Download SDK 54 APK</a>
+      <div class="url-chip">Expo Go v54.0.8 APK</div>
+      <a href="${clientApkUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="background: #E65100; color: white;">Download APK</a>
     </div>
   </div>
 
-  <div class="notice-box">
-    <strong>💡 टोकन बचाने के लिए स्थायी उपाय (Permanent Solution):</strong>
-    <p style="margin-top: 4px;">इस पेज को अपने ब्राउज़र में बुकमार्क कर लें। जब भी आप <code>run-web.bat</code> या <code>npm start</code> चलाएंगे, यह पोर्टल स्वतः लाइव हो जाएगा। आपको चैट में बार-बार QR कोड मांगने की आवश्यकता नहीं पड़ेगी!</p>
+  <div class="guide-box">
+    <h3>💡 Quick Guide:</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Browser Mode (Zero Setup)</strong>
+          <p>Click <a href="${liveWebUrl}" target="_blank">Open in Browser</a> to immediately access the app in your browser on PC or smartphone.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Local Development</strong>
+          <p>Double-click <code>run-web.bat</code> or <code>open-in-browser.bat</code> to start the local Metro Web bundler on port 8081.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>Mobile Testing</strong>
+          <p>Connect your phone and PC to Wi-Fi (<code>${wifi.address}</code>) and scan the QR code using Expo Go v54.0.8.</p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <footer>
-    <p>Kisan Mitra Platform • Talcher Mandi Command Console • Port ${port}</p>
+    <p>Kisan Mitra Platform • Talcher Mandi Command Console • SDK 54</p>
   </footer>
-
-  <script>
-    // Live Heartbeat Auto-detection
-    const testUrl = 'http://localhost:${port}/';
-    async function checkServer() {
-      const statusEl = document.getElementById('statusText');
-      try {
-        const res = await fetch(testUrl, { mode: 'no-cors' });
-        statusEl.innerText = '🟢 Server Online & Ready on Port ${port} (Auto-refresh active)';
-        statusEl.style.color = '#2E7D32';
-      } catch(e) {
-        statusEl.innerText = '🟡 Server starting or offline... Run "run-web.bat" in your folder';
-        statusEl.style.color = '#E65100';
-      }
-    }
-    checkServer();
-    setInterval(checkServer, 4000);
-  </script>
 </body>
 </html>`;
 
-  const htmlPathApp = path.join(appDir, 'expo-qr-viewer.html');
-  const htmlPathRoot = path.join(rootDir, 'expo-qr-viewer.html');
-  fs.writeFileSync(htmlPathApp, htmlContent, 'utf-8');
-  fs.writeFileSync(htmlPathRoot, htmlContent, 'utf-8');
+  // Safely determine output paths avoiding drive root
+  const currentDir = path.resolve(__dirname, '..');
+  const parentDir = path.resolve(currentDir, '..');
 
-  console.log('\n' + '='.repeat(64));
-  console.log(`[LIVE] QR Portal & PNGs Updated:`);
-  console.log(`- Auto-Refreshing Portal : ${htmlPathRoot}`);
-  console.log(`- Web Access QR PNG      : ${webPng}`);
-  console.log(`- Expo Go QR PNG         : ${expoPng}`);
-  console.log('='.repeat(64) + '\n');
+  const targets = new Set();
+  if (fs.existsSync(path.join(currentDir, 'package.json'))) {
+    targets.add(currentDir);
+  }
+  if (fs.existsSync(path.join(parentDir, 'package.json'))) {
+    targets.add(parentDir);
+  }
+  const nested = path.join(currentDir, 'KISAN MITRA');
+  if (fs.existsSync(path.join(nested, 'package.json'))) {
+    targets.add(nested);
+  }
+
+  for (const t of targets) {
+    const p = path.join(t, 'expo-qr-viewer.html');
+    fs.writeFileSync(p, htmlContent, 'utf-8');
+    console.log(` ✅ Updated viewer: ${p}`);
+  }
+  console.log('='.repeat(68) + '\n');
 }
 
 main().catch(err => {
-  console.error('Error in show-qr.js:', err);
+  console.error('Error generating QR code:', err);
   process.exit(1);
 });
