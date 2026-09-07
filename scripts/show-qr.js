@@ -19,6 +19,10 @@ function getLocalIPs() {
 
 /**
  * Render high-contrast ANSI QR code for terminal
+<<<<<<< HEAD
+=======
+
+>>>>>>> 98fc0b6206eb143c09b334390ac3fd09db5e7e5a
  */
 function renderTerminalQR(url, margin = 2) {
   const qr = qrcodeCore(0, 'M');
@@ -77,6 +81,7 @@ async function main() {
   const hotspotExpoUrl = hotspot ? `exp://${hotspot.address}:${port}` : null;
   const clientApkUrl = 'https://www.apkmirror.com/apk/expo-project/expo-go/expo-go-54-0-8-release/';
 
+<<<<<<< HEAD
   console.log('\n' + '='.repeat(68));
   console.log('       🌾 KISAN MITRA - BROWSER & EXPO LAUNCHER');
   console.log('='.repeat(68));
@@ -117,6 +122,9 @@ async function main() {
   const liveWebSvg = generateSvgQR(liveWebUrl, 7, 2);
   const lanWebSvg = generateSvgQR(lanWebUrl, 7, 2);
   const wifiExpoSvg = generateSvgQR(wifiExpoUrl, 7, 2);
+=======
+
+>>>>>>> 98fc0b6206eb143c09b334390ac3fd09db5e7e5a
   const apkSvg = generateSvgQR(clientApkUrl, 7, 2);
 
   const htmlContent = `<!DOCTYPE html>
@@ -271,9 +279,12 @@ async function main() {
       align-items: center;
       justify-content: center;
     }
+<<<<<<< HEAD
     .card.highlight .qr-frame { border-color: #81C784; }
     .card.green .qr-frame { border-color: #C8E6C9; }
     .card.orange .qr-frame { border-color: #FFE0B2; }
+=======
+>>>>>>> 98fc0b6206eb143c09b334390ac3fd09db5e7e5a
 
     .qr-frame svg {
       display: block;
@@ -310,6 +321,7 @@ async function main() {
       width: 100%;
       margin-bottom: 8px;
     }
+<<<<<<< HEAD
     .btn-green { background: #2E7D32; color: white; }
     .btn-green:hover { background: #1B5E20; transform: translateY(-1px); }
     .btn-blue { background: #1565C0; color: white; }
@@ -320,6 +332,8 @@ async function main() {
       color: var(--text);
     }
     .btn-outline:hover { background: #ECEFF1; }
+=======
+>>>>>>> 98fc0b6206eb143c09b334390ac3fd09db5e7e5a
 
     .guide-box {
       background: white;
@@ -386,6 +400,7 @@ async function main() {
   </header>
 
   <div class="cards-grid">
+<<<<<<< HEAD
     <!-- Card 1: Cloud Web Version (Recommended) -->
     <div class="card highlight">
       <span class="tag">⚡ Instant Access • No Install</span>
@@ -415,6 +430,11 @@ async function main() {
       <a href="${lanWebUrl}" target="_blank" class="btn btn-outline">📱 Open Phone LAN (${wifi.address})</a>
     </div>
 
+=======
+
+    </div>
+
+>>>>>>> 98fc0b6206eb143c09b334390ac3fd09db5e7e5a
     <!-- Card 3: Native Expo Go App -->
     <div class="card green">
       <span class="tag">📱 Native App</span>
@@ -439,8 +459,12 @@ async function main() {
         ${apkSvg}
       </div>
 
+<<<<<<< HEAD
       <div class="url-chip">Expo Go v54.0.8 APK</div>
       <a href="${clientApkUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="background: #E65100; color: white;">Download APK</a>
+=======
+
+>>>>>>> 98fc0b6206eb143c09b334390ac3fd09db5e7e5a
     </div>
   </div>
 
@@ -450,15 +474,23 @@ async function main() {
       <div class="step">
         <div class="step-num">1</div>
         <div class="step-content">
+<<<<<<< HEAD
           <strong>Browser Mode (Zero Setup)</strong>
           <p>Click <a href="${liveWebUrl}" target="_blank">Open in Browser</a> to immediately access the app in your browser on PC or smartphone.</p>
+=======
+
+>>>>>>> 98fc0b6206eb143c09b334390ac3fd09db5e7e5a
         </div>
       </div>
       <div class="step">
         <div class="step-num">2</div>
         <div class="step-content">
+<<<<<<< HEAD
           <strong>Local Development</strong>
           <p>Double-click <code>run-web.bat</code> or <code>open-in-browser.bat</code> to start the local Metro Web bundler on port 8081.</p>
+=======
+
+>>>>>>> 98fc0b6206eb143c09b334390ac3fd09db5e7e5a
         </div>
       </div>
       <div class="step">
@@ -472,11 +504,16 @@ async function main() {
   </div>
 
   <footer>
+<<<<<<< HEAD
     <p>Kisan Mitra Platform • Talcher Mandi Command Console • SDK 54</p>
+=======
+
+>>>>>>> 98fc0b6206eb143c09b334390ac3fd09db5e7e5a
   </footer>
 </body>
 </html>`;
 
+<<<<<<< HEAD
   // Safely determine output paths avoiding drive root
   const currentDir = path.resolve(__dirname, '..');
   const parentDir = path.resolve(currentDir, '..');
@@ -499,6 +536,9 @@ async function main() {
     console.log(` ✅ Updated viewer: ${p}`);
   }
   console.log('='.repeat(68) + '\n');
+=======
+
+>>>>>>> 98fc0b6206eb143c09b334390ac3fd09db5e7e5a
 }
 
 main().catch(err => {

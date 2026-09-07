@@ -39,9 +39,9 @@ type AppAction =
   | { type: 'SET_SYNCING'; payload: boolean };
 
 const initialState: AppState = {
-  currentRole: UserRole.FARMER,
-  currentUserId: 'F-001',
-  currentUserName: undefined,
+  currentRole: UserRole.OPERATOR,
+  currentUserId: 'OP-104',
+  currentUserName: 'Suresh Verma',
   currentFarmer: null,
   language: 'hi',
   textScale: 1.0,
@@ -69,6 +69,7 @@ const AppContext = createContext<AppContextValue | undefined>(undefined);
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'SET_ROLE':
+      StorageService.setItem('kisan_current_role', action.payload.role).catch(() => {});
       return {
         ...state,
         currentRole: action.payload.role,
@@ -79,9 +80,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         currentFarmer: action.payload,
-        currentUserId: action.payload.id,
-        currentUserName: action.payload.name,
-        currentRole: UserRole.FARMER,
+        currentUserId: state.currentRole === UserRole.FARMER ? (action.payload.id || action.payload.farmerId || '') : state.currentUserId,
+        currentUserName: state.currentRole === UserRole.FARMER ? (action.payload.name || action.payload.fullName || state.currentUserName) : state.currentUserName,
+        currentRole: state.currentRole === UserRole.OPERATOR ? UserRole.OPERATOR : (state.currentRole === UserRole.ADMIN ? UserRole.ADMIN : UserRole.FARMER),
         farmers: [
           action.payload,
           ...state.farmers.filter((f) => f.id !== action.payload.id),
@@ -168,10 +169,33 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // Always ensure initial state is pre-populated
     dispatch({ type: 'LOAD_MOCK_DATA' });
 
-    // Restore saved farmer from local storage if available
-    StorageService.getItem<Farmer>('kisan_current_farmer').then((saved) => {
-      if (saved && saved.id) {
-        dispatch({ type: 'SET_CURRENT_FARMER', payload: saved });
+    // Restore saved role and user from local storage (default to OPERATOR if none saved)
+    StorageService.getItem<UserRole>('kisan_current_role').then((savedRole) => {
+      if (savedRole === UserRole.FARMER) {
+        StorageService.getItem<Farmer>('kisan_current_farmer').then((saved) => {
+          if (saved && saved.id) {
+            dispatch({ type: 'SET_CURRENT_FARMER', payload: saved });
+          }
+        });
+      } else if (savedRole === UserRole.ADMIN) {
+        dispatch({
+          type: 'SET_ROLE',
+          payload: {
+            role: UserRole.ADMIN,
+            userId: 'ADM-001',
+            userName: 'Central Admin (DoCA)',
+          },
+        });
+      } else {
+        // Default to OPERATOR
+        dispatch({
+          type: 'SET_ROLE',
+          payload: {
+            role: UserRole.OPERATOR,
+            userId: 'OP-104',
+            userName: 'Suresh Verma',
+          },
+        });
       }
     });
 

@@ -17,12 +17,19 @@ echo.
 echo  Press [1] to open the Live Cloud Web App in your browser (Recommended)
 echo  Press [2] to start the Local Development Web Server (Metro Bundler)
 echo  Press [3] to open the QR Code / Connection Portal
+<<<<<<< HEAD
 echo  Press [4] to open the Web Browser Camera QR Scanner Tool
 echo  Press any other key to exit.
 echo.
 choice /c 12345 /n /m "Choose an option (1, 2, 3, 4): "
 
 if errorlevel 4 goto scanner
+=======
+echo  Press any other key to exit.
+echo.
+choice /c 1234 /n /m "Choose an option (1, 2, 3): "
+
+>>>>>>> 98fc0b6206eb143c09b334390ac3fd09db5e7e5a
 if errorlevel 3 goto portal
 if errorlevel 2 goto local
 if errorlevel 1 goto cloud
@@ -36,9 +43,12 @@ goto done
 :local
 echo.
 echo Starting Local Web Server...
+<<<<<<< HEAD
 if exist "KISAN MITRA\package.json" (
     cd "KISAN MITRA"
 )
+=======
+>>>>>>> 98fc0b6206eb143c09b334390ac3fd09db5e7e5a
 call npx.cmd expo start --web
 goto done
 
@@ -52,6 +62,7 @@ if exist "expo-qr-viewer.html" (
 )
 goto done
 
+<<<<<<< HEAD
 :scanner
 echo.
 echo Opening Web Browser Camera QR Scanner...
@@ -62,6 +73,8 @@ if exist "web-scanner.html" (
 )
 goto done
 
+=======
+>>>>>>> 98fc0b6206eb143c09b334390ac3fd09db5e7e5a
 :done
 echo.
 echo Done!

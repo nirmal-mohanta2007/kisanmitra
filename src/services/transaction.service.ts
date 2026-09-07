@@ -37,7 +37,7 @@ export function transitionStatus(
   return {
     ...transaction,
     status: newStatus,
-    statusHistory: [...transaction.statusHistory, historyEntry],
+    statusHistory: [...(transaction.statusHistory || []), historyEntry],
     updatedAt: new Date().toISOString(),
   };
 }
@@ -117,8 +117,9 @@ export function completeProcurement(
   transaction: ProcurementTransaction,
   operatorId: string
 ): ProcurementTransaction {
-  const netWeight = transaction.weighing?.netWeight ?? transaction.expectedQuantity;
-  const msp = CROP_DATA[transaction.crop]?.mspPerQuintal ?? 0;
+  const netWeight = transaction.weighing?.netWeight ?? transaction.expectedQuantity ?? 0;
+  const cropKey = (typeof transaction.crop === 'string' ? transaction.crop : transaction.crop?.name) as CropType;
+  const msp = (cropKey && CROP_DATA[cropKey]?.mspPerQuintal) ? CROP_DATA[cropKey].mspPerQuintal : 2275;
   const amount = netWeight * msp;
 
   const updated = transitionStatus(transaction, TransactionStatus.PROCUREMENT_COMPLETED, operatorId, `Amount: ₹${amount.toLocaleString('en-IN')}`);
@@ -239,7 +240,7 @@ export function calculateQueuePosition(
     (t) =>
       t.centreId === transaction.centreId &&
       t.id !== transaction.id &&
-      t.tokenNumber < transaction.tokenNumber &&
+      (t.tokenNumber || 0) < (transaction.tokenNumber || 0) &&
       activeStatuses.includes(t.status)
   );
   
