@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌾 Kisan Mitra - Web Browser QR Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    :root {
+      --primary: #1565C0;
+      --primary-dark: #0D47A1;
+      --green: #2E7D32;
+      --green-dark: #1B5E20;
+      --green-light: #E8F5E9;
+      --bg: #F4F7F5;
+      --surface: #FFFFFF;
+      --text: #1C2826;
+      --border: #DDE5E0;
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--green-light);
+      color: var(--green);
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+      border: 1px solid #A5D6A7;
+    }
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--green-dark);
+      margin-bottom: 4px;
+    }
+    p.subtitle {
+      color: #556B60;
+      font-size: 0.95rem;
+    }
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .scanner-box {
+      width: 100%;
+      min-height: 280px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #0A192F;
+      position: relative;
+    }
+    #reader {
+      width: 100%;
+    }
+    #reader video {
+      border-radius: 12px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-primary {
+      background: var(--green);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: var(--green-dark);
+    }
+    .btn-secondary {
+      background: #E0E0E0;
+      color: #333;
+    }
+    .btn-secondary:hover {
+      background: #D5D5D5;
+    }
+    .result-box {
+      margin-top: 16px;
+      padding: 14px;
+      background: #E8F5E9;
+      border: 1.5px dashed #4CAF50;
+      border-radius: 10px;
+      display: none;
+    }
+    .result-box.active {
+      display: block;
+    }
+    .result-title {
+      font-weight: 800;
+      color: var(--green-dark);
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+    }
+    .result-val {
+      font-family: monospace;
+      font-size: 1rem;
+      word-break: break-all;
+      color: #1B5E20;
+    }
+    .links-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .link-btn {
+      text-decoration: none;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.2s;
+    }
+    .link-btn:hover {
+      background: var(--green-light);
+    }
+    footer {
+      text-align: center;
+      font-size: 0.82rem;
+      color: #778877;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">
+        <span>🇮🇳</span> Government Procurement Platform
+      </div>
+      <h1>🌾 Web Browser QR Scanner</h1>
+      <p class="subtitle">Scan Farmer Passes, Tokens & Mandi Check-in QR Codes</p>
+    </header>
+
+    <div class="card">
+      <div id="reader" class="scanner-box"></div>
+
+      <div class="controls">
+        <button id="start-btn" class="btn-primary" onclick="startScanner()">
+          📷 Start Webcam Scanner
+        </button>
+        <button id="stop-btn" class="btn-secondary" onclick="stopScanner()" style="display:none;">
+          ⏹ Stop Camera
+        </button>
+      </div>
+
+      <div id="result-box" class="result-box">
+        <div class="result-title">✅ SCANNED QR CODE DATA</div>
+        <div id="result-text" class="result-val">Waiting for scan...</div>
+      </div>
+    </div>
+
+    <div class="card links-card">
+      <div style="font-weight:700; color:var(--text); font-size:0.95rem; margin-bottom:4px;">
+        🚀 Quick Actions & Portals:
+      </div>
+      <a href="https://nirmal-mohanta2007.github.io/kisanmitra/" target="_blank" class="link-btn">
+        <span>🌐 Open Kisan Mitra Live Web App</span>
+        <span>➔</span>
+      </a>
+      <a href="http://localhost:8081" target="_blank" class="link-btn">
+        <span>💻 Open Local Expo Web Server (localhost:8081)</span>
+        <span>➔</span>
+      </a>
+      <a href="expo-qr-viewer.html" class="link-btn">
+        <span>📱 Open App Expo Connection & QR Hub</span>
+        <span>➔</span>
+      </a>
+    </div>
+
+    <footer>
+      Powered by Kisan Mitra · Digital India Procurement Initiative
+    </footer>
+  </div>
+
+  <script>
+    let html5QrcodeScanner = null;
+
+    function startScanner() {
+      document.getElementById('start-btn').style.display = 'none';
+      document.getElementById('stop-btn').style.display = 'flex';
+
+      html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader",
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        /* verbose= */ false
+      );
+
+      html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    }
+
+    function stopScanner() {
+      if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear().then(() => {
+          document.getElementById('start-btn').style.display = 'flex';
+          document.getElementById('stop-btn').style.display = 'none';
+        }).catch(err => console.error(err));
+      }
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+      document.getElementById('result-box').classList.add('active');
+      document.getElementById('result-text').innerText = decodedText;
+
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.15);
+      } catch (e) {}
+    }
+
+    function onScanFailure(error) {
+      // ignore frame scan failures
+    }
+  </script>
+</body>
+</html>
