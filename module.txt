@@ -1,0 +1,3 @@
+[submodule "KISAN MITRA"]
+    path = KISAN MITRA
+    url = https://github.com/nirmal-mohanta2007/kisanmitra.git

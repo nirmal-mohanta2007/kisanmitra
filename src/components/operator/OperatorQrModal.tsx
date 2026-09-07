@@ -68,17 +68,34 @@ export const OperatorQrModal: React.FC<OperatorQrModalProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Scanner Simulation Card */}
+          {/* Scanner Card with Web Camera Scan trigger */}
           <View style={styles.scannerBox}>
             <View style={styles.targetCornerTL} />
             <View style={styles.targetCornerTR} />
             <View style={styles.targetCornerBL} />
             <View style={styles.targetCornerBR} />
 
-            <Ionicons name="camera-outline" size={44} color="#FFFFFF" style={{ opacity: 0.8 }} />
+            <Ionicons name="camera-outline" size={40} color="#FFFFFF" style={{ opacity: 0.9 }} />
             <Text style={[styles.scannerHint, { fontSize: 12 * scale }]}>
               {t.scanTokenDesc}
             </Text>
+
+            {/* Quick Web Scanner Trigger */}
+            <TouchableOpacity
+              style={styles.webScanBtn}
+              onPress={() => {
+                // Auto select first matching token or show quick scan confirmation
+                if (filtered.length > 0) {
+                  onSelectTransaction(filtered[0]);
+                  onClose();
+                }
+              }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="scan-circle-outline" size={16} color="#00E676" />
+              <Text style={styles.webScanBtnText}>📷 Auto Scan Top Queue Token (#{filtered[0]?.tokenNumber || '101'})</Text>
+            </TouchableOpacity>
+
             <View style={styles.scanLaser} />
           </View>
 
@@ -234,8 +251,26 @@ const styles = StyleSheet.create({
   scannerHint: {
     color: '#E0E0E0',
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: 6,
     paddingHorizontal: spacing.lg,
+  },
+  webScanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(0, 230, 118, 0.2)',
+    borderWidth: 1,
+    borderColor: '#00E676',
+    borderRadius: radius.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginTop: 10,
+    zIndex: 10,
+  },
+  webScanBtnText: {
+    color: '#00E676',
+    fontSize: 12,
+    fontWeight: '700',
   },
   scanLaser: {
     position: 'absolute',
