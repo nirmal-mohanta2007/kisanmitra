@@ -22,6 +22,8 @@ import {
   FirebaseStatusBadge,
 } from '../../src/components/common';
 import { MOCK_CENTRES, MOCK_FARMERS, MOCK_OPERATORS } from '../../src/services/mock-data.service';
+import { PaymentSettlementOversight, SystemExceptionLogs, AiAnomalyDetectionDashboard } from '../../src/components/admin';
+import { ALL_INDIAN_STATES, ALL_INDIA_DISTRICTS } from '../../src/data/india-locations';
 import { useAppContext } from '../../src/store/app-context';
 import { UserRole } from '../../src/types/enums';
 
@@ -40,7 +42,7 @@ type AdminPage =
   | 'Settings';
 
 type DateRangeOption = 'today' | 'week' | 'month' | 'season' | 'custom';
-type DistrictOption = 'ALL' | 'Bhopal' | 'Indore' | 'Jabalpur' | 'Sehore' | 'Dewas' | 'Harda' | 'Chhindwara';
+type DistrictOption = string;
 type CropFilterOption = 'ALL' | 'Wheat' | 'Paddy' | 'Soybean' | 'Maize' | 'Jowar' | 'Gram';
 
 export default function AdminDashboard() {
@@ -51,7 +53,8 @@ export default function AdminDashboard() {
   // Active page state
   const [activePage, setActivePage] = useState<AdminPage>('Dashboard');
 
-  // Filter states
+  // Filter states (Odisha is Primary State)
+  const [selectedState, setSelectedState] = useState<string>('Odisha');
   const [selectedDistrict, setSelectedDistrict] = useState<DistrictOption>('ALL');
   const [dateRange, setDateRange] = useState<DateRangeOption>('today');
   const [selectedCrop, setSelectedCrop] = useState<CropFilterOption>('ALL');
@@ -75,9 +78,9 @@ export default function AdminDashboard() {
     { id: 'Dashboard', label: 'Dashboard', icon: 'speedometer', badge: 'Live', badgeColor: colors.primary },
     { id: 'Mandis', label: 'Mandis', icon: 'business', badge: '24 Active', badgeColor: colors.secondary },
     { id: 'Analytics', label: 'Analytics', icon: 'bar-chart' },
-    { id: 'Payment', label: 'Payment', icon: 'cash', badge: '₹32.4Cr', badgeColor: '#7B1FA2' },
-    { id: 'Exceptions', label: 'Exceptions', icon: 'alert-circle', badge: '3 Open', badgeColor: colors.error },
-    { id: 'Anomalies', label: 'Anomalies', icon: 'warning', badge: 'AI Scan', badgeColor: colors.accent },
+    { id: 'Payment', label: 'Payment', icon: 'cash', badge: '₹68.5Cr DBT', badgeColor: '#7B1FA2' },
+    { id: 'Exceptions', label: 'Exceptions', icon: 'alert-circle', badge: '148 Logs (7D)', badgeColor: colors.error },
+    { id: 'Anomalies', label: 'Anomalies', icon: 'warning', badge: '48 Alerts', badgeColor: '#EF4444' },
     { id: 'FarmerData', label: 'Farmer Data', icon: 'leaf', badge: '12.4k', badgeColor: '#2E7D32' },
     { id: 'OperatorData', label: 'Operator Data', icon: 'construct', badge: '48 Active', badgeColor: '#1565C0' },
     { id: 'Alerts', label: 'Alerts', icon: 'notifications', badge: '4 New', badgeColor: '#D32F2F' },
@@ -753,21 +756,55 @@ export default function AdminDashboard() {
                 <Text style={styles.filterCardTitle}>State & District Procurement Filters</Text>
               </View>
               <Text style={styles.filterActiveLabel}>
-                {selectedDistrict === 'ALL' ? 'Statewide (All MP)' : `${selectedDistrict} District`} · {dateRange.toUpperCase()}
+                {selectedDistrict === 'ALL' ? `Statewide (${selectedState})` : `${selectedDistrict} (${selectedState})`} · {dateRange.toUpperCase()}
               </Text>
             </View>
 
-            {/* Filter 1: District Selector */}
-            <Text style={styles.filterSectionTitle}>📍 Select District / ज़िला चुनें:</Text>
+            {/* Filter 0: State Selector with Odisha Primary */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+              <Text style={styles.filterSectionTitle}>🗺️ Select State / राज्य चुनें:</Text>
+              <Text style={{ fontSize: 10, color: '#1B5E20', fontWeight: '800', backgroundColor: '#E8F5E9', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                🌾 ODISHA PRIMARY STATE
+              </Text>
+            </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterChipScroll}>
-              {(['ALL', 'Bhopal', 'Indore', 'Jabalpur', 'Sehore', 'Dewas', 'Harda', 'Chhindwara'] as DistrictOption[]).map((dist) => (
+              {['Odisha', ...ALL_INDIAN_STATES.filter(s => s !== 'Odisha')].map((st) => (
+                <TouchableOpacity
+                  key={st}
+                  style={[
+                    styles.filterChip,
+                    st === 'Odisha' && { backgroundColor: '#E8F5E9', borderColor: '#2E7D32', borderWidth: 1.5 },
+                    selectedState === st && styles.filterChipActive,
+                  ]}
+                  onPress={() => {
+                    setSelectedState(st);
+                    setSelectedDistrict('ALL');
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      st === 'Odisha' && { color: '#1B5E20', fontWeight: 'bold' },
+                      selectedState === st && styles.filterChipTextActive,
+                    ]}
+                  >
+                    {st === 'Odisha' ? '🌾 Odisha (Primary)' : st}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {/* Filter 1: District Selector */}
+            <Text style={styles.filterSectionTitle}>📍 Select District ({selectedState}) / ज़िला चुनें:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterChipScroll}>
+              {['ALL', ...(ALL_INDIA_DISTRICTS[selectedState] || ['Central', 'North', 'South', 'East', 'West'])].slice(0, 18).map((dist) => (
                 <TouchableOpacity
                   key={dist}
                   style={[styles.filterChip, selectedDistrict === dist && styles.filterChipActive]}
                   onPress={() => setSelectedDistrict(dist)}
                 >
                   <Text style={[styles.filterChipText, selectedDistrict === dist && styles.filterChipTextActive]}>
-                    {dist === 'ALL' ? '🗺️ All State (MP)' : dist}
+                    {dist === 'ALL' ? `🗺️ All ${selectedState}` : dist}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -817,7 +854,7 @@ export default function AdminDashboard() {
               <View>
                 <Text style={styles.targetHeroSub}>MSP PROCUREMENT TARGET STATUS</Text>
                 <Text style={styles.targetHeroTitle}>
-                  {selectedDistrict === 'ALL' ? 'Madhya Pradesh State Target' : `${selectedDistrict} District Target`}
+                  {selectedDistrict === 'ALL' ? `${selectedState} State Target ${selectedState === 'Odisha' ? '(Primary APMC Command)' : ''}` : `${selectedDistrict} District Target (${selectedState})`}
                 </Text>
               </View>
               <View style={styles.targetBadge}>
@@ -1899,61 +1936,30 @@ export default function AdminDashboard() {
       {/* ========================================================================= */}
       {activePage === 'Payment' && (
         <View style={styles.pageContent}>
-          <SectionHeader
-            title="Treasury DBT Payment Settlement"
-            subtitle="Direct Benefit Transfer disbursement and bank clearance status"
-          />
-          <KisanCard style={styles.chartCard}>
-            <Text style={styles.chartTitle}>💳 Settlement Summary</Text>
-            <View style={styles.payoutRow}>
-              <Text style={styles.payoutLabel}>Total Cleared This Week:</Text>
-              <Text style={[styles.payoutVal, { color: '#2E7D32' }]}>₹38.50 Crore</Text>
-            </View>
-            <View style={styles.payoutRow}>
-              <Text style={styles.payoutLabel}>Average Time to Credit:</Text>
-              <Text style={styles.payoutVal}>28 Hours (PFMS / NPCI)</Text>
-            </View>
-            <View style={styles.payoutRow}>
-              <Text style={styles.payoutLabel}>Pending Bank Settlement:</Text>
-              <Text style={[styles.payoutVal, { color: '#D32F2F' }]}>₹4.80 Crore (380 farmers)</Text>
-            </View>
-          </KisanCard>
+          <PaymentSettlementOversight embedded={true} />
         </View>
       )}
+
 
       {/* ========================================================================= */}
       {/* PAGE 5: EXCEPTIONS VIEW */}
       {/* ========================================================================= */}
       {activePage === 'Exceptions' && (
         <View style={styles.pageContent}>
-          <SectionHeader
-            title="System Exceptions & Quality Holds"
-            subtitle="Active disputes requiring administrative intervention"
-          />
-          <KisanCard style={[styles.alertItemCard, { borderLeftColor: colors.error }]}>
-            <Text style={styles.alertItemTitle}>⚠️ Moisture Content Exceeded Standard (16.2%)</Text>
-            <Text style={styles.alertItemDesc}>Farmer: Ramesh Patel (Dewas) · Wheat 40 Quintals · Quality hold applied.</Text>
-            <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>Action Required: Direct drying and re-test approval.</Text>
-          </KisanCard>
+          <SystemExceptionLogs embedded={true} />
         </View>
       )}
+
 
       {/* ========================================================================= */}
       {/* PAGE 6: ANOMALIES VIEW */}
       {/* ========================================================================= */}
       {activePage === 'Anomalies' && (
-        <View style={styles.pageContent}>
-          <SectionHeader
-            title="Automated Anomaly Detection"
-            subtitle="AI flags for queue spikes, weighing variances & suspicious delays"
-          />
-          <KisanCard style={[styles.alertItemCard, { borderLeftColor: colors.warning }]}>
-            <Text style={styles.alertItemTitle}>🔍 High Weighing Variance Flag (Centres C-002)</Text>
-            <Text style={styles.alertItemDesc}>Scale sensor recorded 5.2% variance vs registered booking expectation.</Text>
-            <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>Audit Status: Automatic inspector alert sent to Indore APMC.</Text>
-          </KisanCard>
+        <View style={[styles.pageContent, { padding: 0 }]}>
+          <AiAnomalyDetectionDashboard embedded={true} />
         </View>
       )}
+
 
       {/* ========================================================================= */}
       {/* PAGE 7: ALERTS VIEW */}
