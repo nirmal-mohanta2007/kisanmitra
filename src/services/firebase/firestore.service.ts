@@ -133,38 +133,36 @@ export const FirestoreService = {
   // ==========================================
 
   /**
-   * Fetch all registered farmers
+   * Fetch all registered farmers. Returns empty array if none found.
    */
   async getFarmers(): Promise<Farmer[]> {
-    if (!isFirebaseConfigured() || !db) return MOCK_FARMERS;
+    if (!isFirebaseConfigured() || !db) return [];
 
     try {
       const snap = await getDocs(collection(db, COLLECTIONS.FARMERS));
-      if (snap.empty) return MOCK_FARMERS;
+      if (snap.empty) return [];
       return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Farmer));
     } catch (e) {
       console.log('[Firestore] Error fetching farmers:', e);
-      return MOCK_FARMERS;
+      return [];
     }
   },
 
   /**
-   * Get farmer by ID
+   * Get farmer by ID. Returns null if not found.
    */
   async getFarmerById(id: string): Promise<Farmer | null> {
-    if (!isFirebaseConfigured() || !db) {
-      return MOCK_FARMERS.find((f) => f.id === id) || null;
-    }
+    if (!id || !isFirebaseConfigured() || !db) return null;
 
     try {
       const snap = await getDoc(doc(db, COLLECTIONS.FARMERS, id));
       if (snap.exists()) {
         return { id: snap.id, ...snap.data() } as Farmer;
       }
-      return MOCK_FARMERS.find((f) => f.id === id) || null;
+      return null;
     } catch (e) {
       console.log(`[Firestore] Error fetching farmer ${id}:`, e);
-      return MOCK_FARMERS.find((f) => f.id === id) || null;
+      return null;
     }
   },
 
@@ -174,10 +172,13 @@ export const FirestoreService = {
   async saveFarmer(farmer: Farmer): Promise<void> {
     if (!isFirebaseConfigured() || !db) return;
 
+    const fId = farmer.farmerId || farmer.id || '';
+    if (!fId) return;
+
     try {
-      await setDoc(doc(db, COLLECTIONS.FARMERS, farmer.id), sanitizeForFirestore(farmer), { merge: true });
+      await setDoc(doc(db, COLLECTIONS.FARMERS, fId), sanitizeForFirestore(farmer), { merge: true });
     } catch (e) {
-      console.log(`[Firestore] Error saving farmer ${farmer.id}:`, e);
+      console.log(`[Firestore] Error saving farmer ${fId}:`, e);
     }
   },
 
@@ -186,36 +187,30 @@ export const FirestoreService = {
   // ==========================================
 
   /**
-   * Fetch all transactions
+   * Fetch all transactions. Returns empty array if none found.
    */
   async getTransactions(): Promise<ProcurementTransaction[]> {
-    const mockTxs = generateMockTransactions();
-    if (!isFirebaseConfigured() || !db) return mockTxs;
+    if (!isFirebaseConfigured() || !db) return [];
 
     try {
       const snap = await getDocs(collection(db, COLLECTIONS.TRANSACTIONS));
-      if (snap.empty) return mockTxs;
+      if (snap.empty) return [];
       return snap.docs.map((d) => ({ id: d.id, ...d.data() } as ProcurementTransaction));
     } catch (e) {
       console.log('[Firestore] Error fetching transactions:', e);
-      return mockTxs;
+      return [];
     }
   },
 
   /**
-   * Real-time subscription to transactions
+   * Real-time subscription to transactions. Never falls back to mock data.
    */
   subscribeTransactions(
     callback: (transactions: ProcurementTransaction[]) => void,
     filters?: { centreId?: string; farmerId?: string; status?: TransactionStatus }
   ): Unsubscribe {
-    const mockTxs = generateMockTransactions();
     if (!isFirebaseConfigured() || !db) {
-      let filtered = mockTxs;
-      if (filters?.centreId) filtered = filtered.filter((t) => t.centreId === filters.centreId);
-      if (filters?.farmerId) filtered = filtered.filter((t) => t.farmerId === filters.farmerId);
-      if (filters?.status) filtered = filtered.filter((t) => t.status === filters.status);
-      callback(filtered);
+      callback([]);
       return () => {};
     }
 
@@ -236,7 +231,7 @@ export const FirestoreService = {
         q,
         (snap) => {
           if (snap.empty) {
-            callback(mockTxs);
+            callback([]);
             return;
           }
           const items = snap.docs.map((d) => ({ id: d.id, ...d.data() } as ProcurementTransaction));
@@ -244,29 +239,25 @@ export const FirestoreService = {
         },
         (error) => {
           console.log('[Firestore] Error subscribing to transactions:', error);
-          callback(mockTxs);
+          callback([]);
         }
       );
     } catch (e) {
       console.log('[Firestore] Query creation error:', e);
-      callback(mockTxs);
+      callback([]);
       return () => {};
     }
   },
 
   /**
-   * Listen to active queue for a specific Mandi centre
+   * Listen to active queue for a specific Mandi centre. Never falls back to mock data.
    */
   subscribeCentreQueue(
     centreId: string,
     callback: (queue: ProcurementTransaction[]) => void
   ): Unsubscribe {
     if (!isFirebaseConfigured() || !db) {
-      const mockTxs = generateMockTransactions();
-      const queue = mockTxs
-        .filter((t) => t.centreId === centreId)
-        .sort((a, b) => (a.tokenNumber || 0) - (b.tokenNumber || 0));
-      callback(queue);
+      callback([]);
       return () => {};
     }
 
@@ -285,6 +276,10 @@ export const FirestoreService = {
     return onSnapshot(
       q,
       (snap) => {
+        if (snap.empty) {
+          callback([]);
+          return;
+        }
         const items = snap.docs
           .map((d) => ({ id: d.id, ...d.data() } as ProcurementTransaction))
           .filter((t) => queueStatuses.includes(t.status))
@@ -293,6 +288,7 @@ export const FirestoreService = {
       },
       (error) => {
         console.log(`[Firestore] Error subscribing to queue for ${centreId}:`, error);
+        callback([]);
       }
     );
   },
@@ -301,7 +297,8 @@ export const FirestoreService = {
    * Create a new procurement transaction (booking)
    */
   async createTransaction(tx: Partial<ProcurementTransaction>): Promise<ProcurementTransaction> {
-    const id = tx.id || `KM-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+    const currentYear = new Date().getFullYear();
+    const id = tx.id || tx.transactionId || `TXN-${currentYear}-${Math.floor(100000 + Math.random() * 900000)}`;
     const now = new Date().toISOString();
 
     const initialHistoryEntry: StatusHistoryEntry = {
@@ -313,20 +310,22 @@ export const FirestoreService = {
 
     const newTx: ProcurementTransaction = {
       id,
-      farmerId: tx.farmerId || 'F-001',
-      farmerName: tx.farmerName || 'Kisan Kumar',
-      farmerPhone: tx.farmerPhone || '9876543210',
-      centreId: tx.centreId || 'C-001',
-      centreName: tx.centreName || 'Krishi Upaj Mandi, Bhopal',
+      transactionId: id,
+      farmerId: tx.farmerId || '',
+      farmerName: tx.farmerName || '',
+      farmerPhone: tx.farmerPhone || '',
+      centreId: tx.centreId || tx.mandiId || '',
+      mandiId: tx.mandiId || tx.centreId || '',
+      centreName: tx.centreName || '',
       crop: tx.crop || ('' as any),
-      expectedQuantity: tx.expectedQuantity || 10,
+      expectedQuantity: tx.expectedQuantity || 0,
       bookingDate: tx.bookingDate || now.split('T')[0],
       slotLabel: tx.slotLabel || 'Morning (09:00 - 12:00)',
       tokenNumber: tx.tokenNumber || Math.floor(10 + Math.random() * 90),
       status: tx.status || TransactionStatus.BOOKED,
       statusHistory: [initialHistoryEntry],
-      queuePosition: tx.queuePosition ?? 1,
-      estimatedWaitMinutes: tx.estimatedWaitMinutes ?? 15,
+      queuePosition: tx.queuePosition ?? null,
+      estimatedWaitMinutes: tx.estimatedWaitMinutes ?? null,
       recommendedArrivalTime: tx.recommendedArrivalTime || now,
       weighing: null,
       qualityCheck: null,
@@ -452,7 +451,8 @@ export const FirestoreService = {
 
       // 2. Seed Farmers
       for (const farmer of MOCK_FARMERS) {
-        const ref = doc(db, COLLECTIONS.FARMERS, farmer.id);
+        const fId = farmer.farmerId || farmer.id || 'F-001';
+        const ref = doc(db, COLLECTIONS.FARMERS, fId);
         batch.set(ref, sanitizeForFirestore(farmer));
       }
 

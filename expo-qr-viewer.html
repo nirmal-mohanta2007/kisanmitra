@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌾 Kisan Mitra - Auto-Refreshing Live Portal</title>
+  <style>
+    :root {
+      --primary: #1565C0;
+      --primary-dark: #0D47A1;
+      --primary-light: #E3F2FD;
+      --green: #2E7D32;
+      --green-light: #E8F5E9;
+      --orange: #E65100;
+      --orange-light: #FFF3E0;
+      --bg: #F4F7F5;
+      --surface: #FFFFFF;
+      --text: #1C2826;
+      --text-muted: #556B60;
+      --border: #DDE5E0;
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+      max-width: 780px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green-light);
+      color: var(--green);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 6px 16px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+      border: 1px solid #C8E6C9;
+    }
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #00E676;
+      box-shadow: 0 0 10px #00E676;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.7; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.7; }
+    }
+    h1 {
+      font-size: 2.2rem;
+      color: #1A237E;
+      margin-bottom: 6px;
+      font-weight: 800;
+    }
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      line-height: 1.4;
+    }
+    .status-bar {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      width: 100%;
+      max-width: 1100px;
+      margin-bottom: 28px;
+    }
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+    }
+    .card.blue::before { background: linear-gradient(90deg, #1E88E5, #0D47A1); }
+    .card.green::before { background: linear-gradient(90deg, #43A047, #2E7D32); }
+    .card.orange::before { background: linear-gradient(90deg, #FB8C00, #E65100); }
+
+    .card h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-top: 6px;
+      margin-bottom: 4px;
+    }
+    .card p.card-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      min-height: 38px;
+    }
+    .qr-frame {
+      background: #ffffff;
+      padding: 12px;
+      border-radius: 12px;
+      border: 2px dashed #BBDEFB;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card.green .qr-frame { border-color: #C8E6C9; }
+    .card.orange .qr-frame { border-color: #FFE0B2; }
+
+    .qr-frame img {
+      display: block;
+      width: 220px;
+      height: 220px;
+      border-radius: 6px;
+    }
+    .url-chip {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-family: monospace;
+      font-size: 0.88rem;
+      color: var(--text);
+      word-break: break-all;
+      margin-bottom: 14px;
+      width: 100%;
+      user-select: all;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      width: 100%;
+      margin-bottom: 8px;
+    }
+    .btn-blue { background: var(--primary); color: white; }
+    .btn-blue:hover { background: var(--primary-dark); }
+    .btn-green { background: var(--green); color: white; }
+    .btn-green:hover { background: #1B5E20; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover {
+      background: #ECEFF1;
+    }
+    .notice-box {
+      background: #E8F5E9;
+      border: 1px solid #C8E6C9;
+      border-radius: 12px;
+      padding: 16px 20px;
+      max-width: 1100px;
+      width: 100%;
+      font-size: 0.92rem;
+      color: #1B5E20;
+      line-height: 1.5;
+    }
+    footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="badge">
+      <div class="pulse-dot"></div>
+      <span>🌾 किसान मित्र • Live Refresh Portal</span>
+    </div>
+    <h1>Operator Dashboard Portal</h1>
+    <p class="subtitle">यह पेज सर्वर के साथ ऑटो-रिफ्रेश होता है। आपको बार-बार नया लिंक मांगने की आवश्यकता नहीं है।</p>
+  </header>
+
+  <div class="status-bar" id="liveStatus">
+    <div class="pulse-dot"></div>
+    <span id="statusText">Checking Metro Server on Port 8081...</span>
+  </div>
+
+  <div class="cards-grid">
+    <!-- Card 1: Direct Phone / PC Web -->
+    <div class="card blue">
+      <h2>🌐 1. Phone / PC Browser (Web)</h2>
+      <p class="card-desc">फोन के सामान्य कैमरा से स्कैन करें या नीचे दिए बटन पर क्लिक करें। (Zero SDK Mismatch)</p>
+
+      <div class="qr-frame">
+        <img src="data:image/png;base64,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" alt="Web QR Code" />
+      </div>
+
+      <div class="url-chip">http://10.105.91.95:8081</div>
+      <a href="http://localhost:8081" target="_blank" class="btn btn-blue">💻 Open on this PC (http://localhost:8081)</a>
+      <a href="http://10.105.91.95:8081" target="_blank" class="btn btn-outline">📱 Open Phone LAN (http://10.105.91.95:8081)</a>
+    </div>
+
+    <!-- Card 2: Native Expo Go SDK 54 -->
+    <div class="card green">
+      <h2>📱 2. Expo Go App (SDK 54)</h2>
+      <p class="card-desc">यदि आपके फोन में Expo Go v54 installed है तो सीधे Expo Go ऐप से स्कैन करें।</p>
+
+      <div class="qr-frame">
+        <img src="data:image/png;base64,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" alt="Expo Go Dev Server QR Code" />
+      </div>
+
+      <div class="url-chip">exp://10.105.91.95:8081</div>
+      <a href="exp://10.105.91.95:8081" class="btn btn-green">Open in Expo Go</a>
+    </div>
+
+    <!-- Card 3: Download Expo Go SDK 54 -->
+    <div class="card orange">
+      <h2>📦 3. Download Expo Go SDK 54</h2>
+      <p class="card-desc">यदि Play Store वाला Expo Go (SDK 57) एरर दे रहा हो तो यहाँ से आधिकारिक SDK 54 APK लें।</p>
+
+      <div class="qr-frame">
+        <img src="data:image/png;base64,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" alt="Expo Go APK QR" />
+      </div>
+
+      <div class="url-chip">Official Expo Go SDK 54 APK</div>
+      <a href="https://expo.dev/go?sdkVersion=54&platform=android&device=true" target="_blank" class="btn btn-outline" style="background: #E65100; color: white;">Download SDK 54 APK</a>
+    </div>
+  </div>
+
+  <div class="notice-box">
+    <strong>💡 टोकन बचाने के लिए स्थायी उपाय (Permanent Solution):</strong>
+    <p style="margin-top: 4px;">इस पेज को अपने ब्राउज़र में बुकमार्क कर लें। जब भी आप <code>run-web.bat</code> या <code>npm start</code> चलाएंगे, यह पोर्टल स्वतः लाइव हो जाएगा। आपको चैट में बार-बार QR कोड मांगने की आवश्यकता नहीं पड़ेगी!</p>
+  </div>
+
+  <footer>
+    <p>Kisan Mitra Platform • Talcher Mandi Command Console • Port 8081</p>
+  </footer>
+
+  <script>
+    // Live Heartbeat Auto-detection
+    const testUrl = 'http://localhost:8081/';
+    async function checkServer() {
+      const statusEl = document.getElementById('statusText');
+      try {
+        const res = await fetch(testUrl, { mode: 'no-cors' });
+        statusEl.innerText = '🟢 Server Online & Ready on Port 8081 (Auto-refresh active)';
+        statusEl.style.color = '#2E7D32';
+      } catch(e) {
+        statusEl.innerText = '🟡 Server starting or offline... Run "run-web.bat" in your folder';
+        statusEl.style.color = '#E65100';
+      }
+    }
+    checkServer();
+    setInterval(checkServer, 4000);
+  </script>
+</body>
+</html>
