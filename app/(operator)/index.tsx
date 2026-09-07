@@ -26,54 +26,7 @@ import { getOperatorTexts } from '../../src/i18n/operator-translations';
 export default function OperatorDashboard() {
   const router = useRouter();
   const { state } = useAppContext();
-  const scale = state.textScale || 1.0;
-  const t = getOperatorTexts(state.language);
 
-  const {
-    kpis,
-    currentServing,
-    queue,
-    lanes,
-    recentTransactions,
-    alerts,
-    callNextToken,
-    dismissAlert,
-    allocateLane,
-  } = useOperatorStore();
-
-  const [qrModalVisible, setQrModalVisible] = useState(false);
-
-  // Call Next Token Action
-  const handleCallNext = async () => {
-    if (queue.length === 0) {
-      Alert.alert(
-        state.language === 'or' ? 'ଧାଡ଼ି ଖାଲି ଅଛି' : state.language === 'hi' ? 'कतार रिक्त है' : 'Queue Empty',
-        state.language === 'or'
-          ? 'ଗେଟ୍ ଧାଡ଼ିରେ ବର୍ତ୍ତମାନ କୌଣସି ଚାଷୀ ନାହାନ୍ତି।'
-          : state.language === 'hi'
-          ? 'गेट कतार में वर्तमान में कोई किसान प्रतीक्षारत नहीं है।'
-          : 'No more farmers currently waiting in the gate queue.'
-      );
-      return;
-    }
-
-    const res = await callNextToken('Lane 1');
-    if (res.success) {
-      Alert.alert(
-        state.language === 'or' ? 'ଟୋକନ୍ ଡକାଗଲା! 📢' : state.language === 'hi' ? 'टोकन बुलाया गया! 📢' : 'Token Called! 📢',
-        state.language === 'or'
-          ? `ଟୋକନ୍ ${res.token} (${res.farmer}) ଲେନ୍ 1 କୁ ଡକାଗଲା।`
-          : state.language === 'hi'
-          ? `टोकन ${res.token} (${res.farmer}) को लेन 1 पर बुलाया गया।`
-          : `Token ${res.token} (${res.farmer}) called to Lane 1. Queue event and audit trail recorded.`
-      );
-    }
-  };
-
-  const targetQtl = kpis.targetTodayQtl || (kpis.targetTodayMT * 10);
-  const procuredQtl = kpis.procuredTodayQtl || (kpis.procuredTodayMT * 10);
-  const remainingQtl = Math.max(0, targetQtl - procuredQtl);
-  const nextTokens = queue.slice(0, 4);
 
   return (
     <ScreenContainer scrollable style={styles.container}>
@@ -86,61 +39,7 @@ export default function OperatorDashboard() {
         showScale={true}
       />
 
-      {/* DASHBOARD KPI CARDS */}
-      <View style={styles.kpiGrid}>
-        {/* Today's Target */}
-        <KPICard
-          title={t.targetToday}
-          value={`${targetQtl.toLocaleString()} Qtl`}
-          badge={t.badgeP0}
-          badgeBg="#E3F2FD"
-          badgeColor={colors.secondary}
-          iconName="flag-outline"
-          scale={scale}
-          style={styles.kpiItem}
-        />
 
-        {/* Procured Today */}
-        <KPICard
-          title={t.procuredToday}
-          value={`${procuredQtl.toLocaleString()} Qtl`}
-          badge={`${kpis.percentAchieved}%`}
-          badgeBg="#E8F5E9"
-          badgeColor={colors.primary}
-          iconName="checkmark-circle-outline"
-          iconColor={colors.primary}
-          scale={scale}
-          borderColor={colors.primary}
-          style={styles.kpiItem}
-        />
-
-        {/* Farmers Waiting */}
-        <KPICard
-          title={t.farmersWaiting}
-          value={kpis.farmersWaiting}
-          badge={t.badgeLiveQueue}
-          badgeBg="#EDE7F6"
-          badgeColor="#5E35B1"
-          iconName="people-outline"
-          iconColor="#5E35B1"
-          scale={scale}
-          style={styles.kpiItem}
-          onPress={() => router.push('/(operator)/queue')}
-        />
-
-        {/* Pending Quality Checks */}
-        <KPICard
-          title={t.pendingQualityChecks}
-          value={kpis.pendingQualityChecks}
-          badge={t.badgeActionReq}
-          badgeBg="#FCE4EC"
-          badgeColor="#C2185B"
-          iconName="flask-outline"
-          iconColor="#C2185B"
-          scale={scale}
-          style={styles.kpiItem}
-          onPress={() => router.push('/(operator)/operations/quality-check')}
-        />
       </View>
 
       {/* 3. PROCUREMENT PROGRESS (Section 5) */}

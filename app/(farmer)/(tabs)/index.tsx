@@ -848,7 +848,7 @@ Mandi Cess/Fee : ₹0.00 (Zero Fee for Farmer)
 TOTAL PAYOUT   : ₹${estimatedPayout.toLocaleString('en-IN')}
 ------------------------------------------------
 Settlement     : Electronic DBT Transfer to Bank Account
-Signatures     : Digitally Signed by Weighbridge Officer & Quality Lab Inspector (OP-104)
+Signatures     : Digitally Signed by Dr Nirmal Kumar Mohanta (Mandi Officer OP-001) & Quality Lab Inspector
 Status         : OFFICIALLY CERTIFIED & RECORDED
 ================================================`;
 

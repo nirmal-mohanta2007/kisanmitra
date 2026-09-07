@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 export default function AdminLayout() {
   return (
     <Stack screenOptions={{ headerShown: true, headerStyle: { backgroundColor: '#424242' }, headerTintColor: '#fff' }}>
-      <Stack.Screen name="index" options={{ title: 'Admin Command' }} />
+      <Stack.Screen name="index" options={{ title: 'State & District Command Center' }} />
       <Stack.Screen name="mandis" options={{ title: 'All Mandis' }} />
       <Stack.Screen name="mandi/[mandiId]" options={{ title: 'Mandi Detail' }} />
       <Stack.Screen name="analytics" options={{ title: 'Analytics' }} />

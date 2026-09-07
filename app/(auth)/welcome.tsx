@@ -14,11 +14,38 @@ import { TopVoiceLanguageBar } from '../../src/components/TopVoiceLanguageBar';
 import { colors } from '../../src/theme/colors';
 import { radius } from '../../src/theme/radius';
 import { spacing } from '../../src/theme/spacing';
+import { useAppContext } from '../../src/store/app-context';
+import { UserRole } from '../../src/types/enums';
 
 const BG_IMAGE = 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200&auto=format&fit=crop&q=80';
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { dispatch } = useAppContext();
+
+  const handleAdminAccess = () => {
+    dispatch({
+      type: 'SET_ROLE',
+      payload: {
+        role: UserRole.ADMIN,
+        userId: 'ADM-001',
+        userName: 'Collector Shukla (Admin)',
+      },
+    });
+    router.push('/(admin)');
+  };
+
+  const handleOfficerAccess = () => {
+    dispatch({
+      type: 'SET_ROLE',
+      payload: {
+        role: UserRole.OPERATOR,
+        userId: 'O-001',
+        userName: 'Dr Nirmal Kumar Mohanta',
+      },
+    });
+    router.push('/(operator)');
+  };
 
   return (
     <ImageBackground
@@ -72,6 +99,26 @@ export default function WelcomeScreen() {
             >
               <Ionicons name="person-add-outline" size={17} color={colors.primary} style={{ marginRight: 8 }} />
               <Text style={styles.secondaryBtnText}>Register as New Farmer</Text>
+            </TouchableOpacity>
+
+            {/* Mandi Officer Direct Portal button */}
+            <TouchableOpacity
+              style={styles.officerAccessBtn}
+              onPress={handleOfficerAccess}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="construct" size={16} color="#90CAF9" style={{ marginRight: 8 }} />
+              <Text style={styles.officerAccessBtnText}>🏢 Mandi Officer Portal (Dr Nirmal Kumar Mohanta)</Text>
+            </TouchableOpacity>
+
+            {/* Admin Command Access button */}
+            <TouchableOpacity
+              style={styles.adminAccessBtn}
+              onPress={handleAdminAccess}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="shield-checkmark" size={16} color="#E1BEE7" style={{ marginRight: 8 }} />
+              <Text style={styles.adminAccessBtnText}>🏛️ Admin Command Portal / राज्य प्रशासक</Text>
             </TouchableOpacity>
           </View>
 
@@ -231,6 +278,42 @@ const styles = StyleSheet.create({
     color: colors.primaryDark,
     fontSize: 15,
     fontWeight: 'bold',
+  },
+  officerAccessBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(21, 101, 192, 0.75)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(144, 202, 249, 0.6)',
+    paddingVertical: 14,
+    borderRadius: radius.md,
+    width: '100%',
+    marginTop: 10,
+  },
+  officerAccessBtnText: {
+    color: '#E3F2FD',
+    fontSize: 14,
+    fontWeight: 'bold',
+    letterSpacing: 0.3,
+  },
+  adminAccessBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(74, 20, 140, 0.7)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(206, 147, 216, 0.6)',
+    paddingVertical: 14,
+    borderRadius: radius.md,
+    width: '100%',
+    marginTop: 10,
+  },
+  adminAccessBtnText: {
+    color: '#F3E5F5',
+    fontSize: 14,
+    fontWeight: 'bold',
+    letterSpacing: 0.3,
   },
   statsRow: {
     flexDirection: 'row',
