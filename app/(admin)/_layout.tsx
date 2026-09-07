@@ -1,8 +1,46 @@
-import { Stack } from 'expo-router';
+import React from 'react';
+import { TouchableOpacity, Alert } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useAuthContext } from '../../src/context/AuthContext';
 
 export default function AdminLayout() {
+  const { signOut } = useAuthContext();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out of the Admin Console?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            await signOut();
+            router.replace('/(auth)/login');
+          },
+        },
+      ]
+    );
+  };
+
+  const LogoutButton = () => (
+    <TouchableOpacity onPress={handleLogout} style={{ marginRight: 12, padding: 4 }} activeOpacity={0.7}>
+      <Ionicons name="log-out-outline" size={22} color="#FFFFFF" />
+    </TouchableOpacity>
+  );
+
   return (
-    <Stack screenOptions={{ headerShown: true, headerStyle: { backgroundColor: '#424242' }, headerTintColor: '#fff' }}>
+    <Stack
+      screenOptions={{
+        headerShown: true,
+        headerStyle: { backgroundColor: '#424242' },
+        headerTintColor: '#fff',
+        headerRight: () => <LogoutButton />,
+      }}
+    >
       <Stack.Screen name="index" options={{ title: 'State & District Command Center' }} />
       <Stack.Screen name="mandis" options={{ title: 'All Mandis' }} />
       <Stack.Screen name="mandi/[mandiId]" options={{ title: 'Mandi Detail' }} />

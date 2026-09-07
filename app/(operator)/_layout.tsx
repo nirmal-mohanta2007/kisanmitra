@@ -10,25 +10,28 @@ import { radius } from '../../src/theme/radius';
 import { OperatorProvider } from '../../src/store/operator.store';
 import { OperatorSidebar, OperatorBottomNav } from '../../src/components/operator';
 
+import { useAuthContext } from '../../src/context/AuthContext';
+
 export default function OperatorLayout() {
   const { state, dispatch } = useAppContext();
+  const { appUser } = useAuthContext();
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isDesktop = width >= 800;
 
-  // Auto-set Operator role if not already active so user directly enters Operator Console
+  // Auto-sync Operator role & authenticated user profile into AppContext
   React.useEffect(() => {
     if (state.currentRole !== UserRole.OPERATOR) {
       dispatch({
         type: 'SET_ROLE',
         payload: {
           role: UserRole.OPERATOR,
-          userId: 'OP-104',
-          userName: 'Suresh Verma',
+          userId: appUser?.uid || 'OP-104',
+          userName: appUser?.name || 'Suresh Verma',
         },
       });
     }
-  }, [state.currentRole, dispatch]);
+  }, [state.currentRole, appUser, dispatch]);
 
   return (
     <OperatorProvider>
