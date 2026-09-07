@@ -7,18 +7,39 @@ import {
   PaymentMethod,
 } from './enums';
 
-/**
- * Represents a farmer user in the system.
- */
+export interface FarmerAddress {
+  village: string;
+  district: string;
+  state: string;
+  pincode: string;
+}
+
 export interface Farmer {
   id: string;
   name: string;
   phone: string;
-  village: string;
-  district: string;
-  state: string;
+  farmerId?: string; // "FMR-YYYY-XXXXXX"
+  userId?: string; // Firebase Auth UID
+  fullName?: string;
+  mobileNumber?: string;
+  email?: string;
+  dateOfBirth?: string; // "YYYY-MM-DD"
+  address?: FarmerAddress;
+  farmerType?: 'individual' | 'tenant' | 'sharecropper' | string;
+  landArea?: number;
+  landAreaUnit?: 'acre' | 'hectare' | string;
+  primaryCrop?: string;
+  preferredMandi?: string;
+  status?: 'active' | 'inactive' | 'pending' | 'verified' | string;
+  createdAt?: any;
+  updatedAt?: any;
+
+  // Backward-compatibility and UI convenience aliases
+  village?: string;
+  district?: string;
+  state?: string;
+  pinCode?: string;
   profileComplete?: boolean;
-  userId?: string;
   landAreaHectares?: number;
   registrationNumber?: string;
   bankDetails?: {
@@ -27,16 +48,10 @@ export interface Farmer {
     bankName: string;
     branchName?: string;
   };
-  status?: string;
-  createdAt?: string;
-  updatedAt?: string;
   aadhaar?: string;
-  pinCode?: string;
   fatherName?: string;
   gender?: string;
   khasraNo?: string;
-  landArea?: number;
-  primaryCrop?: string;
   bankAccount?: string;
   ifsc?: string;
   bankName?: string;
@@ -44,6 +59,21 @@ export interface Farmer {
   photoUrl?: string | null;
   landDocFileName?: string;
   isVerified?: boolean;
+}
+
+/**
+ * Represents a user document in Cloud Firestore (`users/{uid}`)
+ */
+export interface AppUser {
+  uid: string; // Firebase Auth UID
+  role: 'farmer' | 'operator' | 'admin';
+  farmerId?: string; // "FMR-YYYY-XXXXXX" if role is farmer
+  name: string;
+  phone: string;
+  email?: string;
+  status: 'active' | 'inactive' | string;
+  createdAt?: any;
+  updatedAt?: any;
 }
 
 /**
@@ -191,42 +221,132 @@ export interface PaymentInfo {
 }
 
 /**
- * The CORE TYPE: Represents the entire procurement transaction state.
+ * Represents a booking document in Cloud Firestore (`bookings/{bookingId}`)
+ */
+export interface Booking {
+  bookingId: string; // "BOOK-YYYY-XXXXXX"
+  farmerId: string; // "FMR-YYYY-XXXXXX"
+  mandiId: string;
+  crop: string;
+  scheduledDate: string; // "YYYY-MM-DD"
+  slot: string; // "10:00-11:00"
+  tokenNumber: number;
+  status: 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'CHECKED_IN';
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+export interface TransactionCrop {
+  name: string;
+  variety?: string;
+  quantityExpected: number;
+  quantityUnit: 'kg' | 'quintal' | string;
+}
+
+/**
+ * Represents a queue event in Cloud Firestore (`queueEvents/{eventId}`)
+ */
+export interface QueueEvent {
+  eventId: string; // "QUEUE-XXXXXX"
+  transactionId: string; // "TXN-YYYY-XXXXXX"
+  farmerId: string; // "FMR-YYYY-XXXXXX"
+  mandiId: string;
+  tokenNumber: number;
+  lane?: string;
+  status: 'WAITING' | 'CALLED' | 'SERVED' | 'SKIPPED';
+  calledAt?: any | null;
+  createdAt: any;
+  farmerName?: string;
+  crop?: string;
+  quantity?: string;
+  operatorId?: string;
+  notes?: string;
+}
+
+/**
+ * Represents a weighment record in Cloud Firestore (`weighments/{weighmentId}`)
+ */
+export interface WeighmentRecord {
+  weighmentId: string; // "WGH-XXXXXX"
+  transactionId: string; // "TXN-YYYY-XXXXXX"
+  farmerId: string; // "FMR-YYYY-XXXXXX"
+  grossWeight: number;
+  tareWeight: number;
+  netWeight: number;
+  unit: 'kg' | 'quintal' | string;
+  operatorId: string;
+  createdAt: any;
+}
+
+/**
+ * Represents a quality check record in Cloud Firestore (`qualityChecks/{qualityCheckId}`)
+ */
+export interface QualityCheckRecord {
+  qualityCheckId: string; // "QC-XXXXXX"
+  transactionId: string; // "TXN-YYYY-XXXXXX"
+  farmerId: string; // "FMR-YYYY-XXXXXX"
+  status: 'PASSED' | 'REJECTED';
+  moisture: number;
+  qualityGrade: 'A' | 'B' | 'C' | 'Reject' | string;
+  remarks?: string;
+  operatorId: string;
+  createdAt: any;
+}
+
+/**
+ * Represents a payment record in Cloud Firestore (`payments/{paymentId}`)
+ */
+export interface PaymentRecord {
+  paymentId: string; // "PAY-YYYY-XXXXXX"
+  transactionId: string; // "TXN-YYYY-XXXXXX"
+  farmerId: string; // "FMR-YYYY-XXXXXX"
+  amount: number;
+  currency: 'INR' | string;
+  status: 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'PENDING';
+  paymentReference: string | null;
+  initiatedAt: any;
+  completedAt: any | null;
+  updatedAt: any;
+}
+
+/**
+ * The CORE TYPE: Represents the entire procurement transaction state in Cloud Firestore (`transactions/{transactionId}`)
  */
 export interface ProcurementTransaction {
-  /** Format: KM-YYYY-NNNNN */
-  id: string;
-  farmerId: string;
-  farmerName: string;
-  farmerPhone: string;
-  centreId: string;
-  centreName: string;
-  crop: CropType;
-  /** Expected quantity in quintals */
-  expectedQuantity: number;
-  /** Booking date in ISO format */
-  bookingDate: string;
-  slotLabel: string;
-  tokenNumber: number;
-  status: TransactionStatus;
-  statusHistory: StatusHistoryEntry[];
-  queuePosition: number | null;
-  /** Estimated wait time in minutes */
-  estimatedWaitMinutes: number | null;
-  /** Recommended arrival time in ISO format */
-  recommendedArrivalTime: string | null;
-  weighing: WeighingRecord | null;
-  qualityCheck: QualityCheckResult | null;
-  procurementAmount: number | null;
-  payment: PaymentInfo | null;
-  exceptions: ExceptionRecord[];
-  /** Timestamp in ISO format */
-  createdAt: string;
-  /** Timestamp in ISO format */
-  updatedAt: string;
-  // Optional convenience aliases for mock compatibility
-  bookingId?: string;
+  transactionId?: string; // "TXN-YYYY-XXXXXX"
+  id: string; // backward compatible / doc id
+  farmerId: string; // "FMR-YYYY-XXXXXX"
+  userId?: string; // Firebase Auth UID
   mandiId?: string;
+  bookingId?: string; // "BOOK-YYYY-XXXXXX"
+  crop: CropType | TransactionCrop | any;
+  farmerName?: string;
+  farmerPhone?: string;
+  centreId?: string;
+  centreName?: string;
+  /** Expected quantity in quintals / kg */
+  expectedQuantity?: number;
+  /** Booking date in ISO format */
+  bookingDate?: string;
+  slotLabel?: string;
+  tokenNumber?: number;
+  status: TransactionStatus;
+  statusHistory?: StatusHistoryEntry[];
+  queuePosition?: number | null;
+  /** Estimated wait time in minutes */
+  estimatedWaitMinutes?: number | null;
+  /** Recommended arrival time in ISO format */
+  recommendedArrivalTime?: string | null;
+  weighing?: WeighingRecord | null;
+  qualityCheck?: QualityCheckResult | null;
+  procurementAmount?: number | null;
+  payment?: PaymentInfo | null;
+  exceptions?: ExceptionRecord[];
+  /** Timestamp in Firestore / ISO */
+  createdAt?: any;
+  /** Timestamp in Firestore / ISO */
+  updatedAt?: any;
+  // Optional convenience aliases for backward compatibility
   actualQuantity?: number;
   estimatedQuantity?: number;
   quantity?: number;

@@ -21,7 +21,7 @@ export function calculateETA(
     (t) =>
       t.centreId === transaction.centreId &&
       t.id !== transaction.id &&
-      t.tokenNumber < transaction.tokenNumber &&
+      (t.tokenNumber || 0) < (transaction.tokenNumber || 0) &&
       (activeStatuses.includes(t.status) || t.status === TransactionStatus.BOOKED)
   ).length;
 

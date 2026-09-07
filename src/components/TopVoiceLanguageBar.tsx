@@ -7,6 +7,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useAppContext } from '../store/app-context';
 import { speechService } from '../services/speech.service';
 
@@ -17,6 +18,8 @@ export interface TopVoiceLanguageBarProps {
   showVoice?: boolean;
   showLang?: boolean;
   showScale?: boolean;
+  showBack?: boolean;
+  onBack?: () => void;
 }
 
 export const TopVoiceLanguageBar: React.FC<TopVoiceLanguageBarProps> = ({
@@ -26,7 +29,10 @@ export const TopVoiceLanguageBar: React.FC<TopVoiceLanguageBarProps> = ({
   showVoice = true,
   showLang = true,
   showScale = true,
+  showBack = false,
+  onBack,
 }) => {
+  const router = useRouter();
   const { state, setLanguage, setTextScale } = useAppContext();
   const currentLang = (state.language || 'hi') as 'hi' | 'or' | 'en';
   const currentScale = state.textScale || 1.0;
@@ -86,11 +92,22 @@ export const TopVoiceLanguageBar: React.FC<TopVoiceLanguageBarProps> = ({
 
   return (
     <View style={[styles.container, { backgroundColor: containerBg, borderBottomColor }]}>
-      {/* Left side: Brand or Screen Indicator */}
+      {/* Left side: Back Button & Brand Indicator */}
       <View style={styles.leftRow}>
+        {showBack && (
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={onBack || (() => router.back())}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <Ionicons name="arrow-back" size={18} color={textColor} />
+          </TouchableOpacity>
+        )}
         <Text style={styles.brandEmoji}>🌾</Text>
         <Text style={[styles.brandText, { color: textColor }]} numberOfLines={1}>
-          {title || (isOr ? 'କିଷାନ ମିତ୍ର' : isHi ? 'किसान मित्र' : 'Kisan Mitra')}
+          {isOr ? 'କିଷାନ ମିତ୍ର' : isHi ? 'किसान मित्र' : 'Kisan Mitra'}
         </Text>
       </View>
 
@@ -223,6 +240,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     marginRight: 8,
+  },
+  backBtn: {
+    marginRight: 8,
+    padding: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   brandEmoji: {
     fontSize: 14,
